@@ -1,0 +1,128 @@
+{
+  "sections": {
+    "services": "Our Services",
+    "security": "Security",
+    "faqs": "FAQs",
+    "btn": "Jump In"
+  },
+  "hero": {
+    "title": "Click, Trade, Cashout",
+    "subtitle": "Trade solo or together. Jumpa is the first multichain Telegram bot that lets you trade, pool funds, split profits, and offramp all inside your chat.",
+    "cta": {
+      "primary": "Jump In",
+      "secondary": "Join Waitlist"
+    }
+  },
+ "services": {
+    "header": {
+      "title": "Our Services",
+      "subtitle": "Everything you need to trade, manage, and earn in one place."
+    },
+    "tabs": [
+      "On/Off Ramps",
+      "Solo Trading",
+      "Telegram Group Chat",
+      "Revenue Sharing"
+    ],
+    "content": [
+      {
+        "title": "Flat & Stablecoin\nOn/Off Ramps",
+        "description": "Off-ramp to local currency in 30 seconds. No middlemen, no friction.",
+        "button": "Jump In",
+        "image": "/service1.png",
+        "theme": {
+            "primary": "#260053", 
+            "secondary": "#EDD5FF"
+        }
+      },
+      {
+        "title": "Solo\nTrading",
+        "description": "Top traders earn fees from every trade they manage. Communities reward their best performers and attract real talent.",
+        "button": "Jump In",
+        "image": "/service2.png",
+        "theme": {
+            "primary": "#016236", 
+            "secondary": "#DFFFDF"
+        }
+      },
+      {
+        "title": "Telegram\nGroup Chat",
+        "description": "Turn your alpha group into a community fund. Join or add jumpa in your group chat, pool capital, trade collectively, and distribute earnings automatically.",
+        "button": "Jump In",
+        "image": "/service3.png",
+        "theme": {
+            "primary": "#0000A3", 
+            "secondary": "#CBCBFF"
+        }
+      },
+      {
+        "title": "Trader\nRevenue Sharing",
+        "description": "Top traders earn fees from every trade they manage. Communities reward their best performers and attract real talent.",
+        "button": "Jump In",
+        "image": "/service4.png",
+        
+        "theme": {
+            "primary": "#754C00", 
+            "secondary": "#FFF2DB"
+        }
+      }
+    ]
+  },
+  "security": {
+    "cards": [
+      {
+        "title": "Jumpa Payment Security",
+        "text": "All payments you make on Jumpa are protected by a personal payment passcode you set during onboarding. You also have your seed phrase.",
+        "color": "#00008B"
+      },
+      {
+        "title": "GREAT SECURITY",
+        "center": true
+      },
+      {
+        "title": "Jumpa Wallet",
+        "text": "Jumpa is a non custodial wallet",
+        "color": "#2d014f"
+      },
+      {
+        "title": "24/7 Customer Support",
+        "text": "",
+        "color": "#ffffff"
+      }
+    ]
+  },
+  "faq": {
+    "header": {
+      "title": "Frequently Asked Question",
+      "subtitle": "Here are some of the most common inquiries we receive to help you make informed decisions with confidence. If you need more details, feel free to reach out!"
+    },
+    "faqs": [
+      {
+        "q": "What crypto currencies does Jumpa support",
+        "a": "Jumpa supports a wide range of blockchains and networks, including Optimism, Ethereum, Solana, Binance Smart Chain, Tron, Polygon, Arbitrum, Base, Celo, and Lisk"
+      },
+      {
+        "q": "Is my money safe?",
+        "a": "Yes. Jumpa is built with security at its core, using end-to-end encryption, secure authentication, and industry-standard protocols to protect your data and transactions. Everything you share on Jumpa remains private and securely handled."
+      },
+      {
+        "q": "What if I loose my phone",
+        "a": "First, you can export your contract address to any other mobile device, and you also have your recovery PIN, which you can change through your email to recover back your wallet."
+      },
+      {
+        "q": "How do I start using Jumpa?",
+        "a": "Getting started is simple. Tap ‘Jump in’ to open a chat with Jumpa on Telegram. You’ll go through a quick setup to create your account, and once that’s complete, you’ll be ready to start trading on Jumpa."
+      },
+      {
+        "q": "What local currencies are available on Jumpa?",
+        "a": "Jumpa currently supports Naira (NGN), Ghana Cedis (GHS),  We’re working on adding more local currencies soon"
+      }
+    ]
+  },
+  "footer": {
+    "company": "Jumpa",
+    "rights": "All Rights Reserved",
+    "policy": "Privacy Policy",
+    "terms": "Terms of Use"
+  }
+}

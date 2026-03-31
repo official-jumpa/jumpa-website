@@ -1,0 +1,431 @@
+.borrow-entry-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Purple Banner */
+.borrow-entry-banner {
+  position: relative;
+  background: #c72ff8;
+  border: 1px dashed #d9cfcf;
+  border-radius: 8px;
+  width: 342px;
+  height: 82px;
+  align-self: center;
+  padding: 21px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.borrow-entry-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 17px; /* 13.8 + 1.6*2 approx? or just standard */
+  height: 17px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.borrow-entry-banner-close img {
+  width: 13.8px;
+  height: 13.8px;
+  display: block;
+  margin-top: 1.6px;
+  margin-left: 1.6px;
+}
+
+.borrow-entry-banner-text {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 145%;
+  color: #fff;
+  font-feature-settings: 'cv03' on, 'cv04' on;
+  text-align: left;
+  letter-spacing: -2%;
+  width: 292px;
+}
+
+/* Input Card */
+.borrow-entry-input-card {
+  display: flex;
+  flex-direction: column;
+  width: 342px;
+  min-height: 106px;
+  align-self: center;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 17px 23px;
+  background: #2d2d2d;
+  border-radius: 16px;
+  gap: 12px;
+}
+
+.borrow-entry-input-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.borrow-entry-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.borrow-entry-clear-btn {
+  background: #1f1f1f;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 34.91px;
+  padding: 5.45px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5.45px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.borrow-entry-clear-btn img {
+  width: 8.03px;
+  height: 8.03px;
+}
+
+.borrow-entry-clear-btn:hover {
+  opacity: 1;
+}
+
+.borrow-entry-input-label {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #d5d5d5;
+  letter-spacing: -0.24px;
+}
+
+.borrow-entry-input-sublabel {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #5a5a5a;
+  letter-spacing: -0.2px;
+}
+
+.borrow-entry-input-placeholder {
+  flex: 1;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  background: transparent;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #d5d5d5;
+  letter-spacing: -0.2px;
+}
+
+.borrow-entry-input-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.borrow-entry-recipient-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  position: absolute;
+  right: 0;
+  top: -15px;
+}
+
+.borrow-entry-new-label {
+  font-size: 11px;
+  color: #5a5a5a;
+  white-space: nowrap;
+}
+
+.borrow-entry-error-text {
+  color: #ff3b30;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.borrow-entry-input-placeholder::placeholder {
+  color: #5a5a5a;
+  opacity: 1;
+}
+
+.borrow-entry-input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.borrow-entry-secondary-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.borrow-entry-available-inline {
+  font-size: 12px;
+  color: #5a5a5a;
+  white-space: nowrap;
+  letter-spacing: -0.24px;
+}
+
+.borrow-entry-input-btn {
+  border: none;
+  border-radius: 24px;
+  padding: 5px 10px;
+  min-width: 71px;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: opacity 200ms ease, background 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.borrow-entry-input-btn--primary {
+  background: #f4f4f4;
+  color: #777;
+}
+
+.borrow-entry-input-btn--primary:active {
+  opacity: 0.8;
+}
+
+.borrow-entry-input-btn--primary.is-disabled {
+  background: #3c3c3c;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.borrow-entry-input-btn--secondary {
+  background: #3c3c3c;
+  color: #777;
+}
+
+.borrow-entry-input-btn--secondary:active {
+  opacity: 0.8;
+}
+
+.borrow-entry-input-btn img {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* Balance Section */
+.borrow-entry-balance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.borrow-entry-hints-row {
+  display: flex;
+  justify-content: space-between;
+  width: 346px;
+  align-self: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.borrow-entry-hint-text {
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 145%;
+  color: #6a59ce;
+  letter-spacing: -2%;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.borrow-entry-balance-card {
+  width: 346px;
+  height: 69px;
+  align-self: center;
+  border: none;
+  border-radius: 16px;
+  background: #2d2d2d;
+  padding: 14.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+}
+
+.borrow-entry-balance-card:active {
+  opacity: 0.8;
+}
+
+.borrow-entry-balance-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.borrow-entry-token-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.borrow-entry-token-icon img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  object-fit: contain;
+}
+
+.borrow-entry-balance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.borrow-entry-balance-label {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 145%;
+  color: #fff;
+  letter-spacing: -0.28px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.borrow-entry-balance-amount {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #5a5a5a;
+  letter-spacing: -0.24px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.borrow-entry-balance-change {
+  border: none;
+  background: #1f1f1f;
+  color: #f4f4f4;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 200ms ease;
+  margin-right: 18px;
+}
+
+.borrow-entry-balance-change:active {
+  opacity: 0.8;
+}
+
+/* Info Card */
+.borrow-entry-info-card {
+  border: 1px dashed #aaa;
+  border-radius: 0;
+  background: transparent;
+  width: 346px;
+  height: 111px;
+  align-self: center;
+  padding: 18px 29px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.borrow-entry-info-text {
+  margin: 0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #d5d5d5;
+  letter-spacing: -0.28px;
+  text-align: left;
+  max-width: 288px;
+}
+
+.borrow-entry-info-apy {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 288px;
+}
+
+.borrow-entry-info-apy span {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #777;
+  letter-spacing: -0.28px;
+  white-space: nowrap;
+}
+
+.borrow-entry-info-apy strong {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #ee9c2e;
+  letter-spacing: -0.28px;
+  white-space: nowrap;
+}

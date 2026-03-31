@@ -1,0 +1,267 @@
+.trade-page {
+  padding: 16px var(--space-xl) 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 90px);
+  background: var(--bg-surface-0);
+  animation: fade-in 0.4s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.trade-header {
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.trade-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.trade-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.trade-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  background: var(--bg-surface-1);
+  padding: 24px;
+  border-radius: 32px;
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.trade-input-card {
+  background: var(--bg-surface-2);
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.2s;
+}
+
+.trade-input-card:focus-within {
+  border-color: var(--primary-400);
+}
+
+.trade-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.trade-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trade-balance {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trade-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trade-amount-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  width: 100%;
+  outline: none;
+  padding: 0;
+}
+
+.trade-amount-input.readonly {
+  opacity: 0.8;
+  cursor: default;
+}
+
+.trade-token-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.trade-token-selector:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.token-icon {
+  font-size: 16px;
+}
+
+.token-symbol {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.trade-switch-container {
+  display: flex;
+  justify-content: center;
+  margin: -16px 0;
+  z-index: 2;
+}
+
+.trade-switch-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-surface-1);
+  border: 3px solid var(--bg-surface-0);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: var(--primary-400);
+}
+
+.trade-switch-btn:hover {
+  transform: rotate(180deg) scale(1.1);
+}
+
+.trade-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 4px;
+  margin-bottom: 8px;
+}
+
+.trade-submit-btn {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #3EC6C6 0%, #30A8A8 100%);
+  color: #000;
+  border: none;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(62, 198, 198, 0.25);
+}
+
+.trade-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(62, 198, 198, 0.35);
+}
+
+.trade-submit-btn:disabled {
+  background: var(--bg-surface-2);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.trade-submit-btn.insufficient {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: none;
+}
+
+/* Success View */
+.success-view {
+  justify-content: center;
+  align-items: center;
+}
+
+.success-card {
+  text-align: center;
+  padding: 40px;
+  background: var(--bg-surface-1);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 320px;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 24px;
+}
+
+.success-card h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.success-msg {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.explorer-link {
+  display: block;
+  color: #3EC6C6;
+  text-decoration: underline;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.refresh-quote-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-tertiary);
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-quote-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary-400);
+}
+
+.refresh-quote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-quote-btn.spinning {
+  animation: spin 1s linear infinite;
+  color: var(--primary-400);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

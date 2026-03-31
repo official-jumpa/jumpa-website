@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.pin-screen-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+}
+
+.pin-screen {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  background: #2D2D2D;
+  border-top-left-radius: 36.49px;
+  border-top-right-radius: 36.49px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px -4px 20px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  padding: 0 24px env(safe-area-inset-bottom);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.pin-screen::-webkit-scrollbar {
+  display: none;
+}
+
+.pin-drag-handle {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  cursor: grab;
+}
+
+.pin-drag-handle img {
+  width: 32px;
+  height: 4px;
+}
+
+.pin-header {
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px 0;
+}
+
+.pin-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-surface-2);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.pin-close img {
+  width: 11.72px;
+  height: 11.72px;
+  opacity: 0.7;
+}
+
+.pin-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.pin-title {
+  font-size: 15.96px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pin-dots {
+  display: flex;
+  gap: 12px;
+}
+
+.pin-dot {
+  width: 50px;
+  height: 50px;
+  border-radius: 9.12px;
+  background: #3C3C3C;
+  border: 1.14px solid #AAAAAA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.pin-dot.error {
+  border-color: #FF2524 !important;
+}
+
+.pin-dot.success {
+  border-color: #25AD3E !important;
+}
+
+.pin-code-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.num-keyboard-section {
+  margin-top: auto;
+  padding-bottom: 30px;
+}
+
+.num-keyboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10% 12px;
+  margin-top: 40px;
+}
+
+.num-keyboard-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  color: #D5D5D5;
+  line-height: 15px;
+}
+
+.num-keyboard-done {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6A59CE;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 15px;
+}
+
+/* Numeric Keyboard */
+.num-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.num-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.num-key {
+  width: 114px;
+  height: 54px;
+  border-radius: 8px;
+  border: none;
+  background: #3C3C3C;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.num-key-wide {
+  width: 232px;
+}
+
+.num-key:active {
+  background: var(--bg-surface-3);
+  transform: scale(0.98);
+}

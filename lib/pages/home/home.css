@@ -1,0 +1,431 @@
+/* ============================================
+   Home Components Shared Styles
+   ============================================ */
+
+/* Wallet Selector */
+.wallet-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-base);
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.wallet-selector:hover {
+  background: var(--bg-surface-2);
+}
+.wallet-selector-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wallet-orb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.wallet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.wallet-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+.wallet-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.wallet-selector-balance {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.wallet-address-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wallet-address {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.wallet-dropdown-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-sm);
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+}
+.wallet-copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0.5;
+}
+.wallet-copy-btn:hover {
+  opacity: 0.8;
+}
+.copied-toast {
+  font-size: 10px;
+  color: var(--success);
+  font-weight: 500;
+  animation: fadeIn var(--transition-fast) forwards;
+}
+
+/* Balance Card */
+.balance-card {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-card);
+  padding: var(--space-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.balance-token-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+.token-icons {
+  height: 20px;
+}
+.token-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-3);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.token-chevron {
+  opacity: 0.6;
+}
+.balance-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.balance-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.balance-amount {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+}
+.balance-decimal {
+  color: #777777;
+}
+.balance-hidden-img {
+  height: 35px;
+}
+.balance-eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+.balance-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.balance-change.up {
+  color: var(--success);
+}
+.balance-change.down {
+  color: var(--error);
+}
+
+/* Quick Actions */
+.quick-actions {
+  width: 100%;
+  height: 43px;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.quick-action-btn {
+  flex: 1;
+  min-width: 0;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #2d2d2d;
+  border: none;
+  border-radius: var(--radius-btn);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.quick-action-btn:hover {
+  background: #353535;
+  color: var(--text-primary);
+}
+.quick-action-btn:active {
+  transform: scale(0.97);
+}
+
+/* Service Grid */
+.service-grid {
+  width: 100%;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #2d2d2d;
+  border-radius: 16px;
+  padding: 0 var(--space-base);
+}
+.service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-xs);
+  font-family: var(--font-family);
+}
+.service-icon {
+  width: 48px;
+  height: 48px;
+  transition: transform var(--transition-fast);
+}
+.service-item:hover .service-icon {
+  transform: scale(1.08);
+}
+.service-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* All Services Overlay */
+.services-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn var(--transition-base) forwards;
+}
+.services-screen {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-modal);
+  padding: var(--space-xl);
+  width: 90%;
+  max-width: 340px;
+  animation: fadeInUp var(--transition-slow) forwards;
+}
+.services-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+.services-screen-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.services-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface-2);
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.services-close:hover {
+  background: var(--bg-surface-3);
+}
+.services-screen-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+/* Quick Transfer */
+.quick-transfer {
+  width: 100%;
+  height: 134px;
+  background: #2d2d2d;
+  border-radius: 16px;
+  padding: var(--space-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.transfer-list {
+  display: flex;
+  gap: var(--space-base);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+  align-items: center;
+}
+.transfer-list::-webkit-scrollbar {
+  display: none;
+}
+.transfer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+.transfer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+}
+.transfer-item:hover .transfer-avatar {
+  transform: scale(1.05);
+}
+.transfer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.transfer-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Banner Cards (image-based) */
+.banner-card {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.banner-card:hover {
+  opacity: 0.9;
+}
+.banner-card:active {
+  transform: scale(0.99);
+}
+.banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.home-loan-section {
+  width: 100%;
+  background: #2d2d2d;
+  border-radius: 16px;
+  padding: var(--space-sm) var(--space-base) var(--space-base);
+}
+
+.home-loan-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.home-loan-section-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.home-loan-card {
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--bg-surface-1);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.home-loan-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-loan-token {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-loan-card p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.home-loan-card span {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.home-loan-card strong {
+  font-size: 12px;
+  color: var(--text-secondary);
+}

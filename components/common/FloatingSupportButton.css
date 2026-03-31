@@ -1,0 +1,27 @@
+.fab-support {
+  position: absolute;
+  bottom: 118px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 100px;
+  background: #F0EEFA; /* var(--Spot-and-overlay-Spot-50) */
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  box-shadow: 0px 9px 49px 0px #8179FF40, 6px 4px 49px 0px #E1DEF540;
+  z-index: 40;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fab-support:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.3);
+}
+
+.fab-support:active {
+  transform: scale(0.95);
+}

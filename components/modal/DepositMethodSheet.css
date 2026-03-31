@@ -1,0 +1,428 @@
+/* Deposit method — first Receive step (Figma-aligned, mobile-first) */
+
+.deposit-method-sheet {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  width: 342px;
+  max-width: calc(100% - 48px);
+  height: 436px;
+  max-height: min(436px, calc(100dvh - 120px));
+  box-sizing: border-box;
+  background: #101010;
+  border-radius: var(--radius-xl, 32px);
+  z-index: 60;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: deposit-sheet-enter var(--transition-slow, 0.35s cubic-bezier(0.4, 0, 0.2, 1)) forwards;
+}
+
+@keyframes deposit-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.deposit-method-sheet-close {
+  position: absolute;
+  top: 14px;
+  /* Figma: left 286px on 342px-wide frame → 21px from right edge */
+  right: 21px;
+  width: 35px;
+  height: 35px;
+  padding: 7.95px;
+  border: none;
+  border-radius: 50.91px;
+  background: #2d2d2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 7.95px;
+  z-index: 2;
+  transition: background var(--transition-fast, 0.15s ease);
+}
+
+.deposit-method-sheet-close:hover {
+  background: #3a3a3a;
+}
+
+.deposit-method-sheet-close-icon {
+  width: 11.72px;
+  height: 11.72px;
+  display: block;
+}
+
+.deposit-method-sheet-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 56px 16px 20px;
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+}
+
+.deposit-method-sheet-icon {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.deposit-method-sheet-headings {
+  width: 300px;
+  max-width: 100%;
+  min-height: 57px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.deposit-method-sheet-title {
+  margin: 0;
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 120%;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.deposit-method-sheet-subtitle {
+  margin: 0;
+  max-width: 286px;
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #95959599;
+}
+
+.deposit-method-sheet-cards {
+  width: 310px;
+  max-width: 100%;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.deposit-method-card {
+  width: 100%;
+  height: 66px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 16px;
+  background: #2d2d2d;
+  cursor: pointer;
+  text-align: left;
+  padding: 14px 19px;
+  display: flex;
+  align-items: center;
+  transition: background var(--transition-fast, 0.15s ease), opacity var(--transition-fast, 0.15s ease);
+}
+
+.deposit-method-card:hover {
+  background: #353535;
+}
+
+.deposit-method-card:active {
+  opacity: 0.92;
+}
+
+.deposit-method-card-row {
+  width: 100%;
+  max-width: 272px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deposit-method-card-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.deposit-method-card-title {
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-size: 14px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #f4f4f4;
+}
+
+.deposit-method-card-title--medium {
+  font-weight: 500;
+}
+
+.deposit-method-card-title--semibold {
+  font-weight: 600;
+}
+
+.deposit-method-card-desc {
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #5a5a5a;
+}
+
+.deposit-method-card-chevron {
+  width: 5px;
+  height: 8px;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+/* ---- Bank transfer step ---- */
+
+.deposit-method-sheet--bank {
+  height: 359px;
+  max-height: min(359px, calc(100dvh - 120px));
+}
+
+.deposit-method-sheet--crypto {
+  height: 480px;
+  max-height: min(480px, calc(100dvh - 60px));
+}
+
+.deposit-sheet-icon-btn {
+  width: 35px;
+  height: 35px;
+  padding: 7.95px;
+  border: none;
+  border-radius: 50.91px;
+  background: #2d2d2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast, 0.15s ease);
+}
+
+.deposit-sheet-icon-btn:hover {
+  background: #3a3a3a;
+}
+
+.deposit-sheet-back-icon {
+  width: 14px;
+  height: 11px;
+  display: block;
+}
+
+.deposit-bank-topbar {
+  position: absolute;
+  top: 14px;
+  left: 23px;
+  width: 298px;
+  max-width: calc(100% - 46px);
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.deposit-bank-main {
+  margin-top: 85px;
+  margin-left: 16px;
+  margin-right: 16px;
+  width: 310px;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.deposit-bank-card-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 13.33px 6.67px 0;
+  box-sizing: border-box;
+}
+
+.deposit-bank-card-icon {
+  width: 66.67px;
+  height: 53.33px;
+  display: block;
+  object-fit: contain;
+}
+
+.deposit-bank-headings {
+  width: 300px;
+  max-width: 100%;
+  min-height: 55px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.deposit-bank-title {
+  margin: 0;
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 120%;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.deposit-bank-subtitle {
+  margin: 0;
+  max-width: 203px;
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #95959599;
+}
+
+.deposit-bank-account-card {
+  width: 100%;
+  min-height: 66px;
+  box-sizing: border-box;
+  background: #2d2d2d;
+  border-radius: 16px;
+  padding: 0;
+}
+
+.deposit-bank-account-row {
+  width: 100%;
+  max-width: 272px;
+  margin: 0 auto;
+  min-height: 39px;
+  padding: 14px 19px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deposit-bank-account-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.deposit-bank-account-number {
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #f4f4f4;
+}
+
+.deposit-bank-account-meta {
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #5a5a5a;
+}
+
+.deposit-bank-copy-btn {
+  width: 83px;
+  min-height: 25px;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid #aaaaaa;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Geist", var(--font-family, sans-serif);
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 145%;
+  letter-spacing: -0.02em;
+  color: #5a5a5a;
+  flex-shrink: 0;
+  transition:
+    color var(--transition-fast, 0.15s ease),
+    border-color var(--transition-fast, 0.15s ease);
+}
+
+.deposit-bank-copy-btn:hover {
+  opacity: 0.9;
+}
+
+.deposit-bank-copy-btn.is-copied {
+  color: #25ad3e;
+  border-color: #25ad3e;
+}
+
+/* QR Code specific styling */
+.deposit-qr-wrapper {
+  margin: 16px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.deposit-qr-code-box {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.deposit-qr-label {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #5a5a5a;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.deposit-qr-address {
+  font-family: monospace;
+  font-size: 12px;
+  color: #ffffff;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.45;
+  max-width: 220px;
+}

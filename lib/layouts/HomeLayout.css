@@ -1,0 +1,143 @@
+/* ============================================
+   JUMPA WALLET — ISOLATED DESIGN SYSTEM
+   ============================================ */
+
+.jumpa-theme-wrapper {
+  /* ---- Brand / Accent ---- */
+  --primary-500: #7C5CFC;
+  --primary-400: #9A84FF;
+  --primary-300: #B8A9FF;
+  --primary-glow: rgba(124, 92, 252, 0.28);
+
+  /* ---- Backgrounds ---- */
+  --bg-app: #171717;
+  --bg-surface-1: #1F1F1F;
+  --bg-surface-2: #252525;
+  --bg-surface-3: #2B2B2B;
+  --bg-modal: #0F0F10;
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+
+  /* ---- Text ---- */
+  --text-primary: #F3F3F5;
+  --text-secondary: #B7B7BE;
+  --text-tertiary: #8B8B93;
+  --text-on-primary: #FFFFFF;
+
+  /* ---- Borders / Lines ---- */
+  --border-subtle: #34343A;
+  --border-soft: #2A2A30;
+  --divider: rgba(255, 255, 255, 0.08);
+
+  /* ---- State Colours ---- */
+  --success: #22C55E;
+  --error: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+
+  /* ---- Card accent tones ---- */
+  --accent-lavender: rgba(124, 92, 252, 0.15);
+  --accent-cream: #F5E6D3;
+  --accent-peach: #FDDCB5;
+  --accent-gold: #C4A46C;
+  --accent-blue: #3B82F6;
+  --accent-pink: #EC4899;
+
+  /* ---- Radius ---- */
+  --radius-card: 20px;
+  --radius-btn: 14px;
+  --radius-pill: 999px;
+  --radius-modal: 24px;
+  --radius-xl: 32px;
+  --radius-pin: 10px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  /* ---- Spacing (8pt base) ---- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-base: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 40px;
+  --space-4xl: 48px;
+
+  /* ---- Top navigation sizing ---- */
+  --topbar-control-size: 32px;
+  --topbar-hamburger-icon-size: 32px;
+  --topbar-avatar-size: 32px;
+  --topbar-settings-icon-size: 22px;
+  --topbar-notification-icon-size: 20px;
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-glow: 0 0 28px rgba(124, 92, 252, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* ---- Font ---- */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Integration Layout */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #000;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+/* Responsive full-screen app container */
+.jumpa-theme-wrapper .phone-frame {
+  width: 100%;
+  max-width: 450px;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg-app);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* App content area */
+.jumpa-theme-wrapper .app-content {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.jumpa-theme-wrapper .app-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scoped Overlays */
+.jumpa-theme-wrapper .overlay-blur {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 55;
+}
+
+.jumpa-theme-wrapper .overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.jumpa-theme-wrapper .fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+}

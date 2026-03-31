@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Testing
+.nyc_output
+coverage
+
+# Misc
+.DS_Store
+*.pem
+*.log
+*.log.*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+*.c9/
+*.sublime-workspace
+
+# OS
+Thumbs.db

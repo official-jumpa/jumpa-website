@@ -1,0 +1,129 @@
+/* ============================================
+   Private Key Screen
+   ============================================ */
+
+.pk-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-app);
+  padding: 60px var(--space-xl) 0;
+}
+
+.pk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-base) 0;
+}
+
+.pk-back {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-surface-2);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.pk-back:hover { background: var(--bg-surface-3); }
+.pk-back img { opacity: 0.7; }
+
+.pk-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pk-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-top: var(--space-lg);
+}
+
+.pk-warning {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.pk-key-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-btn);
+  padding: var(--space-base);
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.pk-key-box.blurred .pk-key-text {
+  filter: blur(6px);
+  user-select: none;
+}
+
+.pk-key-box.revealed .pk-key-text {
+  filter: none;
+}
+
+.pk-key-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+  line-height: 1.5;
+  transition: filter var(--transition-base);
+}
+
+.pk-eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.pk-eye-btn img { opacity: 0.6; }
+.pk-eye-btn:hover img { opacity: 1; }
+
+.pk-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: var(--space-sm) 0;
+  transition: color var(--transition-fast);
+}
+.pk-copy-btn:hover { color: var(--text-primary); }
+.pk-copy-btn img { opacity: 0.6; }
+
+.pk-done-btn {
+  width: 100%;
+  padding: var(--space-base);
+  background: var(--primary-500);
+  border: none;
+  border-radius: var(--radius-btn);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-family);
+  margin-bottom: var(--space-2xl);
+  transition: all var(--transition-fast);
+}
+.pk-done-btn:hover { background: var(--primary-400); }
+.pk-done-btn:active { transform: scale(0.98); }
