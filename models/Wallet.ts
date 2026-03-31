@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, model, models } from "mongoose";
 
 export interface IWallet extends Document {
+  userId: string | null;
   address: string;
   addresses: {
     eth: string;
@@ -26,6 +27,7 @@ export interface IWallet extends Document {
 
 const WalletSchema = new Schema<IWallet>(
   {
+    userId: { type: String, default: null, index: true },
     address: { type: String, required: true, unique: true, lowercase: true },
     addresses: {
       eth: { type: String, required: true },

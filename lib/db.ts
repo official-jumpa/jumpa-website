@@ -25,3 +25,5 @@ export async function connectDB(): Promise<mongoose.Connection> {
   console.log("MongoDB connected:", cached.host);
   return cached;
 }
+
+export { mongoose };

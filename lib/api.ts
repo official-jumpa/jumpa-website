@@ -129,9 +129,9 @@ export async function login(
   });
 }
 
-/** GET /api/auth/me — returns the current session wallet (null if not logged in) */
+/** GET /api/user/wallet — returns the current session wallet (null if not logged in) */
 export async function getMe(): Promise<ApiResponse<MeResponse>> {
-  return request<MeResponse>("/api/auth/me");
+  return request<MeResponse>("/api/user/wallet");
 }
 
 /** POST /api/auth/logout — clears the session cookie */

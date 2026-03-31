@@ -51,14 +51,21 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
           const isActive = selectedSymbol === token.symbol;
 
           return (
-            <button
+            <div
               key={token.symbol}
               className={`wallet-row ${isActive ? 'active' : ''}`}
               onClick={() => {
                 onSelectAsset(token.symbol);
                 onClose();
               }}
-              type="button"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onSelectAsset(token.symbol);
+                  onClose();
+                }
+              }}
             >
               <div className="wallet-row-left">
                 <div 
@@ -90,7 +97,7 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
                 {wholePart}
                 {hasDecimal && <span className="balance-decimal">{decimalPart}</span>}
               </span>
-            </button>
+            </div>
           );
         })}
       </div>

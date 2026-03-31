@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
+  --background: #0a0a0a;
   --foreground: #ffffff;
 }
 
@@ -39,12 +39,5 @@ body {
           "dark-bg": "#0a0a0a",
           "dark-card": "#1C1C1E",
           "dark-border": "#333333",
-      }
-
-      ,
-      spacing: {
-        "30": "7.5rem",
-          "45": "11.25rem",
- 
 
 ; */

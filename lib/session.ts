@@ -37,28 +37,46 @@ export async function createSession(payload: SessionPayload): Promise<void> {
   });
 }
 
-/** Verify the JWT session from the incoming request */
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { connectDB } from "./db";
+import { Wallet } from "@/models/Wallet";
+
+export interface SessionPayload {
+  address: string;
+  userId?: string;
+}
+
+/** Verify the BetterAuth session from the incoming request or headers */
 export async function getSession(
-  req: NextRequest,
+  req?: NextRequest,
 ): Promise<SessionPayload | null> {
-  const token =
-    req.cookies.get(COOKIE_NAME)?.value ??
-    req.headers
-      .get("cookie")
-      ?.split(";")
-      .find((c) => c.trim().startsWith(`${COOKIE_NAME}=`))
-      ?.split("=")[1];
-
-  if (!token) {
-    console.log("[Session] No session cookie found");
-    return null;
-  }
-
   try {
-    const { payload } = await jwtVerify(token, secretKey);
-    return payload as unknown as SessionPayload;
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      console.log("[Session] No BetterAuth session found");
+      return null;
+    }
+
+    await connectDB();
+    
+    // Find the wallet associated with this session user
+    const wallet = await Wallet.findOne({ userId: session.user.id });
+    
+    if (!wallet) {
+      console.warn("[Session] No wallet linked to user:", session.user.id);
+      return null;
+    }
+
+    return { 
+        address: wallet.address,
+        userId: session.user.id
+    };
   } catch (err) {
-    console.warn("[Session] Invalid or expired session token:", err);
+    console.warn("[Session] Failed to retrieve BetterAuth session:", err);
     return null;
   }
 }

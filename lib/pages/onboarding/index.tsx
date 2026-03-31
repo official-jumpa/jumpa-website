@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginDrawer from "../auth/login/login-drawer";
@@ -78,10 +79,13 @@ export default function Onboarding() {
         return (
             <div className="flex h-full min-h-0 w-full flex-col justify-center items-center overflow-y-auto overflow-x-hidden bg-black bg-cover bg-center bg-no-repeat pb-6 sm:pb-10 px-4 sm:px-6">
                 <div className="flex items-center justify-center mb-8 sm:mb-12 w-[80%] sm:w-full max-w-[250px]">
-                    <img
+                    <Image
                         src="/large-logo.svg"
                         alt="Jumpa Logo"
+                        width={1000}
+                        height={500}
                         className="w-full h-full object-contain"
+                        priority
                     />
                 </div>
 
@@ -101,30 +105,30 @@ export default function Onboarding() {
             case 0:
                 return (
                     <div className="onboarding-illustration-container">
-                        <img src={onboardOne} className="onboarding-img-one" alt="" />
-                        <img src={nairaIcon} className="onboarding-naira-icon" alt="" />
+                        <Image src={onboardOne} width={600} height={600} className="onboarding-img-one" alt="" priority />
+                        <Image src={nairaIcon} width={240} height={240} className="onboarding-naira-icon" alt="" priority />
                     </div>
                 );
             case 1:
                 return (
                     <div className="onboarding-illustration-container">
-                        <img src={onboardTwo} className="onboarding-img-two" alt="" />
-                        <img src={coinImg} className="onboarding-coin-left" alt="" />
-                        <img src={dollarIcon} className="onboarding-coin-right" alt="" />
+                        <Image src={onboardTwo} width={600} height={600} className="onboarding-img-two" alt="" />
+                        <Image src={coinImg} width={280} height={280} className="onboarding-coin-left" alt="" />
+                        <Image src={dollarIcon} width={400} height={400} className="onboarding-coin-right" alt="" />
                     </div>
                 );
             case 2:
                 return (
                     <div className="onboarding-illustration-container onboarding-illustration--screen3">
-                        <img src={chartRing} className="onboarding-chart-ring" alt="" />
-                        <img src={listCards} className="onboarding-list-cards" alt="" />
-                        <img src={goldCoinSecondary} className="onboarding-gold-coin-alt" alt="" />
+                        <Image src={chartRing} width={330} height={330} className="onboarding-chart-ring" alt="" />
+                        <Image src={listCards} width={420} height={420} className="onboarding-list-cards" alt="" />
+                        <Image src={goldCoinSecondary} width={496} height={496} className="onboarding-gold-coin-alt" alt="" />
                     </div>
                 );
             case 3:
                 return (
                     <div className="onboarding-illustration-container">
-                        <img src={chartMockup} className="onboarding-chart-mockup" alt="" />
+                        <Image src={chartMockup} fill className="onboarding-chart-mockup" alt="" />
                     </div>
                 );
             default:
