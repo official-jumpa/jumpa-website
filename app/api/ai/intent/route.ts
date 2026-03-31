@@ -6,13 +6,14 @@ import { mainnet } from "viem/chains";
 import Anthropic from "@anthropic-ai/sdk";
 import { ChatLog } from "@/models/ChatLog";
 import { Wallet } from "@/models/Wallet";
+import { connectDB } from "@/lib/db";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
 });
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "missing-key",
+  apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
 /**
@@ -29,6 +30,7 @@ export const POST = withAuth(async (req, { address }) => {
   }
 
   const { prompt } = parsed.data;
+  await connectDB()
 
   try {
     const wallet = await Wallet.findOne({ address });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { ChatLog } from "@/models/ChatLog";
+import { connectDB } from "@/lib/db";
 
 /**
  * GET /api/ai/history
@@ -8,6 +9,7 @@ import { ChatLog } from "@/models/ChatLog";
  */
 export const GET = withAuth(async (req, { address }) => {
   try {
+    await connectDB();
     const chatLog = await ChatLog.findOne({ walletAddress: address });
 
     if (!chatLog) {
