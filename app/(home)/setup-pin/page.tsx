@@ -46,9 +46,57 @@ export default function SetupPinPage() {
     const handleNumberClick = (num: string) => {
         setError(null);
         if (step === 1) {
-            if (pin.length < 4) setPin(prev => prev + num);
+            if (pin.length < 4) {
+                const newPin = pin + num;
+                setPin(newPin);
+                if (newPin.length === 4) {
+                    // Slight delay for visual feedback before auto-advancing
+                    setTimeout(() => setStep(2), 200);
+                }
+            }
         } else {
-            if (confirmPin.length < 4) setConfirmPin(prev => prev + num);
+            if (confirmPin.length < 4) {
+                const newConfirm = confirmPin + num;
+                setConfirmPin(newConfirm);
+                if (newConfirm.length === 4) {
+                    // Auto-submit when confirmation PIN is complete
+                    setTimeout(() => handleAutoSubmit(pin, newConfirm), 200);
+                }
+            }
+        }
+    };
+
+    const handleAutoSubmit = async (p: string, cp: string) => {
+        if (p === cp) {
+            setIsSettingUp(true);
+            setError(null);
+            try {
+                const response = await fetch("/api/auth/social-setup", {
+                    method: "POST",
+                    body: JSON.stringify({ pin: p }),
+                });
+                const resData = await response.json();
+                
+                if (response.ok) {
+                    saveWalletLocally({
+                        address: resData.address,
+                        addresses: resData.addresses,
+                    });
+                    router.push("/home");
+                } else {
+                    setError(resData.error || "Failed to set up wallet");
+                    setConfirmPin("");
+                    setStep(1); // Reset to first step on error
+                }
+            } catch (err) {
+                setError("Network error. Please check your connection.");
+            } finally {
+                setIsSettingUp(false);
+            }
+        } else {
+            setError("PINs do not match. Please try again.");
+            setConfirmPin("");
+            // Optional: short delay before shaking or resetting
         }
     };
 
@@ -62,47 +110,15 @@ export default function SetupPinPage() {
 
     const handleContinue = async () => {
         if (step === 1) {
-            if (pin.length === 4) {
-                setStep(2);
-            }
+            if (pin.length === 4) setStep(2);
         } else {
-            if (confirmPin.length === 4) {
-                if (pin === confirmPin) {
-                    setIsSettingUp(true);
-                    setError(null);
-                    try {
-                        const response = await fetch("/api/auth/social-setup", {
-                            method: "POST",
-                            body: JSON.stringify({ pin }),
-                        });
-                        const resData = await response.json();
-                        
-                        if (response.ok) {
-                            // Save wallet locally for consistency with existing app logic
-                            saveWalletLocally({
-                                address: resData.address,
-                                addresses: resData.addresses,
-                            });
-                            router.push("/home"); // Redirect to home
-                        } else {
-                            setError(resData.error || "Failed to set up wallet");
-                        }
-                    } catch (err) {
-                        setError("Network error. Please check your connection.");
-                    } finally {
-                        setIsSettingUp(false);
-                    }
-                } else {
-                    setError("PINs do not match. Please try again.");
-                    setConfirmPin("");
-                }
-            }
+            if (confirmPin.length === 4) handleAutoSubmit(pin, confirmPin);
         }
     };
 
     const renderDots = (value: string) => {
         return (
-            <div className="flex gap-4 mb-8">
+            <div className="flex gap-4 mb-4">
                 {[0, 1, 2, 3].map((i) => (
                     <motion.div
                         key={i}
@@ -111,7 +127,7 @@ export default function SetupPinPage() {
                             scale: value.length > i ? 1.2 : 1,
                             backgroundColor: value.length > i ? "#8B5CF6" : "#262626"
                         }}
-                        className="w-4 h-4 rounded-full border border-[#333]"
+                        className="w-3.5 h-3.5 rounded-full border border-[#333]"
                     />
                 ))}
             </div>
@@ -119,23 +135,23 @@ export default function SetupPinPage() {
     };
 
     return (
-        <div className="fixed inset-0 bg-[#050505] text-white flex flex-col items-center px-6 py-12 overflow-hidden">
+        <div className="fixed inset-0 bg-[#050505] text-white flex flex-col items-center px-6 pt-6 pb-4 overflow-hidden">
             <div className="w-full max-w-md flex flex-col h-full">
                 
                 {/* Back Button */}
                 <button
                     onClick={() => step === 2 ? setStep(1) : router.back()}
-                    className="w-10 h-10 rounded-full bg-[#18181A] flex items-center justify-center mb-10 hover:bg-[#262626] transition-colors"
+                    className="w-9 h-9 rounded-full bg-[#18181A] flex items-center justify-center mb-6 hover:bg-[#262626] transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5 text-white/70" />
+                    <ArrowLeft className="w-4 h-4 text-white/70" />
                 </button>
 
                 {/* Title & Description */}
-                <div className="mb-12">
-                    <h1 className="text-3xl font-bold tracking-tight mb-4 leading-tight">
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold tracking-tight mb-2 leading-tight">
                         {step === 1 ? "Create your\nTransaction PIN" : "Confirm your\nTransaction PIN"}
                     </h1>
-                    <p className="text-[#A1A1AA] text-[15px] leading-relaxed">
+                    <p className="text-[#A1A1AA] text-[14px] leading-relaxed">
                         {step === 1 
                             ? "This 4-digit PIN will be used to encrypt your wallet and authorize all your transactions."
                             : "Please re-enter your PIN to confirm it's correct."
@@ -144,7 +160,7 @@ export default function SetupPinPage() {
                 </div>
 
                 {/* PIN Display */}
-                <div className="flex flex-col items-center flex-1 justify-start pt-4">
+                <div className="flex flex-col items-center justify-start py-2">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={step}
@@ -158,7 +174,7 @@ export default function SetupPinPage() {
                                 <motion.p 
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="text-red-400 text-sm font-medium"
+                                    className="text-red-400 text-xs font-medium"
                                 >
                                     {error}
                                 </motion.p>
@@ -168,13 +184,13 @@ export default function SetupPinPage() {
                 </div>
 
                 {/* Number Pad Area - Stick to bottom */}
-                <div className="mt-auto w-full pb-6">
-                    <div className="grid grid-cols-3 gap-y-6 gap-x-8 w-full mb-10">
+                <div className="mt-auto w-full">
+                    <div className="grid grid-cols-3 gap-y-2 gap-x-8 w-full mb-6">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                             <button
                                 key={num}
                                 onClick={() => handleNumberClick(num.toString())}
-                                className="h-16 text-3xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all"
+                                className="h-14 text-2xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all"
                             >
                                 {num}
                             </button>
@@ -182,29 +198,29 @@ export default function SetupPinPage() {
                         <div className="empty" />
                         <button
                             onClick={() => handleNumberClick("0")}
-                            className="h-16 text-3xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all"
+                            className="h-14 text-2xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all"
                         >
                             0
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="h-16 text-3xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all text-[#A1A1AA]"
+                            className="h-14 text-2xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-90 transition-all text-[#A1A1AA]"
                         >
-                            <Delete className="w-8 h-8" />
+                            <Delete className="w-7 h-7" />
                         </button>
                     </div>
 
                     <Button
                         onClick={handleContinue}
                         disabled={(step === 1 ? pin.length : confirmPin.length) !== 4 || isSettingUp}
-                        className={`w-full h-14 rounded-2xl font-semibold text-lg transition-all shadow-xl flex items-center justify-center gap-2
+                        className={`w-full h-12 rounded-xl font-semibold text-base transition-all shadow-xl flex items-center justify-center gap-2
                             ${(step === 1 ? pin.length : confirmPin.length) === 4 && !isSettingUp
                                 ? "bg-[#8B5CF6] text-white hover:bg-[#7C3AED]"
                                 : "bg-[#262626] text-[#555] opacity-50"
                             }`}
                     >
                         {isSettingUp ? "Setting up..." : (step === 1 ? "Continue" : "Set PIN")}
-                        {!isSettingUp && <ChevronRight className="w-5 h-5" />}
+                        {!isSettingUp && <ChevronRight className="w-4 h-4" />}
                     </Button>
                 </div>
             </div>
