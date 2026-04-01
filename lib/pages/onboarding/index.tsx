@@ -128,7 +128,7 @@ export default function Onboarding() {
             case 3:
                 return (
                     <div className="onboarding-illustration-container">
-                        <Image src={chartMockup} fill className="onboarding-chart-mockup" alt="" />
+                        <Image src={chartMockup} fill className="" alt="" />
                     </div>
                 );
             default:
