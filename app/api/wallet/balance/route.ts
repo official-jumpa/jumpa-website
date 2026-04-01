@@ -22,7 +22,7 @@ const flowTestnet = defineChain({
 
 const ethClient = createPublicClient({
   chain: mainnet,
-  transport: http("https://cloudflare-eth.com"),
+  transport: http("https://ethereum-rpc.publicnode.com"),
 });
 
 const flowEvmClient = createPublicClient({
@@ -41,6 +41,12 @@ const ERC20_ABI = [
   },
 ] as const;
 
+// In-memory cache for balances
+// Key: wallet address
+// Value: { timestamp: number, data: any }
+const balanceCache: Record<string, { timestamp: number, data: any }> = {};
+const CACHE_TTL = 35 * 1000; // 35 seconds
+
 /**
  * GET /api/wallet/balance
  */
@@ -49,6 +55,14 @@ export const GET = withAuth(async (req, { address }) => {
   const ethAddress = address.length === 66 || (address.startsWith("0x") && address.length === 66+2)
     ? publicKeyToAddress(address.startsWith("0x") ? address as `0x${string}` : `0x${address}`)
     : address as `0x${string}`;
+
+  // Check cache
+  const now = Date.now();
+  const cached = balanceCache[ethAddress];
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    console.log(`[Balance] Returning cached balance for ${ethAddress} (age: ${Math.round((now - cached.timestamp)/1000)}s)`);
+    return NextResponse.json(cached.data);
+  }
 
   try {
     const ethBalancePromise = ethClient.getBalance({ address: ethAddress })
@@ -83,7 +97,7 @@ export const GET = withAuth(async (req, { address }) => {
       usdcBalancePromise,
     ]);
 
-    return NextResponse.json({
+    const result = {
       address: ethAddress,
       addresses: {
         eth: ethAddress,
@@ -117,7 +131,15 @@ export const GET = withAuth(async (req, { address }) => {
           priceUsd: "1.00",
         }
       ]
-    });
+    };
+
+    // Update cache
+    balanceCache[ethAddress] = {
+        timestamp: now,
+        data: result
+    };
+
+    return NextResponse.json(result);
   } catch (err) {
     console.error("[Balance] General error:", err);
     return NextResponse.json({ error: "Failed to fetch balances" }, { status: 500 });
