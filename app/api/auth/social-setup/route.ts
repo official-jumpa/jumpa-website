@@ -8,12 +8,13 @@ import { connectDB } from "@/lib/db";
 import { encryptMnemonic } from "@/lib/crypto";
 import { deriveAddresses } from "@/lib/wallet";
 import { Wallet } from "@/models/Wallet";
+import { WALLET_PIN_LENGTH, WALLET_PIN_REGEX } from "@/lib/wallet-pin";
 
 /**
  * POST /api/auth/social-setup
- * 
+ *
  * Finalizes social login by generating a wallet for the authenticated user.
- * Requires a 4-digit PIN in the body.
+ * Requires a 6-digit PIN in the body.
  */
 export async function POST(req: NextRequest) {
     const session = await auth.api.getSession({
@@ -29,8 +30,11 @@ export async function POST(req: NextRequest) {
 
     const { pin } = await req.json().catch(() => ({}));
 
-    if (!pin || !/^\d{4}$/.test(pin)) {
-        return NextResponse.json({ error: "Valid 4-digit PIN required" }, { status: 400 });
+    if (!pin || !WALLET_PIN_REGEX.test(pin)) {
+        return NextResponse.json(
+            { error: `Valid ${WALLET_PIN_LENGTH}-digit PIN required` },
+            { status: 400 },
+        );
     }
 
     await connectDB();

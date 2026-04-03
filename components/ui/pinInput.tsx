@@ -1,4 +1,5 @@
-import { useRef } from 'react'; // Add this import
+import { useRef } from "react";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 // pin input
 function PinInput({
@@ -17,11 +18,11 @@ function PinInput({
 
         const next = value.split("");
         next[index] = val;
-        const newValue = next.join("").slice(0, 4);
+        const newValue = next.join("").slice(0, WALLET_PIN_LENGTH);
 
         onChange(newValue);
 
-        if (val && index < 3) {
+        if (val && index < WALLET_PIN_LENGTH - 1) {
             inputs.current[index + 1]?.focus();
         }
     };
@@ -34,7 +35,7 @@ function PinInput({
 
     return (
         <div className="flex gap-3">
-            {[0, 1, 2, 3].map((i) => (
+            {Array.from({ length: WALLET_PIN_LENGTH }, (_, i) => (
                 <input
                     key={i}
                     ref={(el) => {

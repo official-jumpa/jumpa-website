@@ -12,6 +12,9 @@ build/
 .nyc_output
 coverage
 
+# TypeScript
+*.tsbuildinfo
+
 # Misc
 .DS_Store
 *.pem

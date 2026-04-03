@@ -1,22 +1,79 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { generatePhrase } from "@/lib/api";
 import { useNavigate, useLocation } from "@/lib/pages-adapter";
+import { cn } from "@/lib/utils";
+
+function readStoredNavAction(): string | undefined {
+    if (typeof window === "undefined") return undefined;
+    try {
+        const raw = sessionStorage.getItem("jumpa_nav_state");
+        if (!raw) return undefined;
+        const parsed = JSON.parse(raw) as { action?: string };
+        return parsed?.action;
+    } catch {
+        return undefined;
+    }
+}
 
 // Indices of the words to hide in the confirmation step (0-based)
 const MISSING_INDICES = [2, 5, 9];
 
+const NOT_SUPPORTED_IMPORT_MSG =
+    "24-word and private key import will be available soon.";
+
+function normalizeHexKey(raw: string): string {
+    const t = raw.trim();
+    if (t.startsWith("0x") || t.startsWith("0X")) return t.slice(2);
+    return t;
+}
+
+function isLikelyWordPhrase(raw: string): boolean {
+    const t = raw.trim();
+    return /\s/.test(t) || t.split(/\s+/).filter(Boolean).length > 1;
+}
+
+function parseWordCount(raw: string): number {
+    return raw.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function isHexOnly(s: string): boolean {
+    return /^[0-9a-fA-F]+$/.test(s);
+}
+
+/** Enables Import button styling: 12/24 words, or 32/64 hex (optional 0x). */
+function canEnableImport(raw: string): boolean {
+    const t = raw.trim();
+    if (!t) return false;
+    if (isLikelyWordPhrase(t)) {
+        const n = parseWordCount(t);
+        return n === 12 || n === 24;
+    }
+    const hex = normalizeHexKey(t);
+    if (!isHexOnly(hex)) return false;
+    return hex.length === 32 || hex.length === 64;
+}
+
 export default function SaveRecoveryPhrase() {
     const navigate = useNavigate();
     const location = useLocation();
-    const action = location.state?.action ?? "create";
-    const isImport = action === "import";
+    const searchParams = useSearchParams();
+    const flow = searchParams.get("flow");
+
+    const isImport = useMemo(() => {
+        if (flow === "create") return false;
+        if (flow === "import") return true;
+        const fromState = location.state?.action ?? readStoredNavAction();
+        return fromState === "import";
+    }, [flow, location.state]);
 
 
     const [step, setStep] = useState<1 | 2>(1);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [phraseConfirmError, setPhraseConfirmError] = useState<string | null>(null);
 
     // Create flow state
     const [phraseWords, setPhraseWords] = useState<string[]>([]);
@@ -26,6 +83,7 @@ export default function SaveRecoveryPhrase() {
     // Import flow state
     const [importInput, setImportInput] = useState("");
     const [importError, setImportError] = useState<string | null>(null);
+    const [importFocused, setImportFocused] = useState(false);
 
     // Drag and drop state
     const [bankWords, setBankWords] = useState<string[]>([]);
@@ -34,8 +92,12 @@ export default function SaveRecoveryPhrase() {
     // Determine if Step 2 is fully filled out
     const isStep2Complete = MISSING_INDICES.every((index) => filledSlots[index] !== null);
 
-    // --- Fetch phrase on mount ---
+    // --- Fetch phrase on mount (create flow only) ---
     useEffect(() => {
+        if (isImport) {
+            return;
+        }
+
         let cancelled = false; // prevents StrictMode double-invoke race
 
         generatePhrase()
@@ -62,10 +124,11 @@ export default function SaveRecoveryPhrase() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isImport]);
 
     const handleContinue = () => {
         if (step === 1 && isRevealed) {
+            setPhraseConfirmError(null);
             setStep(2);
         } else if (step === 2 && isStep2Complete) {
             const allCorrect = MISSING_INDICES.every(
@@ -73,11 +136,13 @@ export default function SaveRecoveryPhrase() {
             );
 
             if (!allCorrect) {
-                console.warn("[SaveRecovery] Phrase confirmation failed — wrong words placed.");
-                alert("Some words are incorrect. Please check and try again.");
+                setPhraseConfirmError(
+                    "Those words don't match your recovery phrase. Re-check the empty positions and try again."
+                );
                 return;
             }
 
+            setPhraseConfirmError(null);
             const phrase = phraseWords.join(" ");
             navigate("/create-account", { state: { phrase, action: "create" } });
         }
@@ -85,6 +150,7 @@ export default function SaveRecoveryPhrase() {
 
     const handleBack = () => {
         if (step === 2) {
+            setPhraseConfirmError(null);
             setStep(1);
         } else {
             navigate(-1);
@@ -101,6 +167,7 @@ export default function SaveRecoveryPhrase() {
 
     const handleDrop = (e: React.DragEvent, targetIndex: number) => {
         e.preventDefault();
+        setPhraseConfirmError(null);
         const word = e.dataTransfer.getData("word");
         const sourceIndexRaw = e.dataTransfer.getData("sourceIndex");
         const sourceIndex = sourceIndexRaw ? parseInt(sourceIndexRaw) : null;
@@ -134,11 +201,13 @@ export default function SaveRecoveryPhrase() {
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
     const handleRemoveFromSlot = (index: number, word: string) => {
+        setPhraseConfirmError(null);
         setFilledSlots((prev) => ({ ...prev, [index]: null }));
         setBankWords((prev) => [...prev, word]);
     };
 
     const handleSelectWord = (word: string) => {
+        setPhraseConfirmError(null);
         // Find the first empty slot among missing indices
         const firstEmptyIndex = MISSING_INDICES.find((idx) => filledSlots[idx] === null);
         if (firstEmptyIndex === undefined) return;
@@ -147,66 +216,120 @@ export default function SaveRecoveryPhrase() {
         setBankWords((prev) => prev.filter((w) => w !== word));
     };
 
-    // --- Import mode: validate and navigate with the user's phrase ---
-    const handleImportSubmit = () => {
-        const words = importInput.trim().split(/\s+/);
+    // --- Import mode: validate and navigate (12-word only until backend supports more) ---
+    const importReady = canEnableImport(importInput);
 
-        if (words.length !== 12) {
-            setImportError(`Expected 12 words, got ${words.length}`);
-            return;
+    const handleImportSubmit = () => {
+        if (!importReady) return;
+        const t = importInput.trim();
+
+        if (isLikelyWordPhrase(t)) {
+            const words = t.split(/\s+/).filter(Boolean);
+            if (words.length === 12) {
+                setImportError(null);
+                navigate("/create-account", {
+                    state: { phrase: words.join(" "), action: "import" },
+                });
+                return;
+            }
+            if (words.length === 24) {
+                setImportError(NOT_SUPPORTED_IMPORT_MSG);
+                return;
+            }
         }
 
-        const phrase = words.join(" ");
-        navigate("/create-account", { state: { phrase, action: "import" } });
+        const hex = normalizeHexKey(t);
+        if (isHexOnly(hex) && (hex.length === 32 || hex.length === 64)) {
+            setImportError(NOT_SUPPORTED_IMPORT_MSG);
+        }
     };
 
     // --- Import mode render ---
     if (isImport) {
+        const fieldActive = importFocused || importInput.length > 0;
+
         return (
-            <div className="fixed inset-0 w-full h-dvh bg-[#050505] text-white flex flex-col px-6 py-12">
-                <div className="flex-1 flex flex-col mt-2 w-full max-w-md mx-auto">
+            <div
+                className="fixed inset-0 flex h-dvh w-full flex-col bg-[#050505] text-white"
+                style={{ fontFamily: "Geist, sans-serif" }}
+            >
+                <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-4 pt-10">
                     <button
+                        type="button"
                         onClick={() => navigate(-1)}
-                        className="w-10 h-10 rounded-full bg-[#18181A] flex items-center justify-center mb-6 hover:bg-[#262626] transition-colors"
+                        className="mb-8 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#18181A] transition-colors hover:bg-[#262626]"
+                        aria-label="Back"
                     >
-                        <ArrowLeft className="w-5 h-5 text-white/70" />
+                        <ArrowLeft className="h-5 w-5 text-white/70" />
                     </button>
 
-                    <h1 className="text-3xl font-bold tracking-tight mb-4 leading-snug">
-                        Import your wallet
+                    <h1 className="mb-3 text-[32px] font-semibold leading-[145%] tracking-normal text-white">
+                        Enter your Secret{" "}
+                        <span className="whitespace-nowrap">Phrase or keys</span>
                     </h1>
-                    <p className="text-[#A1A1AA] text-[15px] leading-relaxed mb-8">
-                        Enter your 12-word Secret Recovery Phrase separated by spaces.
+                    <p className="mb-0 text-base font-normal leading-[145%] tracking-[-0.02em] text-[#DFDFDF]">
+                        Use spaces between words if using a
+                        <br />
+                        recovery phrase.
                     </p>
 
-                    <textarea
-                        value={importInput}
-                        onChange={(e) => {
-                            setImportInput(e.target.value);
-                            setImportError(null);
-                        }}
-                        placeholder="word1 word2 word3 ... word12"
-                        rows={4}
-                        className="w-full bg-[#141414] border border-[#262626] focus:border-[#8B5CF6] outline-none rounded-xl p-4 text-white text-sm placeholder:text-[#52525B] resize-none leading-relaxed transition-colors"
-                    />
-
-                    {importError && (
-                        <p className="text-red-400 text-xs mt-2">{importError}</p>
-                    )}
-
-                    <p className="text-[#52525B] text-xs mt-2">
-                        {importInput.trim() ? `${importInput.trim().split(/\s+/).length} / 12 words` : ""}
-                    </p>
+                    <div className="mt-[80px] w-full">
+                        <label htmlFor="import-secret-input" className="sr-only">
+                            Recovery phrase or private key
+                        </label>
+                        <div
+                            className={cn(
+                                "box-border flex h-[50px] w-[331px] max-w-full flex-row items-center justify-between rounded-lg border border-solid px-4 py-[10px] transition-[border-color]",
+                                fieldActive
+                                    ? "border-[#6A59CE]"
+                                    : "border-[#AAAAAA]",
+                            )}
+                        >
+                            <input
+                                id="import-secret-input"
+                                autoComplete="off"
+                                spellCheck={false}
+                                value={importInput}
+                                onChange={(e) => {
+                                    setImportInput(e.target.value);
+                                    setImportError(null);
+                                }}
+                                onFocus={() => setImportFocused(true)}
+                                onBlur={() => setImportFocused(false)}
+                                placeholder="Recovery a private key/ pharse"
+                                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm font-normal leading-5 tracking-normal text-[#5A5A5A] outline-none placeholder:text-[#5A5A5A]"
+                                style={{
+                                    WebkitTextSecurity:
+                                        importInput.length > 0 ? "disc" : "none",
+                                }}
+                            />
+                        </div>
+                        {importError ? (
+                            <p
+                                className="mt-3 max-w-[331px] text-center text-sm leading-relaxed text-red-400"
+                                role="alert"
+                            >
+                                {importError}
+                            </p>
+                        ) : null}
+                    </div>
                 </div>
 
-                <div className="mt-auto pb-6 w-full max-w-md mx-auto">
-                    <Button
+                <div className="mx-auto w-full max-w-md shrink-0 px-6 pb-8 pt-4">
+                    <button
+                        type="button"
                         onClick={handleImportSubmit}
-                        disabled={importInput.trim().split(/\s+/).length !== 12}
-                        className="w-full h-14 rounded-xl font-semibold text-base transition-colors shadow-none bg-[#7C3AED] text-white hover:bg-[#6D28D9] disabled:opacity-50"
+                        disabled={!importReady}
+                        className={cn(
+                            "h-12 w-full max-w-[342px] rounded-[10px] px-2.5 text-base font-normal leading-[145%] transition-colors",
+                            "text-[#F4F4F4]",
+                            importReady
+                                ? "bg-[#6A59CE] hover:bg-[#5c4ec0]"
+                                : "cursor-not-allowed bg-[#C3BDEB]",
+                        )}
                     >
-                        Continue
-                    </Button>
+                        Import
+                    </button>
                 </div>
             </div>
         );
@@ -351,6 +474,14 @@ export default function SaveRecoveryPhrase() {
 
             {/* Bottom Actions */}
             <div className="mt-auto pb-6 w-full max-w-md mx-auto flex flex-col gap-4">
+                {step === 2 && phraseConfirmError ? (
+                    <p
+                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center text-sm leading-relaxed text-red-300"
+                        role="alert"
+                    >
+                        {phraseConfirmError}
+                    </p>
+                ) : null}
                 <Button
                     onClick={handleContinue}
                     disabled={(step === 1 && !isRevealed) || (step === 2 && !isStep2Complete)}

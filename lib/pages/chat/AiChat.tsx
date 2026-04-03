@@ -1,39 +1,52 @@
 "use client"
-import { useState, useRef, useEffect, useCallback, type RefObject, type ReactNode } from "react";
-import { useRouter } from 'next/navigation';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  forwardRef,
+  type RefObject,
+  type ReactNode,
+} from "react";
 import { getAiHistory, postAiIntent, postTransfer, postSwap } from "@/lib/api";
-import { useNavigate, useLocation } from "@/lib/pages-adapter";
+import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
 import "@/lib/pages/home/home.css";
 import "./AiChat.css";
 
-const chatCloseIcon = '/assets/icons/actions/close.svg';
-const jumpaLogoMark = '/assets/icons/actions/Group 85 (1).svg';
-const ellipseDot = '/assets/icons/actions/ellipse 29.svg';
-const docIcon = '/assets/icons/actions/doc.svg';
-const voiceIcon = '/assets/icons/actions/voice.svg';
-const sendBtnIcon = '/assets/icons/actions/sendbtn.svg';
+const backIcon = "/assets/icons/actions/back.svg";
+const docIcon = "/assets/icons/actions/doc.svg";
+const docActiveIcon = "/assets/icons/actions/doc-active.svg";
+const fileMenuIcon = "/assets/icons/actions/file.svg";
+const cameraMenuIcon = "/assets/icons/actions/camera.svg";
+const photoMenuIcon = "/assets/icons/actions/photo.svg";
+const voiceIcon = "/assets/icons/actions/voice%20copy.svg";
+const sendBtnIcon = "/assets/icons/actions/sendbtn.svg";
+
+const COMPOSER_ACTION_IMG = { width: 37, height: 29 } as const;
 const vnIcon = '/assets/icons/actions/vn.svg';
-const deleteIcon = '/assets/icons/actions/delete.svg';
-const sendCheckIcon = '/assets/icons/actions/send.svg';
-const sendingIcon = '/assets/icons/actions/sending.svg';
-const userAvatarImg = '/assets/images/avatars/prince.svg';
-const botAvatarImg = '/assets/icons/actions/bot.png';
+const cancelVnIcon = '/assets/icons/actions/cancel-vn.svg';
+const confirmVnIcon = '/assets/icons/actions/confirm-vn.svg';
+const processVnIcon = '/assets/icons/actions/process.svg';
+
+const MAX_PENDING_CHAT_IMAGES = 8;
 
 type Screen =
-  | "welcome"
   | "home"
   | "chat-empty"
   | "chat-responding"
   | "voice-recording"
   | "voice-processing";
 
-type VoiceFlow = "none" | "recording" | "preview" | "sending";
+type VoiceFlow = "none" | "recording" | "sending";
 
 interface Message {
   id: string;
   role: "user" | "ai";
   text: string;
+  /** Object URLs for images attached to this user message */
+  imageUrls?: string[];
   time?: string;
   isTransaction?: boolean;
   isVoice?: boolean;
@@ -45,6 +58,19 @@ interface Message {
     isScheduled?: boolean;
   };
   transactionParams?: any;
+}
+
+/** First paragraph as heading when split by \\n\\n and heading is reasonably short */
+function splitAiMessage(text: string): { heading: string | null; body: string } {
+  const t = text.trim();
+  const idx = t.indexOf("\n\n");
+  if (idx === -1) return { heading: null, body: t };
+  const head = t.slice(0, idx).trim();
+  const body = t.slice(idx + 2).trim();
+  if (!body || head.length > 160 || head.includes("\n")) {
+    return { heading: null, body: t };
+  }
+  return { heading: head, body };
 }
 
 function TextWithLinks({ text }: { text: string }) {
@@ -76,101 +102,46 @@ function TextWithLinks({ text }: { text: string }) {
 const SUGGESTIONS = [
   "How do i invest $100 ?",
   "Analyze my portfolio and suggest investment",
-  "Show my recent transfers and fees",
-  "Buy AMA when price is -10% with 100$",
+  "Purchase and iPhone",
   "Exchange $30 to USDC Sol",
   "Exchange $30 to USDC ETh",
 ];
 
-const WELCOME_BUBBLES = [
-  { key: "1", cls: "welcome-bubble--1", text: "Send $20 to $Nita" },
-  { key: "2", cls: "welcome-bubble--2", text: "Send two thousand naira to 9169495 opay" },
-  { key: "3", cls: "welcome-bubble--3", text: "How much have i sent to Ola in two months ?" },
-  { key: "4", cls: "welcome-bubble--4", text: "Send $2 to Lukas by 2pm tomorrow sol usdc" },
-  { key: "5", cls: "welcome-bubble--5", text: "Send 2 Sol 7EcDhSYGxX" },
-  { key: "6", cls: "welcome-bubble--6", text: "Send 2 ETh to 0x456d9347342" },
-  { key: "7", cls: "welcome-bubble--7", text: "Send 2 Ama to AMa56d9347342" },
-] as const;
-
-function useAutosizeTextArea(textAreaRef: RefObject<HTMLTextAreaElement | null>, value: string) {
+function useAutosizeTextArea(
+  textAreaRef: RefObject<HTMLTextAreaElement | null>,
+  value: string,
+  layoutBump = 0,
+) {
   useEffect(() => {
     const el = textAreaRef.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(160, Math.max(40, el.scrollHeight))}px`;
-  }, [value, textAreaRef]);
+  }, [value, textAreaRef, layoutBump]);
 }
 
-function TypingDots() {
+function AiThinkingIndicator() {
   return (
-    <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 2px" }}>
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          style={{
-            width: 11,
-            height: 11,
-            borderRadius: "50%",
-            background: "rgb(124, 92, 252)",
-            display: "inline-block",
-            animation: `jbounce 1.2s ${i * 0.2}s infinite ease-in-out`,
-          }}
-        />
-      ))}
+    <div className="chat-msg-thinking" role="status" aria-label="AI is thinking">
+      <span className="chat-msg-thinking-dot" />
+      <span className="chat-msg-thinking-dot" />
+      <span className="chat-msg-thinking-dot" />
     </div>
-  );
-}
-
-function WelcomeOverlay({ onClose }: { onClose: () => void }) {
-  return (
-    <>
-      <div className="chat-welcome-backdrop" aria-hidden />
-      <div
-        className="chat-welcome-modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="chat-welcome-title"
-        aria-modal="true"
-      >
-        <button type="button" className="chat-welcome-close" onClick={onClose} aria-label="Close">
-          <img src={chatCloseIcon} alt="" width={12} height={12} />
-        </button>
-        <img src={jumpaLogoMark} alt="" className="chat-welcome-logo" width={118} height={67} />
-        <div className="chat-welcome-headings">
-          <h2 id="chat-welcome-title" className="chat-welcome-title">
-            Welcome to Jumpa
-          </h2>
-          <p className="chat-welcome-subtitle">Text our Ai to run all transactions</p>
-        </div>
-        <div className="chat-welcome-bubbles" aria-hidden>
-          {WELCOME_BUBBLES.map((b) => (
-            <div key={b.key} className={`welcome-bubble ${b.cls}`}>
-              <p className="welcome-bubble-text">{b.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
   );
 }
 
 function ChatHomePanel({ onPromptClick, onBack }: { onPromptClick: (p: string) => void; onBack: () => void }) {
   return (
     <div className="chat-home-panel-inner">
-      <header className="chat-home-header">
-        <div className="flex justify-between items-start mb-4">
-          <div className="chat-home-title-block">
-            <p className="chat-home-title-line">HI dear</p>
-            <p className="chat-home-title-line">Start your transactions..</p>
-          </div>
-          <button
-            onClick={onBack}
-            className="text-white/50 text-xs hover:text-white transition-colors"
-          >
-            ← Back to Home
-          </button>
+      <button type="button" className="chat-ai-back-btn" onClick={onBack} aria-label="Back">
+        <img src={backIcon} alt="" width={14} height={11} className="chat-ai-back-icon" />
+      </button>
+      <header className="chat-ai-header-block">
+        <div className="chat-ai-title-lines">
+          <p>Hi Dear</p>
+          <p>Start your transactions..</p>
         </div>
-        <p className="chat-home-subtitle">Prompt our Ai to make any transaction .</p>
+        <p className="chat-ai-subtitle">Prompt our Ai to make any transaction .</p>
       </header>
       <div className="chat-suggestions">
         {SUGGESTIONS.map((s, i) => (
@@ -180,7 +151,7 @@ function ChatHomePanel({ onPromptClick, onBack }: { onPromptClick: (p: string) =
             className="chat-suggestion-row"
             onClick={() => onPromptClick(s)}
           >
-            <img src={ellipseDot} alt="" className="chat-suggestion-dot" width={12} height={12} />
+            <span className="chat-suggestion-bullet" aria-hidden />
             <div className="chat-suggestion-text-wrap">
               <p className="chat-suggestion-text">{s}</p>
             </div>
@@ -203,16 +174,21 @@ interface ChatComposerProps {
   voicePreviewBars: number;
   textAreaRef: RefObject<HTMLTextAreaElement | null>;
   onMic: () => void;
-  onDoc: () => void;
+  attachMenuOpen: boolean;
+  onAttachToggle: () => void;
+  onAttachClose: () => void;
   onTypingSend: () => void;
   onIdleSendClick: () => void;
   onRecordingCancel: () => void;
-  onRecordingStopToPreview: () => void;
-  onPreviewCancel: () => void;
-  onPreviewSend: () => void;
+  /** Stop recording and start send (shows process icon while sending) */
+  onRecordingConfirmSend: () => void;
+  pendingAttachmentPreviews: { id: string; url: string }[];
+  onRemovePendingAttachment: (id: string) => void;
+  onImageFilesSelected: (files: FileList | null) => void;
 }
 
-function ChatComposer({
+const ChatComposer = forwardRef<HTMLDivElement, ChatComposerProps>(function ChatComposer(
+  {
   value,
   onChange,
   voiceFlow,
@@ -220,20 +196,39 @@ function ChatComposer({
   voicePreviewBars,
   textAreaRef,
   onMic,
-  onDoc,
+  attachMenuOpen,
+  onAttachToggle,
+  onAttachClose,
   onTypingSend,
   onIdleSendClick,
   onRecordingCancel,
-  onRecordingStopToPreview,
-  onPreviewCancel,
-  onPreviewSend,
-}: ChatComposerProps) {
-  useAutosizeTextArea(textAreaRef, value);
+  onRecordingConfirmSend,
+  pendingAttachmentPreviews,
+  onRemovePendingAttachment,
+  onImageFilesSelected,
+},
+  ref,
+) {
+  const filesInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const photosInputRef = useRef<HTMLInputElement>(null);
+
+  useAutosizeTextArea(textAreaRef, value, pendingAttachmentPreviews.length);
+
+  useEffect(() => {
+    if (!attachMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onAttachClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [attachMenuOpen, onAttachClose]);
 
   const isVoice = voiceFlow !== "none";
-  const isTyping = !isVoice && value.trim().length > 0;
 
-  const wrapClass = isTyping ? "chat-input-gradient-wrap chat-input-gradient-wrap--expanded" : "chat-input-gradient-wrap";
+  const placeholder = "Send a message..";
+
+  const dockClass = "chat-composer-dock-gradient";
 
   let row: ReactNode;
 
@@ -246,18 +241,27 @@ function ChatComposer({
             <img key={`${n}-${i}`} src={vnIcon} alt="" className="chat-vn-icon" />
           ))}
         </div>
-        <div className="chat-input-icons" style={{ width: "auto", gap: 8 }}>
-          <button type="button" className="chat-composer-voice-btn" onClick={onRecordingCancel} aria-label="Cancel recording">
-            <img src={deleteIcon} alt="" />
+        <div className="chat-composer-voice-actions chat-composer-voice-actions--vn-pills">
+          <button
+            type="button"
+            className="chat-composer-voice-btn chat-composer-voice-btn--pill-icon"
+            onClick={onRecordingCancel}
+            aria-label="Cancel recording"
+          >
+            <img src={cancelVnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
           </button>
-          <button type="button" className="chat-composer-voice-btn" onClick={onRecordingStopToPreview} aria-label="Stop and preview">
-            <img src={sendCheckIcon} alt="" />
+          <button
+            type="button"
+            className="chat-composer-voice-btn chat-composer-voice-btn--pill-icon"
+            onClick={onRecordingConfirmSend}
+            aria-label="Stop recording and send"
+          >
+            <img src={confirmVnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
           </button>
         </div>
       </div>
     );
-  } else if (voiceFlow === "preview" || voiceFlow === "sending") {
-    const sending = voiceFlow === "sending";
+  } else if (voiceFlow === "sending") {
     row = (
       <div className="chat-input-row chat-input-row--voice">
         <div className="chat-vn-strip">
@@ -265,93 +269,176 @@ function ChatComposer({
             <img key={i} src={vnIcon} alt="" className="chat-vn-icon" />
           ))}
         </div>
-        <div className="chat-input-icons" style={{ width: "auto", gap: 8 }}>
+        <div className="chat-composer-voice-actions chat-composer-voice-actions--vn-pills">
           <button
             type="button"
-            className="chat-composer-voice-btn"
-            onClick={onPreviewCancel}
-            disabled={sending}
-            aria-label="Discard voice note"
+            className="chat-composer-voice-btn chat-composer-voice-btn--pill-icon"
+            disabled
+            aria-label="Cancel"
           >
-            <img src={deleteIcon} alt="" />
+            <img src={cancelVnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
           </button>
           <button
             type="button"
-            className="chat-composer-voice-btn"
-            onClick={onPreviewSend}
-            disabled={sending}
-            aria-label={sending ? "Sending" : "Send voice note"}
+            className="chat-composer-voice-btn chat-composer-voice-btn--pill-icon"
+            disabled
+            aria-label="Processing voice note"
           >
-            <img src={sending ? sendingIcon : sendCheckIcon} alt="" />
+            <img src={processVnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
           </button>
         </div>
       </div>
     );
-  } else if (isTyping) {
-    row = (
-      <div className="chat-input-row chat-input-row--typing">
-        <textarea
-          ref={textAreaRef}
-          className="chat-input-textarea"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Send a message..."
-          rows={1}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onTypingSend();
-            }
-          }}
-        />
-        <button type="button" className="chat-composer-send-large" onClick={onTypingSend} aria-label="Send message">
-          <img src={sendBtnIcon} alt="" />
-        </button>
-      </div>
-    );
   } else {
     row = (
-      <div className="chat-input-row">
+      <div className="chat-composer-stack">
+        {pendingAttachmentPreviews.length > 0 ? (
+          <div className="chat-composer-pending-images">
+            {pendingAttachmentPreviews.map((p) => (
+              <div key={p.id} className="chat-composer-pending-thumb-wrap">
+                <img className="chat-composer-pending-thumb" src={p.url} alt="" />
+                <button
+                  type="button"
+                  className="chat-composer-pending-remove"
+                  onClick={() => onRemovePendingAttachment(p.id)}
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <textarea
           ref={textAreaRef}
-          className="chat-input-textarea"
+          className="chat-composer-textarea-idle"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Send a message..."
+          placeholder={placeholder}
           rows={1}
-          style={{ minHeight: 38, maxHeight: 44 }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && value.trim()) {
+            if (e.key === "Enter" && !e.shiftKey && (value.trim() || pendingAttachmentPreviews.length > 0)) {
               e.preventDefault();
               onTypingSend();
             }
           }}
         />
-        <div className="chat-input-icons">
-          <button type="button" className="chat-input-icon-btn" onClick={onDoc} aria-label="Attach document">
-            <img src={docIcon} alt="" />
-          </button>
-          <button type="button" className="chat-input-icon-btn" onClick={onMic} aria-label="Voice note">
-            <img src={voiceIcon} alt="" />
-          </button>
-          <button type="button" className="chat-input-icon-btn" onClick={onIdleSendClick} aria-label="Send">
-            <img src={sendBtnIcon} alt="" />
-          </button>
+        <div className="chat-composer-icons-row">
+          <div className="chat-composer-attach-anchor">
+            {attachMenuOpen ? (
+              <div className="chat-attach-menu" role="menu" aria-label="Attach file">
+                <input
+                  ref={filesInputRef}
+                  type="file"
+                  className="chat-hidden-file-input"
+                  tabIndex={-1}
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    onImageFilesSelected(e.target.files);
+                    e.target.value = "";
+                    onAttachClose();
+                  }}
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="chat-hidden-file-input"
+                  tabIndex={-1}
+                  onChange={(e) => {
+                    onImageFilesSelected(e.target.files);
+                    e.target.value = "";
+                    onAttachClose();
+                  }}
+                />
+                <input
+                  ref={photosInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="chat-hidden-file-input"
+                  tabIndex={-1}
+                  multiple
+                  onChange={(e) => {
+                    onImageFilesSelected(e.target.files);
+                    e.target.value = "";
+                    onAttachClose();
+                  }}
+                />
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-attach-menu-row chat-attach-menu-row--first"
+                  onClick={() => filesInputRef.current?.click()}
+                >
+                  <span className="chat-attach-menu-label">Files</span>
+                  <img src={fileMenuIcon} alt="" className="chat-attach-menu-icon chat-attach-menu-icon--file" />
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-attach-menu-row"
+                  onClick={() => cameraInputRef.current?.click()}
+                >
+                  <span className="chat-attach-menu-label">Camera</span>
+                  <img src={cameraMenuIcon} alt="" className="chat-attach-menu-icon chat-attach-menu-icon--camera" />
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-attach-menu-row"
+                  onClick={() => photosInputRef.current?.click()}
+                >
+                  <span className="chat-attach-menu-label">Photos</span>
+                  <img src={photoMenuIcon} alt="" className="chat-attach-menu-icon chat-attach-menu-icon--photo" />
+                </button>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              className="chat-composer-asset-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAttachToggle();
+              }}
+              aria-label="Attach"
+              aria-expanded={attachMenuOpen}
+            >
+              <img
+                src={attachMenuOpen ? docActiveIcon : docIcon}
+                alt=""
+                width={COMPOSER_ACTION_IMG.width}
+                height={COMPOSER_ACTION_IMG.height}
+              />
+            </button>
+          </div>
+          <div className="chat-composer-icons-right">
+            <button type="button" className="chat-composer-asset-btn" onClick={onMic} aria-label="Voice note">
+              <img src={voiceIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
+            </button>
+            <button type="button" className="chat-composer-asset-btn" onClick={onIdleSendClick} aria-label="Send">
+              <img src={sendBtnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  const showAttachChrome = attachMenuOpen && !isVoice;
+
   return (
-    <div className="chat-composer-section">
-      <div className={wrapClass}>
-        <div className="chat-input-inner">
-          {row}
-        </div>
+    <div ref={ref} className="chat-composer-section">
+      {showAttachChrome ? (
+        <div className="chat-attach-backdrop" role="presentation" onClick={onAttachClose} />
+      ) : null}
+      <div className={dockClass}>
+        <div className="chat-composer-dock-inner">{row}</div>
       </div>
     </div>
   );
-}
+});
 
 function ChatScreen({
   messages,
@@ -376,117 +463,97 @@ function ChatScreen({
 
   return (
     <div className="ai-chat-chat-screen">
-      <div className="px-5 flex justify-end">
-        <button
-          onClick={onBack}
-          className="text-white/40 text-xs uppercase tracking-wider hover:text-white transition-colors py-4"
-        >
-          Close Chat
+      <header className="chat-thread-header">
+        <button type="button" className="chat-ai-back-btn chat-thread-back-btn" onClick={onBack} aria-label="Back">
+          <img src={backIcon} alt="" width={14} height={11} className="chat-ai-back-icon" />
         </button>
-      </div>
+      </header>
       <div className="ai-chat-messages">
         {messages.map((m) => (
-          <div key={m.id} style={{ marginBottom: 18 }}>
+          <div
+            key={m.id}
+            className={`chat-msg-turn ${m.role === "user" ? "chat-msg-turn--user" : "chat-msg-turn--ai"}`}
+          >
             {m.role === "user" ? (
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end", gap: 8 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                  <div
-                    style={{
-                      background: "rgba(124, 92, 252, 0.15)",
-                      color: "#fff",
-                      padding: "12px 16px",
-                      borderRadius: "18px 18px 4px 18px",
-                      fontSize: 13,
-                      maxWidth: 260,
-                      lineHeight: 1.5,
-                      border: "1px solid rgba(124, 92, 252, 0.1)"
-                    }}
-                  >
-                    {m.isVoice ? "🎤 Voice message" : m.text}
+              m.imageUrls?.length ? (
+                <div className="chat-msg-user-row">
+                  <div className="chat-msg-user-media-stack">
+                    <div className="chat-msg-user-media-row">
+                      {m.imageUrls.map((src, idx) => (
+                        <div
+                          key={`${m.id}-img-${idx}`}
+                          className={
+                            idx === 1
+                              ? "chat-msg-user-media-item chat-msg-user-media-item--tilt"
+                              : "chat-msg-user-media-item"
+                          }
+                        >
+                          <img src={src} alt="" />
+                        </div>
+                      ))}
+                    </div>
+                    {m.text.trim() ? (
+                      <div className="chat-msg-user-bubble chat-msg-user-bubble--under-media">
+                        <p className="chat-msg-user-text">{m.text}</p>
+                      </div>
+                    ) : null}
                   </div>
-                  {m.time && (
-                    <span style={{ color: "rgb(124, 92, 252)", opacity: 0.8, fontSize: 11 }}>
-                      Read • {m.time}
-                    </span>
-                  )}
                 </div>
-                <img src={userAvatarImg} alt="" className="chat-msg-avatar chat-msg-avatar--user" />
+              ) : (
+                <div className="chat-msg-user-row">
+                  <div className="chat-msg-user-bubble">
+                    <p className="chat-msg-user-text">{m.isVoice ? "Voice message" : m.text}</p>
+                  </div>
+                </div>
+              )
+            ) : m.isTransaction ? (
+              <div className="chat-msg-ai-row chat-msg-ai-row--transaction">
+                <button
+                  type="button"
+                  onClick={() => onTransactionClick(m)}
+                  className="chat-msg-tx-wrap"
+                >
+                  <div className="chat-msg-tx-label">{m.transactionDetails?.label}</div>
+                  <div className="chat-msg-tx-card">
+                    <div className="chat-msg-tx-strong">Withdrawal initiated!</div>
+                    <div>{m.transactionDetails?.sent}</div>
+                    <div>{m.transactionDetails?.to}</div>
+                    <div className="chat-msg-tx-result">{m.transactionDetails?.result}</div>
+                  </div>
+                </button>
               </div>
             ) : (
-              <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-end", gap: 8 }}>
-                <img src={botAvatarImg} alt="" className="chat-msg-avatar chat-msg-avatar--bot" />
-                {m.isTransaction ? (
-                  <button
-                    onClick={() => onTransactionClick(m)}
-                    className="flex flex-col gap-2 text-left w-full max-w-[260px] active:scale-95 transition-transform"
-                  >
-                    <div
-                      style={{
-                        background: "rgb(124, 92, 252)",
-                        color: "#fff",
-                        padding: "8px 16px",
-                        borderRadius: 20,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        display: "inline-block",
-                      }}
-                    >
-                      {m.transactionDetails?.label}
-                    </div>
-                    <div
-                      style={{
-                        background: "rgba(255, 255, 255, 0.05)",
-                        color: "#fff",
-                        padding: "12px 16px",
-                        borderRadius: "4px 18px 18px 18px",
-                        fontSize: 13,
-                        width: "100%",
-                        lineHeight: 1.7,
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                        border: "1px solid rgba(255, 255, 255, 0.08)",
-                        overflowWrap: "anywhere",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      <div style={{ fontWeight: 700 }}>Withdrawal initiated!</div>
-                      <div>{m.transactionDetails?.sent}</div>
-                      <div>{m.transactionDetails?.to}</div>
-                      <div style={{ color: "#3EC6C6", fontWeight: 600 }}>{m.transactionDetails?.result}</div>
-                    </div>
-                  </button>
-                ) : (
-                  <div
-                    style={{
-                      background: "rgba(255, 255, 255, 0.05)",
-                      color: "#fff",
-                      padding: "12px 16px",
-                      borderRadius: "4px 18px 18px 18px",
-                      fontSize: 13,
-                      maxWidth: 280,
-                      lineHeight: 1.6,
-                      whiteSpace: "pre-line",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
-                      overflowWrap: "anywhere",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    <TextWithLinks text={m.text} />
+              (() => {
+                const { heading, body } = splitAiMessage(m.text);
+                return (
+                  <div className="chat-msg-ai-block">
+                    {heading ? (
+                      <>
+                        <p className="chat-msg-ai-heading">{heading}</p>
+                        <div className="chat-msg-ai-body">
+                          <TextWithLinks text={body} />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="chat-msg-ai-body chat-msg-ai-body--solo">
+                        <TextWithLinks text={body} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()
             )}
           </div>
         ))}
 
-        {showTyping && (
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-            <img src={botAvatarImg} alt="" className="chat-msg-avatar chat-msg-avatar--bot" />
-            <div style={{ background: "rgba(124, 92, 252, 0.1)", borderRadius: "4px 18px 18px 18px", padding: "8px 14px" }}>
-              <TypingDots />
+        {showTyping ? (
+          <div className="chat-msg-turn chat-msg-turn--ai">
+            <div className="chat-msg-thinking-wrap">
+              <span className="chat-msg-thinking-accent" aria-hidden />
+              <AiThinkingIndicator />
             </div>
           </div>
-        )}
+        ) : null}
         <div ref={endRef} />
       </div>
       {composer}
@@ -572,8 +639,7 @@ function VoiceScreen({ processing }: { processing: boolean }) {
 
 export default function AiChat() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [screen, setScreen] = useState<Screen>("welcome");
+  const [screen, setScreen] = useState<Screen>("home");
 
   // Persistent messages from the backend
   const [messages, setMessages] = useState<Message[]>([]);
@@ -584,6 +650,153 @@ export default function AiChat() {
   const [recordingTick, setRecordingTick] = useState(0);
   const [voicePreviewBars, setVoicePreviewBars] = useState(8);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<{ id: string; url: string }[]>([]);
+  const phoneFrameRef = useRef<HTMLDivElement>(null);
+  const aiChatRootRef = useRef<HTMLDivElement>(null);
+  const composerSectionRef = useRef<HTMLDivElement>(null);
+
+  const updateComposerLayout = useCallback(() => {
+    const frame = phoneFrameRef.current;
+    const composer = composerSectionRef.current;
+    const root = aiChatRootRef.current;
+    if (!root) return;
+    if (!composer) {
+      root.style.setProperty("--ai-composer-spacer", "0px");
+      return;
+    }
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    const vv = window.visualViewport;
+    const keyboard =
+      vv != null ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
+
+    composer.style.setProperty("--ai-composer-keyboard-inset", `${keyboard}px`);
+
+    if (frame) {
+      const r = frame.getBoundingClientRect();
+      if (isMobile) {
+        composer.style.left = `${r.left}px`;
+        composer.style.width = `${r.width}px`;
+        composer.style.transform = "none";
+        composer.style.maxWidth = "none";
+      } else {
+        const w = Math.min(390, r.width);
+        composer.style.left = `${r.left + (r.width - w) / 2}px`;
+        composer.style.width = `${w}px`;
+        composer.style.transform = "none";
+        composer.style.maxWidth = "none";
+      }
+    } else if (isMobile) {
+      composer.style.left = "0";
+      composer.style.width = "100%";
+      composer.style.maxWidth = "none";
+      composer.style.transform = "none";
+    } else {
+      composer.style.left = "50%";
+      composer.style.width = "";
+      composer.style.maxWidth = "390px";
+      composer.style.transform = "translateX(-50%)";
+    }
+
+    root.style.setProperty(
+      "--ai-composer-spacer",
+      `${Math.ceil(composer.getBoundingClientRect().height)}px`,
+    );
+  }, []);
+
+  useLayoutEffect(() => {
+    const composer = composerSectionRef.current;
+    const vv = window.visualViewport;
+
+    let raf = 0;
+    const scheduleLayout = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        updateComposerLayout();
+      });
+    };
+
+    const ro =
+      typeof ResizeObserver !== "undefined" && composer
+        ? new ResizeObserver(scheduleLayout)
+        : null;
+    if (composer && ro) {
+      ro.observe(composer);
+    }
+
+    const mobileMq = window.matchMedia("(max-width: 768px)");
+    const onMobileMq = () => scheduleLayout();
+    if (typeof mobileMq.addEventListener === "function") {
+      mobileMq.addEventListener("change", onMobileMq);
+    } else {
+      mobileMq.addListener(onMobileMq);
+    }
+
+    vv?.addEventListener("resize", scheduleLayout);
+    vv?.addEventListener("scroll", scheduleLayout);
+    window.addEventListener("resize", scheduleLayout);
+    scheduleLayout();
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro?.disconnect();
+      vv?.removeEventListener("resize", scheduleLayout);
+      vv?.removeEventListener("scroll", scheduleLayout);
+      window.removeEventListener("resize", scheduleLayout);
+      if (typeof mobileMq.removeEventListener === "function") {
+        mobileMq.removeEventListener("change", onMobileMq);
+      } else {
+        mobileMq.removeListener(onMobileMq);
+      }
+    };
+  }, [
+    updateComposerLayout,
+    screen,
+    inputValue,
+    voiceFlow,
+    showTyping,
+    messages.length,
+    pendingAttachments.length,
+  ]);
+
+  const appendImageFiles = useCallback((files: FileList | null) => {
+    if (!files?.length) return;
+    const imgs = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!imgs.length) return;
+    setPendingAttachments((prev) => {
+      const next = [...prev];
+      for (const file of imgs) {
+        if (next.length >= MAX_PENDING_CHAT_IMAGES) break;
+        next.push({
+          id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          url: URL.createObjectURL(file),
+        });
+      }
+      return next;
+    });
+  }, []);
+
+  const removePendingAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => {
+      const hit = prev.find((p) => p.id === id);
+      if (hit) URL.revokeObjectURL(hit.url);
+      return prev.filter((p) => p.id !== id);
+    });
+  }, []);
+
+  const clearAllPendingAttachments = useCallback(() => {
+    setPendingAttachments((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.url));
+      return [];
+    });
+  }, []);
+
+  useEffect(() => {
+    if (inputValue.trim()) setAttachMenuOpen(false);
+  }, [inputValue]);
 
   // Fetch history on mount
   useEffect(() => {
@@ -605,8 +818,6 @@ export default function AiChat() {
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
-  const showWelcomeOverlay = screen === "welcome";
-
   useEffect(() => {
     if (voiceFlow !== "recording") return;
     const id = window.setInterval(() => setRecordingTick((t) => t + 1), 110);
@@ -621,7 +832,8 @@ export default function AiChat() {
   const hideHomeDiscover =
     screen === "chat-empty" ||
     screen === "chat-responding" ||
-    (screen === "home" && (inputValue.length > 0 || voiceFlow !== "none"));
+    (screen === "home" &&
+      (inputValue.length > 0 || voiceFlow !== "none" || pendingAttachments.length > 0));
 
   const enterThreadIfNeeded = useCallback(() => {
     if (screen === "home") setScreen("chat-empty");
@@ -629,24 +841,30 @@ export default function AiChat() {
 
   const handleSendText = useCallback(async () => {
     const t = inputValue.trim();
-    if (!t) return;
+    const imageUrls = pendingAttachments.map((p) => p.url);
+    if (!t && imageUrls.length === 0) return;
 
     enterThreadIfNeeded();
+    setAttachMenuOpen(false);
     const userMsg: Message = {
       id: `u-${Date.now()}`,
       role: "user",
       text: t,
+      ...(imageUrls.length > 0 ? { imageUrls: [...imageUrls] } : {}),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
+    setPendingAttachments([]);
     resetVoice();
     setScreen("chat-responding");
     setShowTyping(true);
 
+    const intentText = t || "User shared image(s).";
+
     try {
-      const res = await postAiIntent(t);
+      const res = await postAiIntent(intentText);
       setShowTyping(false);
 
       if (res.data) {
@@ -711,7 +929,7 @@ export default function AiChat() {
         },
       ]);
     }
-  }, [inputValue, enterThreadIfNeeded, resetVoice]);
+  }, [inputValue, pendingAttachments, enterThreadIfNeeded, resetVoice]);
 
   const handleVoiceSendFinal = useCallback(() => {
     setVoiceFlow("sending");
@@ -825,52 +1043,64 @@ export default function AiChat() {
 
   const composerEl = (
     <ChatComposer
+      ref={composerSectionRef}
       value={inputValue}
       onChange={setInputValue}
       voiceFlow={voiceFlow}
       recordingTick={recordingTick}
       voicePreviewBars={voicePreviewBars}
       textAreaRef={textAreaRef}
-      onDoc={() => { }}
+      attachMenuOpen={attachMenuOpen}
+      onAttachToggle={() => setAttachMenuOpen((o) => !o)}
+      onAttachClose={() => setAttachMenuOpen(false)}
+      pendingAttachmentPreviews={pendingAttachments}
+      onRemovePendingAttachment={removePendingAttachment}
+      onImageFilesSelected={appendImageFiles}
       onMic={() => {
-        if (inputValue.trim()) return;
+        if (inputValue.trim() || pendingAttachments.length > 0) return;
+        setAttachMenuOpen(false);
         enterThreadIfNeeded();
         setRecordingTick(0);
         setVoiceFlow("recording");
       }}
       onTypingSend={handleSendText}
       onIdleSendClick={() => {
-        if (inputValue.trim()) handleSendText();
+        if (inputValue.trim() || pendingAttachments.length > 0) handleSendText();
       }}
       onRecordingCancel={resetVoice}
-      onRecordingStopToPreview={() => {
+      onRecordingConfirmSend={() => {
         setVoicePreviewBars(barsFromRecordingTick(recordingTick));
-        setVoiceFlow("preview");
+        handleVoiceSendFinal();
       }}
-      onPreviewCancel={resetVoice}
-      onPreviewSend={handleVoiceSendFinal}
     />
   );
 
-  const showHomeShell = screen === "welcome" || screen === "home";
+  const showHomeShell = screen === "home";
   const showThread = screen === "chat-empty" || screen === "chat-responding";
 
   const renderMain = () => {
     if (showHomeShell) {
       return (
-        <>
+        <div className="ai-chat-screen-layout">
           <div className="chat-main-panel">
-            {!hideHomeDiscover ? <ChatHomePanel onBack={() => navigate("/home")} onPromptClick={(p) => {
-
-              setInputValue(p);
-              setMessages([]);
-              setShowTyping(false);
-              setScreen("chat-empty");
-              resetVoice();
-            }} /> : <div className="chat-blank-main" aria-hidden />}
+            {!hideHomeDiscover ? (
+              <ChatHomePanel
+                onBack={() => navigate("/home")}
+                onPromptClick={(p) => {
+                  clearAllPendingAttachments();
+                  setInputValue(p);
+                  setMessages([]);
+                  setShowTyping(false);
+                  setScreen("chat-empty");
+                  resetVoice();
+                }}
+              />
+            ) : (
+              <div className="chat-blank-main" aria-hidden />
+            )}
           </div>
           {composerEl}
-        </>
+        </div>
       );
     }
     if (showThread) {
@@ -898,16 +1128,15 @@ export default function AiChat() {
   return (
     <>
       <style>{`
-        @keyframes jbounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         @keyframes vwave{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
         .ai-chat-root *{box-sizing:border-box}
         .ai-chat-messages::-webkit-scrollbar{width:4px}
         .ai-chat-messages::-webkit-scrollbar-thumb{background:#2A2A3A;border-radius:2px}
       `}</style>
       <div className="jumpa-theme-wrapper">
-        <div className="phone-frame">
+        <div className="phone-frame" ref={phoneFrameRef}>
           <div
-            className="app-content"
+            className="app-content app-content--ai-chat"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -916,11 +1145,10 @@ export default function AiChat() {
               overflow: "hidden",
             }}
           >
-            <div className="ai-chat-root">
-              <div className={showWelcomeOverlay ? "is-blurred" : ""} style={{ flex: 1, minHeight: 0, height: "100%", display: "flex", flexDirection: "column" }}>
+            <div className="ai-chat-root" ref={aiChatRootRef}>
+              <div className="ai-chat-layout-fill">
                 {renderMain()}
               </div>
-              {showWelcomeOverlay && <WelcomeOverlay onClose={() => setScreen("home")} />}
               <TransactionConfirmDrawer
                 open={confirmOpen}
                 onOpenChange={setConfirmOpen}

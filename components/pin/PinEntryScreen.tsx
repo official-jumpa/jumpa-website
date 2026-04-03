@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
 import './Pin.css';
 import NumericKeyboard from './NumericKeyboard';
+import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';
 const closeIcon = '/assets/icons/actions/close.svg';
 const dropIcon = '/assets/icons/actions/drop.svg';
 const codeIcon = '/assets/icons/actions/code.svg';
 
-
-const CORRECT_PIN = '1234';
+const CORRECT_PIN = '123456';
 
 interface PinEntryScreenProps {
   onSuccess: () => void;
@@ -42,13 +42,13 @@ const PinEntryScreen: React.FC<PinEntryScreenProps> = ({ onSuccess, onClose }) =
       return;
     }
 
-    if (pin.length >= 4) return;
+    if (pin.length >= WALLET_PIN_LENGTH) return;
 
     const newPin = pin + key;
     setPin(newPin);
     setStatus('typing');
 
-    if (newPin.length === 4) {
+    if (newPin.length === WALLET_PIN_LENGTH) {
       setTimeout(() => {
         if (newPin === CORRECT_PIN) {
           setStatus('success');
@@ -71,7 +71,7 @@ const PinEntryScreen: React.FC<PinEntryScreenProps> = ({ onSuccess, onClose }) =
   const getDotClass = (index: number) => {
     const filled = index < pin.length;
     let baseClass = 'pin-dot';
-    if (status === 'error' && pin.length === 4) baseClass += ' error';
+    if (status === 'error' && pin.length === WALLET_PIN_LENGTH) baseClass += ' error';
     if (status === 'success') baseClass += ' success';
     if (filled) baseClass += ' filled';
     return baseClass;
@@ -97,7 +97,7 @@ const PinEntryScreen: React.FC<PinEntryScreenProps> = ({ onSuccess, onClose }) =
         <div className="pin-content">
           <h2 className="pin-title">Enter your pin</h2>
           <div className={`pin-dots ${shake ? 'shake' : ''}`}>
-            {[0, 1, 2, 3].map((i) => (
+            {Array.from({ length: WALLET_PIN_LENGTH }, (_, i) => (
               <div key={i} className={getDotClass(i)}>
                 {i < pin.length && <img src={codeIcon} alt="" className="pin-code-icon" />}
               </div>

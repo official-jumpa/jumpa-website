@@ -4,10 +4,17 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Wallet } from "@/models/Wallet";
 import { withAuth } from "@/lib/withAuth";
+import { WALLET_PIN_LENGTH, WALLET_PIN_REGEX } from "@/lib/wallet-pin";
 
 const Schema = z.object({
-  currentPin: z.string().regex(/^\d{4}$/, "Current PIN must be exactly 4 digits"),
-  newPin: z.string().regex(/^\d{4}$/, "New PIN must be exactly 4 digits"),
+  currentPin: z.string().regex(
+    WALLET_PIN_REGEX,
+    `Current PIN must be exactly ${WALLET_PIN_LENGTH} digits`,
+  ),
+  newPin: z.string().regex(
+    WALLET_PIN_REGEX,
+    `New PIN must be exactly ${WALLET_PIN_LENGTH} digits`,
+  ),
 });
 
 export const POST = withAuth(async (req: NextRequest, { address }) => {

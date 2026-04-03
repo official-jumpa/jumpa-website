@@ -2,6 +2,7 @@ import NumericKeyboard from '@/components/pin/NumericKeyboard';
 const backIcon = '/assets/icons/actions/back.svg';
 const eyeClosedIcon = '/assets/icons/actions/eye-closed.svg';
 import type { PinStatus } from './borrow-flow.types';
+import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';
 
 type LoanDetailPanelProps = {
   open: boolean;
@@ -23,7 +24,7 @@ type LoanDetailPanelProps = {
 function RepayPinDots({ pin, pinStatus }: { pin: string; pinStatus: PinStatus }) {
   return (
     <div className="loan-repay-pin-dots">
-      {[0, 1, 2, 3].map((index) => {
+      {Array.from({ length: WALLET_PIN_LENGTH }, (_, index) => {
         const isFilled = index < pin.length;
         const stateClass = pinStatus === 'error' ? 'is-error' : pinStatus === 'success' ? 'is-success' : '';
 

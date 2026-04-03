@@ -1,6 +1,7 @@
 "use client"
 import { useEffect } from "react";
 import { Delete } from "lucide-react";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 import SheetShell from "./sheet-shell";
 
 type PinSheetProps = {
@@ -49,16 +50,18 @@ export default function PinSheet({
   return (
     <SheetShell open={open} onOpenChange={onOpenChange} title="Enter your pin" showHandle>
       <div className="space-y-6 pb-3">
-        <div className="flex justify-center gap-4">
-          {[0, 1, 2, 3].map((index) => (
+        <div className="flex flex-wrap justify-center gap-2">
+          {Array.from({ length: WALLET_PIN_LENGTH }, (_, index) => (
             <div
               key={index}
-              className={`flex h-16 w-16 items-center justify-center rounded-2xl border-2 transition-all ${
-                pin.length === index ? "border-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]" : "border-zinc-700 bg-zinc-800/50"
+              className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-all sm:h-14 sm:w-14 ${
+                pin.length === index
+                  ? "border-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                  : "border-zinc-700 bg-zinc-800/50"
               }`}
             >
               {pin.length > index ? (
-                <span className="h-4 w-4 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                <span className="h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] sm:h-4 sm:w-4" />
               ) : null}
             </div>
           ))}
@@ -127,7 +130,7 @@ export default function PinSheet({
         <div className="pt-4 pb-2">
           <button
             type="button"
-            disabled={pin.length !== 4 || processing}
+            disabled={pin.length !== WALLET_PIN_LENGTH || processing}
             onClick={onDone}
             className="w-full h-16 rounded-2xl bg-[#3EC6C6] text-zinc-950 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 shadow-[0_8px_30px_rgba(62,198,198,0.2)]"
           >

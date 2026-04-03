@@ -4,6 +4,7 @@ import "./TradePage.css";
 import { getBalances, postSwap, getSwapQuote } from '@/lib/api';
 import type { BalancesResponse } from '@/lib/api';
 import PinSheet from "@/features/send/components/pin-sheet";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 const TOKENS = [
   { symbol: "FLOW", name: "Flow", icon: "🌊" },
@@ -86,19 +87,19 @@ export default function TradePage() {
   };
 
   const handleDigitPress = (digit: string) => {
-    if (pin.length < 4) {
-      setPin(prev => prev + digit);
+    if (pin.length < WALLET_PIN_LENGTH) {
+      setPin((prev) => prev + digit);
       setPinError("");
     }
   };
 
   const handleBackspace = () => {
-    setPin(prev => prev.slice(0, -1));
+    setPin((prev) => prev.slice(0, -1));
   };
 
   const executeSwap = async () => {
-    if (pin.length !== 4) {
-      setPinError("Please enter your 4-digit PIN");
+    if (pin.length !== WALLET_PIN_LENGTH) {
+      setPinError(`Please enter your ${WALLET_PIN_LENGTH}-digit PIN`);
       return;
     }
 

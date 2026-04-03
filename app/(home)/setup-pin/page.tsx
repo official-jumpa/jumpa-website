@@ -7,6 +7,7 @@ import { ArrowLeft, Delete, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { saveWalletLocally } from "@/lib/wallet";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 export default function SetupPinPage() {
     const router = useRouter();
@@ -44,22 +45,28 @@ export default function SetupPinPage() {
     }, [session, isPending, router]);
 
     const handleNumberClick = (num: string) => {
-        setError(null);
+        if (error) {
+            setError(null);
+            if (step === 2) {
+                setConfirmPin(num);
+            } else {
+                setPin(num);
+            }
+            return;
+        }
         if (step === 1) {
-            if (pin.length < 4) {
+            if (pin.length < WALLET_PIN_LENGTH) {
                 const newPin = pin + num;
                 setPin(newPin);
-                if (newPin.length === 4) {
-                    // Slight delay for visual feedback before auto-advancing
+                if (newPin.length === WALLET_PIN_LENGTH) {
                     setTimeout(() => setStep(2), 200);
                 }
             }
         } else {
-            if (confirmPin.length < 4) {
+            if (confirmPin.length < WALLET_PIN_LENGTH) {
                 const newConfirm = confirmPin + num;
                 setConfirmPin(newConfirm);
-                if (newConfirm.length === 4) {
-                    // Auto-submit when confirmation PIN is complete
+                if (newConfirm.length === WALLET_PIN_LENGTH) {
                     setTimeout(() => handleAutoSubmit(pin, newConfirm), 200);
                 }
             }
@@ -82,7 +89,7 @@ export default function SetupPinPage() {
                         address: resData.address,
                         addresses: resData.addresses,
                     });
-                    router.push("/home");
+                    router.push("/notifications");
                 } else {
                     setError(resData.error || "Failed to set up wallet");
                     setConfirmPin("");
@@ -95,8 +102,6 @@ export default function SetupPinPage() {
             }
         } else {
             setError("PINs do not match. Please try again.");
-            setConfirmPin("");
-            // Optional: short delay before shaking or resetting
         }
     };
 
@@ -110,26 +115,36 @@ export default function SetupPinPage() {
 
     const handleContinue = async () => {
         if (step === 1) {
-            if (pin.length === 4) setStep(2);
+            if (pin.length === WALLET_PIN_LENGTH) setStep(2);
         } else {
-            if (confirmPin.length === 4) handleAutoSubmit(pin, confirmPin);
+            if (confirmPin.length === WALLET_PIN_LENGTH) handleAutoSubmit(pin, confirmPin);
         }
     };
 
     const renderDots = (value: string) => {
+        const errorHighlightsDots =
+            !!error && value.length === WALLET_PIN_LENGTH;
         return (
-            <div className="flex gap-4 mb-4">
-                {[0, 1, 2, 3].map((i) => (
-                    <motion.div
-                        key={i}
-                        initial={false}
-                        animate={{
-                            scale: value.length > i ? 1.2 : 1,
-                            backgroundColor: value.length > i ? "#8B5CF6" : "#262626"
-                        }}
-                        className="w-3.5 h-3.5 rounded-full border border-[#333]"
-                    />
-                ))}
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-4">
+                {Array.from({ length: WALLET_PIN_LENGTH }, (_, i) => {
+                    const filled = value.length > i;
+                    const bg = !filled
+                        ? "#262626"
+                        : errorHighlightsDots
+                          ? "#FF2524"
+                          : "#6A59CE";
+                    return (
+                        <motion.div
+                            key={i}
+                            initial={false}
+                            animate={{
+                                scale: filled ? 1.15 : 1,
+                                backgroundColor: bg,
+                            }}
+                            className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full border border-[#333]"
+                        />
+                    );
+                })}
             </div>
         );
     };
@@ -152,10 +167,9 @@ export default function SetupPinPage() {
                         {step === 1 ? "Create your\nTransaction PIN" : "Confirm your\nTransaction PIN"}
                     </h1>
                     <p className="text-[#A1A1AA] text-[14px] leading-relaxed">
-                        {step === 1 
-                            ? "This 4-digit PIN will be used to encrypt your wallet and authorize all your transactions."
-                            : "Please re-enter your PIN to confirm it's correct."
-                        }
+                        {step === 1
+                            ? `This ${WALLET_PIN_LENGTH}-digit PIN will be used to encrypt your wallet and authorize all your transactions.`
+                            : "Please re-enter your PIN to confirm it's correct."}
                     </p>
                 </div>
 
@@ -212,9 +226,9 @@ export default function SetupPinPage() {
 
                     <Button
                         onClick={handleContinue}
-                        disabled={(step === 1 ? pin.length : confirmPin.length) !== 4 || isSettingUp}
+                        disabled={(step === 1 ? pin.length : confirmPin.length) !== WALLET_PIN_LENGTH || isSettingUp}
                         className={`w-full h-12 rounded-xl font-semibold text-base transition-all shadow-xl flex items-center justify-center gap-2
-                            ${(step === 1 ? pin.length : confirmPin.length) === 4 && !isSettingUp
+                            ${(step === 1 ? pin.length : confirmPin.length) === WALLET_PIN_LENGTH && !isSettingUp
                                 ? "bg-[#8B5CF6] text-white hover:bg-[#7C3AED]"
                                 : "bg-[#262626] text-[#555] opacity-50"
                             }`}

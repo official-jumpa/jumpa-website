@@ -12,11 +12,14 @@ import { useRouter } from 'next/navigation';
 import { X, ArrowLeft } from "lucide-react"; 
 import { PinInput } from "@/components/ui/pinInput";
 import { Button } from "@/components/ui/button";
+import { WALLET_PIN_LENGTH, WALLET_PIN_REGEX } from "@/lib/wallet-pin";
 
 const formSchema = z.object({
     pin: z
         .string()
-        .regex(/^\d{4}$/, { message: "PIN must be 4 digits" }),
+        .regex(WALLET_PIN_REGEX, {
+            message: `PIN must be ${WALLET_PIN_LENGTH} digits`,
+        }),
 });
 
 export default function SetPinWithdraw() {
@@ -108,10 +111,9 @@ export default function SetPinWithdraw() {
                             
                             {/* Helper text to guide user */}
                             <p className="text-sm text-gray-500 text-center">
-                                {step === 1 
-                                    ? "Create a 4-digit PIN for withdrawals" 
-                                    : "Re-enter your PIN to confirm"
-                                }
+                                {step === 1
+                                    ? "Create a 6-digit PIN for withdrawals"
+                                    : "Re-enter your PIN to confirm"}
                             </p>
 
                             <FormField

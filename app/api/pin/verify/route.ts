@@ -4,9 +4,10 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Wallet } from "@/models/Wallet";
 import { withAuth } from "@/lib/withAuth";
+import { WALLET_PIN_REGEX, WALLET_PIN_ZOD_MESSAGE } from "@/lib/wallet-pin";
 
 const Schema = z.object({
-  pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+  pin: z.string().regex(WALLET_PIN_REGEX, WALLET_PIN_ZOD_MESSAGE),
 });
 
 const PIN_MAX_ATTEMPTS = 5;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { PinStatus } from './borrow-flow.types';
+import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';
 
 type LoanRepayStep = 'detail' | 'amount' | 'review' | 'pin' | 'processing' | 'success';
 type LoanMode = 'borrow' | 'repay';
 
-const DEMO_PIN = '1234';
+const DEMO_PIN = '123456';
 
 export function useLoanRepayFlow() {
   const [open, setOpen] = useState(false);
@@ -60,12 +61,12 @@ export function useLoanRepayFlow() {
       return;
     }
 
-    if (pin.length >= 4) return;
+    if (pin.length >= WALLET_PIN_LENGTH) return;
 
     const nextPin = `${pin}${key}`;
     setPin(nextPin);
 
-    if (nextPin.length < 4) {
+    if (nextPin.length < WALLET_PIN_LENGTH) {
       setPinStatus('typing');
       return;
     }

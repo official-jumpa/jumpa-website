@@ -20,6 +20,7 @@ import {
     User,
     Landmark,
 } from "lucide-react";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 // --- Zod Schemas ---
 const recipientSchema = z.object({
@@ -137,10 +138,10 @@ export default function WithdrawSendMoney() {
     const handlePinPress = (num: string) => {
         if (num === "x") {
             setPin(prev => prev.slice(0, -1));
-        } else if (pin.length < 4) {
+        } else if (pin.length < WALLET_PIN_LENGTH) {
             const newPin = pin + num;
             setPin(newPin);
-            if (newPin.length === 4) {
+            if (newPin.length === WALLET_PIN_LENGTH) {
                 handleFinalSubmit(newPin);
             }
         }
@@ -531,8 +532,8 @@ export default function WithdrawSendMoney() {
                         <div className="flex-1 flex flex-col items-center px-6">
                             <h2 className="text-lg font-bold mb-8">Enter your pin</h2>
 
-                            <div className="flex gap-4 mb-12">
-                                {[0, 1, 2, 3].map((i) => (
+                            <div className="flex flex-wrap justify-center gap-2 mb-12">
+                                {Array.from({ length: WALLET_PIN_LENGTH }, (_, i) => (
                                     <div
                                         key={i}
                                         className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all

@@ -83,7 +83,7 @@ export async function saveWallet(
 
 // --- PIN ---
 
-/** POST /api/pin/verify — verify 4-digit PIN (requires active session) */
+/** POST /api/pin/verify — verify 6-digit PIN (requires active session) */
 export async function verifyPin(
   pin: string,
 ): Promise<ApiResponse<{ valid: boolean }>> {

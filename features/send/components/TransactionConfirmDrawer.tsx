@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 import SheetShell from "./sheet-shell";
 import { User, ArrowRight, ShieldCheck, Send } from "lucide-react";
 import PinSheet from "./pin-sheet";
@@ -39,23 +40,23 @@ export default function TransactionConfirmDrawer({
   if (!details) return null;
 
   const handleDigitPress = (digit: string) => {
-    if (pin.length < 4) {
-      setPin(prev => prev + digit);
+    if (pin.length < WALLET_PIN_LENGTH) {
+      setPin((prev) => prev + digit);
       setPinError("");
     }
   };
 
   const handleBackspace = () => {
-    setPin(prev => prev.slice(0, -1));
+    setPin((prev) => prev.slice(0, -1));
   };
 
   const handleFinalConfirm = () => {
-    if (pin.length === 4) {
+    if (pin.length === WALLET_PIN_LENGTH) {
       onConfirm(pin);
       setShowPin(false);
       setPin("");
     } else {
-      setPinError("Please enter your 4-digit PIN");
+      setPinError(`Please enter your ${WALLET_PIN_LENGTH}-digit PIN`);
     }
   };
 

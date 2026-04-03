@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Lock, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { changePin } from "@/lib/api";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 /**
  * Change Payment PIN — 3 steps:
@@ -41,7 +42,7 @@ export default function ChangePaymentPin() {
             setError(null);
             return;
         }
-        if (activePin.length < 4) {
+        if (activePin.length < WALLET_PIN_LENGTH) {
             setActivePin((p) => p + num);
         }
     };
@@ -62,7 +63,6 @@ export default function ChangePaymentPin() {
 
         // Step 3: validate and submit
         if (confirmPin !== newPin) {
-            console.warn("[ChangePin] New PIN mismatch");
             setError("PINs do not match — try again");
             setConfirmPin("");
             return;
@@ -127,8 +127,8 @@ export default function ChangePaymentPin() {
                 <div className="mb-8">
                     <p className="text-gray-400 text-sm mb-4">{stepLabels[step]}</p>
                     <div className="flex items-center gap-4">
-                        <div className="flex gap-3">
-                            {[0, 1, 2, 3].map((i) => (
+                        <div className="flex flex-wrap gap-2">
+                            {Array.from({ length: WALLET_PIN_LENGTH }, (_, i) => (
                                 <div
                                     key={i}
                                     className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all bg-[#EBEBEB]
@@ -155,7 +155,7 @@ export default function ChangePaymentPin() {
                 {/* Confirm CTA */}
                 <Button
                     className="w-full h-14 bg-[#01C259] hover:bg-[#65ad77] text-white text-lg font-medium rounded-xl shadow-none"
-                    disabled={activePin.length < 4 || loading}
+                    disabled={activePin.length < WALLET_PIN_LENGTH || loading}
                     onClick={handleConfirm}
                 >
                     {loading ? "Updating..." : step < 3 ? "Next" : "Confirm"}
@@ -166,7 +166,7 @@ export default function ChangePaymentPin() {
             <div className="bg-[#F9FAFB] p-2 pb-8 rounded-t-[32px] animate-in slide-in-from-bottom duration-300">
                 <div className="flex justify-between px-6 py-3 mb-1 text-[11px] font-semibold tracking-wide">
                     <span className="text-gray-500">Jumpa Secure Numeric Keypad</span>
-                    <button className="text-[#01C259] hover:text-green-700" onClick={handleConfirm} disabled={activePin.length < 4}>Done</button>
+                    <button className="text-[#01C259] hover:text-green-700" onClick={handleConfirm} disabled={activePin.length < WALLET_PIN_LENGTH}>Done</button>
                 </div>
                 <div className="grid grid-cols-3 gap-2 px-2">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (

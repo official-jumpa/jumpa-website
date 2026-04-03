@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import type { AddressStatus, BorrowAsset, BorrowFlowStep, PinStatus } from './borrow-flow.types';
+import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';
 
-const PIN_LENGTH = 4;
-const DEMO_PIN = '1234';
+const DEMO_PIN = '123456';
 
 export function useBorrowFlow() {
   const [step, setStep] = useState<BorrowFlowStep>('asset-selection');
@@ -84,7 +84,7 @@ export function useBorrowFlow() {
   };
 
   const applyPinResult = (nextPin: string) => {
-    if (nextPin.length < PIN_LENGTH) {
+    if (nextPin.length < WALLET_PIN_LENGTH) {
       setPinStatus(nextPin.length === 0 ? 'idle' : 'typing');
       return;
     }
@@ -119,7 +119,7 @@ export function useBorrowFlow() {
       return;
     }
 
-    if (pin.length >= PIN_LENGTH) return;
+    if (pin.length >= WALLET_PIN_LENGTH) return;
 
     const nextPin = `${pin}${key}`;
     setPin(nextPin);

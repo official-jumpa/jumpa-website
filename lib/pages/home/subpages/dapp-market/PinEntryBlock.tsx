@@ -1,5 +1,6 @@
 import NumericKeyboard from '@/components/pin/NumericKeyboard';
 import type { PinStatus } from './borrow-flow.types';
+import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';
 
 type PinEntryBlockProps = {
   pin: string;
@@ -11,7 +12,7 @@ type PinEntryBlockProps = {
 function PinDots({ pin, pinStatus }: { pin: string; pinStatus: PinStatus }) {
   return (
     <div className="borrow-pin-dots">
-      {[0, 1, 2, 3].map((index) => {
+      {Array.from({ length: WALLET_PIN_LENGTH }, (_, index) => {
         const isFilled = index < pin.length;
         const stateClass = pinStatus === 'error' ? 'is-error' : pinStatus === 'success' ? 'is-success' : '';
 

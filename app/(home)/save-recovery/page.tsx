@@ -1,12 +1,18 @@
-import SaveRecoveryPhrase from '@/lib/pages/home/create-account/save-recovery'
-import React from 'react'
+import SaveRecoveryPhrase from "@/lib/pages/home/create-account/save-recovery";
+import React, { Suspense } from "react";
 
-const page = () => {
+export default function SaveRecoveryPage() {
   return (
     <div>
-      <SaveRecoveryPhrase/>
+      <Suspense
+        fallback={
+          <div className="fixed inset-0 flex min-h-dvh items-center justify-center bg-[#050505] text-[#A1A1AA] text-sm">
+            Loading…
+          </div>
+        }
+      >
+        <SaveRecoveryPhrase />
+      </Suspense>
     </div>
-  )
+  );
 }
-
-export default page

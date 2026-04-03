@@ -7,11 +7,12 @@ import { connectDB } from "@/lib/db";
 import { encryptMnemonic } from "@/lib/crypto";
 import { deriveAddresses } from "@/lib/wallet";
 import { Wallet } from "@/models/Wallet";
+import { WALLET_PIN_REGEX, WALLET_PIN_ZOD_MESSAGE } from "@/lib/wallet-pin";
 
 const BodySchema = z.object({
   phrase: z.string().min(1, "Phrase is required"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+  pin: z.string().regex(WALLET_PIN_REGEX, WALLET_PIN_ZOD_MESSAGE),
 });
 
 /**

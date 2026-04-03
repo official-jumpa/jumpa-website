@@ -22,6 +22,7 @@ import TokenSearchSheet from "./components/token-search-sheet";
 import type { Recipient, Token } from "./types";
 
 import { getBalances, getRecipients, postTransfer } from "@/lib/api";
+import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 const quickAmounts = ["0.01", "0.1", "0.5"];
 
@@ -183,14 +184,18 @@ export default function SendPage() {
     if (processing || isSubmitting.current) return;
     setPinError("");
     setPin((prev) => {
-      if (prev.length >= 4) return prev;
+      if (prev.length >= WALLET_PIN_LENGTH) return prev;
       return `${prev}${digit}`;
     });
   };
 
-  // Auto-submit when PIN reaches 4 digits
+  // Auto-submit when PIN is complete
   useEffect(() => {
-    if (pin.length === 4 && !processing && !isSubmitting.current) {
+    if (
+      pin.length === WALLET_PIN_LENGTH &&
+      !processing &&
+      !isSubmitting.current
+    ) {
       verifyPinAndSend(pin);
     }
   }, [pin, processing, verifyPinAndSend]);
