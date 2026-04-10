@@ -136,7 +136,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   };
 
   // Check if we should hide the global UI shell (TopBar, etc.)
-  const hideShellPaths = ["/savings/onboarding", "/onboarding", "/create-account", "/save-recovery", "/notifications", "/send", "/home/airtime", "/home/group", "/home/3rikeAi", "/home/savings", "/setup-pin"];
+  const hideShellPaths = ["/savings/onboarding", "/onboarding", "/create-account", "/save-recovery", "/verify-email", "/notifications", "/send", "/home/airtime", "/home/group", "/home/3rikeAi", "/home/savings", "/setup-pin"];
   const shouldHideShell = hideShellPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
 
   return (

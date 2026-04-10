@@ -40,14 +40,14 @@ export default function CreateAccountDrawer() {
       /* ignore */
     }
     setOpen(false);
-    navigate("/save-recovery?flow=create", { state: { action: "create" } });
+    navigate("/verify-email");
   };
 
   const handleGoogle = async () => {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "/save-recovery?flow=create",
+        callbackURL: "/setup-pin",
       });
     } catch (error) {
       console.error("[CreateAccountDrawer] Google sign-in failed:", error);
