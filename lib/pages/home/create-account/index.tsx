@@ -1,24 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X } from "lucide-react";
-import { saveWallet, login } from "@/lib/api";
+import { walletSetup } from "@/lib/api";
 import { useNavigate, useLocation } from "@/lib/pages-adapter";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 const pinSchema = z.object({
   pin: z.string().max(WALLET_PIN_LENGTH),
 });
-
-/** Random server password (API requires ≥8 chars). Session auth; 6-digit PIN used for sensitive actions. */
-function generateWalletPassword(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 // 1 = create PIN, 2 = confirm PIN
 type Step = 1 | 2;
@@ -30,14 +23,6 @@ export default function CreateAccountForm() {
   const { phrase, action } = (location.state ?? {}) as {
     phrase?: string;
     action?: "create" | "import";
-  };
-
-  const serverPasswordRef = useRef<string | null>(null);
-  const getServerPassword = () => {
-    if (!serverPasswordRef.current) {
-      serverPasswordRef.current = generateWalletPassword();
-    }
-    return serverPasswordRef.current;
   };
 
   const [step, setStep] = useState<Step>(1);
@@ -118,11 +103,8 @@ export default function CreateAccountForm() {
     setLoading(true);
     setHasError(false);
 
-    const res = await saveWallet(action ?? "create", {
-      phrase,
-      password: getServerPassword(),
-      pin: finalPin,
-    });
+    // Use the unified wallet-setup endpoint (works for both email OTP and Google users)
+    const res = await walletSetup(finalPin, phrase, action);
 
     if (res.error || !res.data) {
       console.error("[CreateAccount] Wallet creation failed:", res.error);
@@ -132,13 +114,8 @@ export default function CreateAccountForm() {
       return;
     }
 
-    const loginRes = await login(res.data.address, getServerPassword());
-    if (loginRes.error) {
-      console.warn(
-        "[CreateAccount] Auto-login failed (user will need to log in manually):",
-        loginRes.error,
-      );
-    }
+    // Session is already active via BetterAuth (signIn.emailOtp or signIn.social)
+    // No separate login call needed
 
     setLoading(false);
     navigate("/notifications");

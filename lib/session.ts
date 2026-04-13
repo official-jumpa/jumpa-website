@@ -1,44 +1,6 @@
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
-import { NextRequest } from "next/server";
-
-const COOKIE_NAME = "jumpa_session";
-const SESSION_SECRET = process.env.AUTH_SECRET!;
-const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
-
-if (!SESSION_SECRET) {
-  throw new Error("AUTH_SECRET is not set");
-}
-
-const secretKey = new TextEncoder().encode(SESSION_SECRET);
-
-export interface SessionPayload {
-  address: string;
-}
-
-/** Issue a signed HS256 JWT session cookie */
-export async function createSession(payload: SessionPayload): Promise<void> {
-  const token = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${SESSION_TTL_SECONDS}s`)
-    .sign(secretKey);
-
-  const isProd = process.env.NODE_ENV === "production";
-
-  const cookieStore = await cookies();
-
-  cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: SESSION_TTL_SECONDS,
-    path: "/",
-  });
-}
-
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { NextRequest } from "next/server";
 import { connectDB } from "./db";
 import { Wallet } from "@/models/Wallet";
 
@@ -52,6 +14,7 @@ export async function getSession(
   req?: NextRequest,
 ): Promise<SessionPayload | null> {
   try {
+    await connectDB();
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -61,14 +24,14 @@ export async function getSession(
       return null;
     }
 
-    await connectDB();
     
     // Find the wallet associated with this session user
     const wallet = await Wallet.findOne({ userId: session.user.id });
     
     if (!wallet) {
       console.warn("[Session] No wallet linked to user:", session.user.id);
-      return null;
+      // Return userId even without wallet — needed for wallet-setup flow
+      return { address: "", userId: session.user.id };
     }
 
     return { 
@@ -84,6 +47,9 @@ export async function getSession(
 /** Clear the session cookie */
 export async function clearSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  // Clear legacy cookie if present
+  cookieStore.delete("jumpa_session");
+  // BetterAuth session cookies are managed by the framework;
+  // actual sign-out should use auth.api.signOut or the /api/auth/sign-out endpoint
   console.log("[Session] Session cleared");
 }

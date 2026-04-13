@@ -106,7 +106,7 @@ export async function changePin(
 
 // --- Auth Session ---
 
-export interface LoginResponse {
+export interface WalletSetupResponse {
   message: string;
   address: string;
   addresses: WalletAddresses;
@@ -118,14 +118,18 @@ export interface MeResponse {
   createdAt: string;
 }
 
-/** POST /api/auth/login — verify password and issue session cookie */
-export async function login(
-  address: string,
-  password: string,
-): Promise<ApiResponse<LoginResponse>> {
-  return request<LoginResponse>("/api/auth/login", {
+/**
+ * POST /api/auth/wallet-setup — unified wallet creation for any
+ * authenticated user (email OTP or Google social login).
+ */
+export async function walletSetup(
+  pin: string,
+  phrase?: string,
+  action?: "create" | "import",
+): Promise<ApiResponse<WalletSetupResponse>> {
+  return request<WalletSetupResponse>("/api/auth/wallet-setup", {
     method: "POST",
-    body: JSON.stringify({ address, password }),
+    body: JSON.stringify({ pin, ...(phrase ? { phrase } : {}), ...(action ? { action } : {}) }),
   });
 }
 
@@ -137,27 +141,6 @@ export async function getMe(): Promise<ApiResponse<MeResponse>> {
 /** POST /api/auth/logout — clears the session cookie */
 export async function logout(): Promise<ApiResponse<{ message: string }>> {
   return request<{ message: string }>("/api/auth/logout", { method: "POST" });
-}
-
-/** POST /api/auth/email-otp/send — email a 5-digit OTP */
-export async function sendEmailOtp(
-  email: string,
-): Promise<ApiResponse<{ ok?: boolean; expiresInSeconds?: number }>> {
-  return request("/api/auth/email-otp/send", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
-}
-
-/** POST /api/auth/email-otp/verify */
-export async function verifyEmailOtp(
-  email: string,
-  code: string,
-): Promise<ApiResponse<{ ok?: boolean }>> {
-  return request("/api/auth/email-otp/verify", {
-    method: "POST",
-    body: JSON.stringify({ email, code }),
-  });
 }
 
 // --- Balances ---

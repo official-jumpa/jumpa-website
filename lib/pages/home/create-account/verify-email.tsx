@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useNavigate } from "@/lib/pages-adapter";
-import { sendEmailOtp, verifyEmailOtp, generatePhrase } from "@/lib/api";
+import { emailOtp, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 const OTP_SUCCESS_ICON = "/assets/icons/IMG_5310%201.svg";
@@ -46,7 +46,6 @@ export default function VerifyEmailPage() {
   const [verifying, setVerifying] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(600);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [continueLoading, setContinueLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const sendOnce = useRef(false);
@@ -54,24 +53,36 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     const e = readOnboardingEmail();
     if (!e) {
-      navigate("/onboarding", { replace: true });
+      navigate("/onboarding");
       return;
     }
     setEmail(e);
   }, [navigate]);
 
+  // Send OTP via BetterAuth's emailOTP plugin
   const sendOtp = useCallback(async (addr: string) => {
     setSending(true);
     setSendError(null);
-    const res = await sendEmailOtp(addr);
-    setSending(false);
-    if (res.error || !res.data) {
-      setSendError(res.error ?? "Could not send code");
+    try {
+      const res = await emailOtp.sendVerificationOtp({
+        email: addr,
+        type: "sign-in",
+      });
+      if (res.error) {
+        setSendError(res.error.message ?? "Could not send code");
+        setSending(false);
+        return false;
+      }
+      setSecondsLeft(600);
+      setResendCooldown(60);
+      setSending(false);
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not send code";
+      setSendError(msg);
+      setSending(false);
       return false;
     }
-    setSecondsLeft(res.data.expiresInSeconds ?? 600);
-    setResendCooldown(60);
-    return true;
   }, []);
 
   useEffect(() => {
@@ -117,36 +128,41 @@ export default function VerifyEmailPage() {
     if (boxState === "error") setBoxState("empty");
   };
 
+  // Verify OTP + create session via BetterAuth
   const handleVerify = async () => {
     if (!email || otp.length !== 5) return;
     setVerifying(true);
     setVerifyError(null);
-    const res = await verifyEmailOtp(email, otp);
-    setVerifying(false);
-    if (res.error || !res.data) {
+    try {
+      const res = await signIn.emailOtp({
+        email,
+        otp,
+      });
+      if (res.error) {
+        setBoxState("error");
+        setVerifyError(res.error.message ?? "Invalid code");
+        setVerifying(false);
+        return;
+      }
+      // Session is now established by BetterAuth
+      setVerifying(false);
+      setBoxState("success");
+      setUiPhase("success");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Verification failed";
       setBoxState("error");
-      setVerifyError(res.error ?? "Invalid code");
-      return;
+      setVerifyError(msg);
+      setVerifying(false);
     }
-    setBoxState("success");
-    setUiPhase("success");
   };
 
-  const handleContinueSuccess = async () => {
+  // After OTP verification success, continue to seed phrase / wallet setup
+  const handleContinueSuccess = () => {
     if (!email) return;
-    setContinueLoading(true);
-    const res = await generatePhrase();
-    if (res.error || !res.data?.phrase) {
-      setContinueLoading(false);
-      setVerifyError(res.error ?? "Could not create wallet. Try again.");
-      setUiPhase("otp");
-      setBoxState("empty");
-      return;
-    }
-    setContinueLoading(false);
-    navigate("/create-account", {
-      state: { phrase: res.data.phrase, action: "create" as const },
-    });
+    // Navigate to save-recovery page to generate/view seed phrase
+    // The BetterAuth session is already active, so the wallet-setup
+    // endpoint will be able to authenticate this user
+    navigate("/save-recovery?flow=create");
   };
 
   const handleResend = async () => {
@@ -198,11 +214,9 @@ export default function VerifyEmailPage() {
           <div className="mt-14 w-full">
             <button
               type="button"
-              disabled={continueLoading}
               onClick={handleContinueSuccess}
               className={cn(
-                "flex h-12 w-full items-center justify-center rounded-xl text-base leading-6 text-white transition-opacity",
-                continueLoading ? "cursor-wait opacity-70" : "opacity-100",
+                "flex h-12 w-full items-center justify-center rounded-xl text-base leading-6 text-white transition-opacity opacity-100",
               )}
               style={{
                 fontFamily: "Poppins, sans-serif",
@@ -210,7 +224,7 @@ export default function VerifyEmailPage() {
                 background: "#6A59CE",
               }}
             >
-              {continueLoading ? "Please wait…" : "Continue"}
+              Continue
             </button>
           </div>
         </div>

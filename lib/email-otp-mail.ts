@@ -7,11 +7,12 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
   const from = process.env.RESEND_FROM_EMAIL?.trim() || "Jumpa <onboarding@resend.dev>";
 
   if (!key) {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[email-otp] (dev, no RESEND_API_KEY) OTP for ${to}: ${code}`);
-    } else {
-      console.warn("[email-otp] RESEND_API_KEY missing — OTP not emailed");
-    }
+    // if (process.env.NODE_ENV === "development") {
+    //   console.log(`[email-otp] (dev, no RESEND_API_KEY) OTP for ${to}: ${code}`);
+    // } else {
+    //   console.warn("[email-otp] RESEND_API_KEY missing — OTP not emailed");
+    // }
+    console.warn("[email-otp] RESEND_API_KEY missing — OTP not emailed");
     return;
   }
 

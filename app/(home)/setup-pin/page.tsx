@@ -78,7 +78,7 @@ export default function SetupPinPage() {
             setIsSettingUp(true);
             setError(null);
             try {
-                const response = await fetch("/api/auth/social-setup", {
+                const response = await fetch("/api/auth/wallet-setup", {
                     method: "POST",
                     body: JSON.stringify({ pin: p }),
                 });
