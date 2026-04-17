@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from '@/lib/pages-adapter';
+import { useState } from "react";
+import { useNavigate } from "@/lib/pages-adapter";
 
-const dataIcon = '/data.svg';
-const groupIcon = '/group.svg';
-const airtimeIcon = '/airtime.svg';
-const moreIcon = '/more.svg';
-const predictionIcon = '/prediction.svg';
-const billsIcon = '/bills.svg';
+const dataIcon = "/data.svg";
+const groupIcon = "/group.svg";
+const airtimeIcon = "/airtime.svg";
+const moreIcon = "/more.svg";
+const predictionIcon = "/prediction.svg";
+const billsIcon = "/bills.svg";
 
 interface ServiceItem {
   label: string;
@@ -16,18 +16,18 @@ interface ServiceItem {
 }
 
 const homeServices: ServiceItem[] = [
-  { label: 'Data', icon: dataIcon, route: '/home/airtime' },
-  { label: 'Group', icon: groupIcon, route: '/home/group' },
-  { label: 'Airtime', icon: airtimeIcon, route: '/home/airtime' },
-  { label: 'More', icon: moreIcon, isMore: true },
+  { label: "Data", icon: dataIcon, route: "/home/airtime" },
+  { label: "Group", icon: groupIcon, route: "/group/chat" },
+  { label: "Airtime", icon: airtimeIcon, route: "/home/airtime" },
+  { label: "More", icon: moreIcon, isMore: true },
 ];
 
 const allServices: ServiceItem[] = [
-  { label: 'Data', icon: dataIcon, route: '/home/airtime' },
-  { label: 'Group', icon: groupIcon, route: '/home/group' },
-  { label: 'Airtime', icon: airtimeIcon, route: '/home/airtime' },
-  { label: 'Prediction', icon: predictionIcon, route: '/home/3rikeAi' },
-  { label: 'Bills', icon: billsIcon, route: '/home/savings' },
+  { label: "Data", icon: dataIcon, route: "/home/airtime" },
+  { label: "Group", icon: groupIcon, route: "/group/chat" },
+  { label: "Airtime", icon: airtimeIcon, route: "/home/airtime" },
+  { label: "Prediction", icon: predictionIcon, route: "/home/3rikeAi" },
+  { label: "Bills", icon: billsIcon, route: "/home/savings" },
 ];
 
 interface ServiceShortcutGridProps {
@@ -35,10 +35,12 @@ interface ServiceShortcutGridProps {
   onDApp?: () => void;
 }
 
-const ServiceShortcutGrid: React.FC<ServiceShortcutGridProps> = ({ onWithdraw, onDApp }) => {
+const ServiceShortcutGrid: React.FC<ServiceShortcutGridProps> = ({
+  onWithdraw,
+  onDApp,
+}) => {
   const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
-
 
   const handleServiceClick = (service: ServiceItem) => {
     if (service.isMore) {
@@ -51,9 +53,9 @@ const ServiceShortcutGrid: React.FC<ServiceShortcutGridProps> = ({ onWithdraw, o
   };
 
   const handleAllServiceClick = (service: ServiceItem) => {
-    if (service.label === 'DApp' && onDApp) {
+    if (service.label === "DApp" && onDApp) {
       onDApp();
-    } else if (service.label === 'Withdraw' && onWithdraw) {
+    } else if (service.label === "Withdraw" && onWithdraw) {
       onWithdraw();
     } else if (service.route) {
       setShowAll(false);
@@ -82,13 +84,19 @@ const ServiceShortcutGrid: React.FC<ServiceShortcutGridProps> = ({ onWithdraw, o
           <div className="services-screen" onClick={(e) => e.stopPropagation()}>
             <div className="services-screen-header">
               <h3>All Services</h3>
-              <button className="services-close" onClick={() => setShowAll(false)} type="button">✕</button>
+              <button
+                className="services-close"
+                onClick={() => setShowAll(false)}
+                type="button"
+              >
+                ✕
+              </button>
             </div>
             <div className="services-screen-grid">
               {allServices.map((s) => (
-                <button 
-                  key={s.label} 
-                  className="service-item" 
+                <button
+                  key={s.label}
+                  className="service-item"
                   type="button"
                   onClick={() => handleAllServiceClick(s)}
                 >

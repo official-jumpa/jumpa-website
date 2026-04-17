@@ -47,7 +47,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
 
   return (
     <div className="balance-card">
-      <div className="balance-token-row">
+      {/* <div className="balance-token-row">
         <div
           className="balance-token-orb"
           style={{
@@ -71,8 +71,24 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
             className="token-chevron"
           />
         </span>
+      </div> */}
+      <div className="balance-label">
+        Wallet Balance
+        <span
+          className="token-label"
+          onClick={onWalletDropdown}
+          style={{ cursor: "pointer" }}
+        >
+          {tokenLabel}
+          <img
+            src={dropdownChevron}
+            alt=""
+            width="10"
+            height="10"
+            className="token-chevron"
+          />
+        </span>
       </div>
-      <div className="balance-label">Wallet Balance</div>
       <div className="balance-amount-row">
         {hidden ? (
           <img

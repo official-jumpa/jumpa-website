@@ -1,27 +1,34 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback, useEffect, createContext, useContext, ReactNode } from 'react';
-import './HomeLayout.css';
-import { useRouter, usePathname } from 'next/navigation';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
+import "./HomeLayout.css";
+import { useRouter, usePathname } from "next/navigation";
 
 // Components
-import TopBar from '@/components/common/TopBar';
-import SideDrawer from '@/components/ui/SideDrawer';
-import FloatingSupportButton from '@/components/common/FloatingSupportButton';
-import WalletListModal from '@/components/modal/WalletListModal';
-import WalletDetailsModal from '@/components/modal/WalletDetailsModal';
-import VirtualAccountModal from '@/components/modal/VirtualAccountModal';
-import DepositMethodSheet from '@/components/modal/DepositMethodSheet';
-import PinEntryScreen from '@/components/pin/PinEntryScreen';
-import PrivateKeyScreen from '@/components/wallet/PrivateKeyScreen';
-import WithdrawOptions from '@/lib/pages/home/withdraw/options';
-import TradePage from '@/lib/pages/home/subpages/TradePage';
-import DAppPage from '@/lib/pages/home/subpages/DAppPage';
-import type { BalancesResponse } from '@/lib/api';
-import { getBalances } from '@/lib/api';
+import TopBar from "@/components/common/TopBar";
+import SideDrawer from "@/components/ui/SideDrawer";
+import FloatingSupportButton from "@/components/common/FloatingSupportButton";
+import WalletListModal from "@/components/modal/WalletListModal";
+import WalletDetailsModal from "@/components/modal/WalletDetailsModal";
+import VirtualAccountModal from "@/components/modal/VirtualAccountModal";
+import DepositMethodSheet from "@/components/modal/DepositMethodSheet";
+import PinEntryScreen from "@/components/pin/PinEntryScreen";
+import PrivateKeyScreen from "@/components/wallet/PrivateKeyScreen";
+import WithdrawOptions from "@/lib/pages/home/withdraw/options";
+import TradePage from "@/lib/pages/home/subpages/TradePage";
+import DAppPage from "@/lib/pages/home/subpages/DAppPage";
+import type { BalancesResponse } from "@/lib/api";
+import { getBalances } from "@/lib/api";
 
 // Data
-import { type Wallet } from '@/data/wallets';
+import { type Wallet } from "@/data/wallets";
 
 interface HomeLayoutContextType {
   balanceHidden: boolean;
@@ -39,11 +46,13 @@ interface HomeLayoutContextType {
   refreshBalances: () => void;
 }
 
-const HomeLayoutContext = createContext<HomeLayoutContextType | undefined>(undefined);
+const HomeLayoutContext = createContext<HomeLayoutContextType | undefined>(
+  undefined,
+);
 
 export const useHomeLayout = () => {
   const context = useContext(HomeLayoutContext);
-  if (!context) throw new Error('useHomeLayout must be used within HomeLayout');
+  if (!context) throw new Error("useHomeLayout must be used within HomeLayout");
   return context;
 };
 
@@ -61,8 +70,8 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
 
   // Reset currentPage to 'home' when navigating to sub-routes
   useEffect(() => {
-    if (!pathname.includes('/home')) {
-      setCurrentPage('home');
+    if (!pathname.includes("/home")) {
+      setCurrentPage("home");
     }
   }, [pathname]);
 
@@ -100,11 +109,14 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   // Handlers
-  const handleNavigate = useCallback((pageId: string) => {
-    setCurrentPage(pageId);
-    setDrawerOpen(false);
-    if (pageId === "home") router.push("/home");
-  }, [router]);
+  const handleNavigate = useCallback(
+    (pageId: string) => {
+      setCurrentPage(pageId);
+      setDrawerOpen(false);
+      if (pageId === "home") router.push("/home");
+    },
+    [router],
+  );
 
   const handlePrivateKeyRequest = useCallback((wallet: Wallet) => {
     setPinWallet(wallet);
@@ -125,8 +137,14 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     onWalletDropdown: () => setWalletListOpen(true),
     onVirtualAccount: () => setVirtualAccountOpen(true),
     onWithdrawal: () => setWithdrawOpen(true),
-    onTrade: () => { setCurrentPage("trade"); router.push("/home"); },
-    onDApp: () => { setCurrentPage("dapp"); router.push("/home"); },
+    onTrade: () => {
+      setCurrentPage("trade");
+      router.push("/home");
+    },
+    onDApp: () => {
+      setCurrentPage("dapp");
+      router.push("/home");
+    },
 
     onReceive: () => setDepositSheetOpen(true),
     balances,
@@ -136,15 +154,35 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   };
 
   // Check if we should hide the global UI shell (TopBar, etc.)
-  const hideShellPaths = ["/savings/onboarding", "/onboarding", "/create-account", "/save-recovery", "/verify-email", "/notifications", "/send", "/home/airtime", "/home/group", "/home/3rikeAi", "/home/savings", "/setup-pin"];
-  const shouldHideShell = hideShellPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
+  const hideShellPaths = [
+    "/savings/onboarding",
+    "/onboarding",
+    "/create-account",
+    "/save-recovery",
+    "/verify-email",
+    "/notifications",
+    "/send",
+    "/home/airtime",
+    "/home/group",
+    "/home/3rikeAi",
+    "/home/savings",
+    "/setup-pin",
+    "/group/chat",
+  ];
+  const shouldHideShell = hideShellPaths.some(
+    (p) => pathname === p || pathname?.startsWith(p + "/"),
+  );
 
   return (
     <HomeLayoutContext.Provider value={contextValue}>
       <div className="jumpa-theme-wrapper">
         <div className="phone-frame">
-          <div className={`app-content ${(walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen) ? 'is-blurred' : ''}`}>
-            {!shouldHideShell && <TopBar onMenuClick={() => setDrawerOpen(true)} />}
+          <div
+            className={`app-content ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen ? "is-blurred" : ""}`}
+          >
+            {!shouldHideShell && (
+              <TopBar onMenuClick={() => setDrawerOpen(true)} />
+            )}
             {currentPage === "home" ? (
               children
             ) : currentPage === "trade" ? (
@@ -155,16 +193,23 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
               children
             )}
           </div>
-          {currentPage === "home" && !shouldHideShell && <FloatingSupportButton />}
-
+          {currentPage === "home" && !shouldHideShell && (
+            <FloatingSupportButton />
+          )}
 
           {/* Overlays */}
-          <WithdrawOptions isOpen={withdrawOpen} onClose={() => setWithdrawOpen(false)} />
+          <WithdrawOptions
+            isOpen={withdrawOpen}
+            onClose={() => setWithdrawOpen(false)}
+          />
 
           {pinScreenOpen && (
             <PinEntryScreen
               onSuccess={handlePinSuccess}
-              onClose={() => { setPinScreenOpen(false); setPinWallet(null); }}
+              onClose={() => {
+                setPinScreenOpen(false);
+                setPinWallet(null);
+              }}
             />
           )}
 
@@ -192,19 +237,24 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
             onClose={() => setDrawerOpen(false)}
           />
 
-          {(walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen) && !drawerOpen && (
-            <div className="overlay-blur" onClick={() => {
-              setWalletListOpen(false);
-              setSelectedWallet(null);
-              setVirtualAccountOpen(false);
-              setDepositSheetOpen(false);
-            }} />
-          )}
+          {(walletListOpen ||
+            selectedWallet ||
+            virtualAccountOpen ||
+            depositSheetOpen) &&
+            !drawerOpen && (
+              <div
+                className="overlay-blur"
+                onClick={() => {
+                  setWalletListOpen(false);
+                  setSelectedWallet(null);
+                  setVirtualAccountOpen(false);
+                  setDepositSheetOpen(false);
+                }}
+              />
+            )}
 
           {walletListOpen && (
-            <WalletListModal
-              onClose={() => setWalletListOpen(false)}
-            />
+            <WalletListModal onClose={() => setWalletListOpen(false)} />
           )}
 
           {selectedWallet && (
@@ -216,14 +266,12 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           )}
 
           {virtualAccountOpen && (
-            <VirtualAccountModal
-              onClose={() => setVirtualAccountOpen(false)}
-            />
+            <VirtualAccountModal onClose={() => setVirtualAccountOpen(false)} />
           )}
 
           {depositSheetOpen && (
-            <DepositMethodSheet 
-              onClose={() => setDepositSheetOpen(false)} 
+            <DepositMethodSheet
+              onClose={() => setDepositSheetOpen(false)}
               address={balances?.address || ""}
               selectedSymbol={selectedSymbol}
             />

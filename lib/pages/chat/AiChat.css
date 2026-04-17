@@ -77,7 +77,8 @@
   padding-top: 0;
 }
 
-.chat-ai-back-btn {
+.chat-ai-back-btn,
+.chat-ai-add-btn {
   width: 35px;
   height: 35px;
   padding: 7.95px;
@@ -95,13 +96,21 @@
   transition: background 0.15s ease;
 }
 
-.chat-ai-back-btn:hover {
+.chat-ai-back-btn:hover,
+.chat-ai-add-btn:hover {
   background: #3a3a3a;
 }
 
 .chat-ai-back-icon {
   width: 13.98px;
   height: 10.52px;
+  display: block;
+  object-fit: contain;
+}
+
+.chat-ai-add-icon {
+  width: 23.31px;
+  height: 23.31px;
   display: block;
   object-fit: contain;
 }
@@ -253,14 +262,21 @@
   box-sizing: border-box;
   border-radius: 32px 32px 0 0;
   padding: var(--composer-gradient-stroke, 1px);
-  background: linear-gradient(90deg, #6a59ce 0%, #ffe9e9 25%, #ee9c2e 50%, #6a59ce 100%);
+  background: linear-gradient(
+    90deg,
+    #6a59ce 0%,
+    #ffe9e9 25%,
+    #ee9c2e 50%,
+    #6a59ce 100%
+  );
   overflow: visible;
 }
 
 .chat-composer-dock-inner {
   box-sizing: border-box;
   min-height: 129px;
-  border-radius: calc(32px - var(--composer-gradient-stroke, 1px)) calc(32px - var(--composer-gradient-stroke, 1px)) 0 0;
+  border-radius: calc(32px - var(--composer-gradient-stroke, 1px))
+    calc(32px - var(--composer-gradient-stroke, 1px)) 0 0;
   background: #000;
   padding: 5px;
   display: flex;
@@ -406,7 +422,9 @@
   justify-content: center;
   gap: 6.49px;
   line-height: 0;
-  transition: opacity 0.15s ease, transform 0.1s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease;
 }
 
 .chat-composer-asset-btn:hover {
@@ -565,11 +583,22 @@
 
 .chat-thread-header {
   flex-shrink: 0;
-  padding-left: 24px;
+  padding-inline: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header {
+  padding-right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* Match home screen back button inset so layout does not jump when sending a message */
-.chat-thread-back-btn {
+.chat-thread-back-btn,
+.chat-thread-add-btn {
   margin-top: calc(90px + env(safe-area-inset-top, 0px));
   margin-left: 0;
 }
@@ -582,7 +611,8 @@
   overscroll-behavior: contain;
   padding: 12px 24px 8px;
   padding-bottom: calc(
-    var(--ai-composer-spacer, 140px) + max(8px, env(safe-area-inset-bottom, 0px)) + 8px
+    var(--ai-composer-spacer, 140px) +
+      max(8px, env(safe-area-inset-bottom, 0px)) + 8px
   );
   scrollbar-width: thin;
 }
