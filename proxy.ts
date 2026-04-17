@@ -6,11 +6,10 @@ export async function proxy(request: NextRequest) {
     headers: request.headers,
   });
 
-  // TODO: Re-enable session check when backend is available
   // If no session and trying to hit /home, go to /onboarding
-  // if (!session && request.nextUrl.pathname.startsWith("/home")) {
-  //     return NextResponse.redirect(new URL("/onboarding", request.url));
-  // }
+  if (!session && request.nextUrl.pathname.startsWith("/home")) {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
 
   return NextResponse.next();
 }
