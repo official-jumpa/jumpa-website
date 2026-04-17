@@ -4,43 +4,43 @@
 
 .jumpa-theme-wrapper {
   /* ---- Brand / Accent ---- */
-  --primary-500: #7C5CFC;
-  --primary-400: #9A84FF;
-  --primary-300: #B8A9FF;
+  --primary-500: #7c5cfc;
+  --primary-400: #9a84ff;
+  --primary-300: #b8a9ff;
   --primary-glow: rgba(124, 92, 252, 0.28);
 
   /* ---- Backgrounds ---- */
   --bg-app: #171717;
-  --bg-surface-1: #1F1F1F;
+  --bg-surface-1: #1f1f1f;
   --bg-surface-2: #252525;
-  --bg-surface-3: #2B2B2B;
-  --bg-modal: #0F0F10;
+  --bg-surface-3: #2b2b2b;
+  --bg-modal: #0f0f10;
   --bg-overlay: rgba(0, 0, 0, 0.45);
 
   /* ---- Text ---- */
-  --text-primary: #F3F3F5;
-  --text-secondary: #B7B7BE;
-  --text-tertiary: #8B8B93;
-  --text-on-primary: #FFFFFF;
+  --text-primary: #f3f3f5;
+  --text-secondary: #b7b7be;
+  --text-tertiary: #8b8b93;
+  --text-on-primary: #ffffff;
 
   /* ---- Borders / Lines ---- */
-  --border-subtle: #34343A;
-  --border-soft: #2A2A30;
+  --border-subtle: #34343a;
+  --border-soft: #2a2a30;
   --divider: rgba(255, 255, 255, 0.08);
 
   /* ---- State Colours ---- */
-  --success: #22C55E;
-  --error: #EF4444;
-  --warning: #F59E0B;
-  --info: #3B82F6;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
 
   /* ---- Card accent tones ---- */
   --accent-lavender: rgba(124, 92, 252, 0.15);
-  --accent-cream: #F5E6D3;
-  --accent-peach: #FDDCB5;
-  --accent-gold: #C4A46C;
-  --accent-blue: #3B82F6;
-  --accent-pink: #EC4899;
+  --accent-cream: #f5e6d3;
+  --accent-peach: #fddcb5;
+  --accent-gold: #c4a46c;
+  --accent-blue: #3b82f6;
+  --accent-pink: #ec4899;
 
   /* ---- Radius ---- */
   --radius-card: 20px;
@@ -65,7 +65,7 @@
 
   /* ---- Top navigation sizing ---- */
   --topbar-control-size: 32px;
-  --topbar-hamburger-icon-size: 32px;
+  --topbar-hamburger-icon-size: 26px;
   --topbar-avatar-size: 32px;
   --topbar-settings-icon-size: 22px;
   --topbar-notification-icon-size: 20px;
@@ -76,7 +76,8 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   /* ---- Font ---- */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* ---- Transitions ---- */
   --transition-fast: 0.15s ease;

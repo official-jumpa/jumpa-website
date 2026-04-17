@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import "../HomePage.css";
 import "../home.css";
 import WalletSelectorCard from "../components/WalletSelectorCard";
@@ -9,6 +9,7 @@ import QuickTransferList from "../components/QuickTransferList";
 import PromoBannerCard from "../components/PromoBannerCard";
 import VirtualAccountBanner from "../components/VirtualAccountBanner";
 import HomeLoanCard from "../components/HomeLoanCard";
+import TransactionListCard from "../components/TransactionListCard";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +27,6 @@ export default function JumpaDashboard() {
     onReceive,
   } = useHomeLayout();
 
-
   return (
     <div className="home-page">
       <WalletSelectorCard onDropdown={onWalletDropdown} />
@@ -38,9 +38,10 @@ export default function JumpaDashboard() {
       />
       <ServiceShortcutGrid onWithdraw={onWithdrawal} onDApp={onDApp} />
 
-      <QuickTransferList />
+      {/* <QuickTransferList /> */}
       <PromoBannerCard />
       <VirtualAccountBanner onClick={onVirtualAccount} />
+      <TransactionListCard />
       <HomeLoanCard onOpenLoanDetail={() => router.push("/home/loan")} />
       <div className="home-bottom-spacer" />
     </div>
