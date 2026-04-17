@@ -42,7 +42,7 @@ export default function JumpaDashboard() {
       <PromoBannerCard />
       <VirtualAccountBanner onClick={onVirtualAccount} />
       <TransactionListCard />
-      <HomeLoanCard onOpenLoanDetail={() => router.push("/home/loan")} />
+      {/* <HomeLoanCard onOpenLoanDetail={() => router.push("/home/loan")} /> */}
       <div className="home-bottom-spacer" />
     </div>
   );
