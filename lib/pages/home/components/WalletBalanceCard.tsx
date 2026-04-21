@@ -26,7 +26,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
     (t: any) => t.symbol === selectedSymbol,
   ) || {
     symbol: selectedSymbol,
-    name: selectedSymbol === "ETH" ? "Ethereum" : "Flow (EVM)",
+    name: selectedSymbol === "ETH" ? "Ethereum" : "Multi-Chain",
     balance: "0.00",
     address: "",
   };

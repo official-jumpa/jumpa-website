@@ -53,8 +53,9 @@ async function request<T>(
 export interface WalletAddresses {
   eth: string;
   btc: string;
+  base: string;
   sol: string;
-  flow: string;
+  xlm: string;
 }
 
 export interface WalletCreatedResponse {
@@ -157,16 +158,20 @@ export interface BalancesResponse {
   address: string;
   addresses: {
     eth: string;
-    flow: string;
+    base: string;
+    sol: string;
+    xlm: string;
   };
   balances: {
     eth: string;
-    flow: string;
+    base: string;
+    sol: string;
+    xlm: string;
   };
   tokens: TokenBalance[];
 }
 
-/** GET /api/wallet/balance — fetch real-time ETH and FLOW balances */
+/** GET /api/wallet/balance — fetch real-time ETH and SOL balances */
 export async function getBalances(): Promise<ApiResponse<BalancesResponse>> {
   return request<BalancesResponse>("/api/wallet/balance");
 }
@@ -230,12 +235,13 @@ export async function getSwapQuote(
   from: string,
   to: string,
 ): Promise<
-  ApiResponse<{ amountOut: string; workingToken: string; tokenName: string }>
+  ApiResponse<{ amountOut: string; workingToken: string; tokenName: string; rawQuote?: any }>
 > {
   return request<{
     amountOut: string;
     workingToken: string;
     tokenName: string;
+    rawQuote?: any;
   }>(`/api/wallet/swap?amount=${amount}&from=${from}&to=${to}`);
 }
 
@@ -246,6 +252,7 @@ export async function postSwap(data: {
   fromAmount: string;
   pin: string;
   workingToken?: string;
+  rawQuote?: any;
 }): Promise<ApiResponse<{ success: boolean; hash: string }>> {
   return request<{ success: boolean; hash: string }>("/api/wallet/swap", {
     method: "POST",

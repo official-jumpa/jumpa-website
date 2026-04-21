@@ -6,14 +6,16 @@ export interface IWallet extends Document {
   addresses: {
     eth: string;
     btc: string;
-    flow: string;
+    base: string;
     sol: string;
+    xlm: string;
   };
   publicKeys: {
     eth: string;
     btc: string;
-    flow: string;
+    base: string;
     sol: string;
+    xlm: string;
   };
   encryptedMnemonic: string;
   iv: string;
@@ -33,13 +35,15 @@ const WalletSchema = new Schema<IWallet>(
       eth: { type: String, required: true },
       btc: { type: String, required: true },
       sol: { type: String, required: true },
-      flow: { type: String, required: true },
+      base: { type: String, required: true },
+      xlm: { type: String, required: true },
     },
     publicKeys: {
       eth: { type: String, required: true },
       btc: { type: String, required: true },
       sol: { type: String, required: true },
-      flow: { type: String, required: true },
+      base: { type: String, required: true },
+      xlm: { type: String, required: true },
     },
     encryptedMnemonic: { type: String, required: true },
     iv: { type: String, required: true },
@@ -53,7 +57,8 @@ const WalletSchema = new Schema<IWallet>(
 );
 
 WalletSchema.index({ "addresses.eth": 1 });
-WalletSchema.index({ "addresses.flow": 1 });
+WalletSchema.index({ "addresses.base": 1 });
+WalletSchema.index({ "addresses.sol": 1 });
 
 export const Wallet =
   (models.Wallet as mongoose.Model<IWallet>) ??

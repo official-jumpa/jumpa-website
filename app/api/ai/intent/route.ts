@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { z } from "zod";
-import { createPublicClient, http, formatEther } from "viem";
-import { mainnet } from "viem/chains";
 import Anthropic from "@anthropic-ai/sdk";
 import { ChatLog } from "@/models/ChatLog";
 import { Wallet } from "@/models/Wallet";
 import { connectDB } from "@/lib/db";
+import { createPublicClient, http, formatEther } from "viem";
+import { base, baseSepolia } from "viem/chains";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as StellarSdk from "@stellar/stellar-sdk";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
@@ -16,11 +18,13 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
-/**
- * POST /api/ai/intent
- * Autonomous AI agent powered by Claude.
- * Features: Multi-turn context, Tool-like parsing, and real logic.
- */
+const baseClient = createPublicClient({ chain: base, transport: http() });
+const baseSepoliaClient = createPublicClient({ chain: baseSepolia, transport: http() });
+const solMainnetConnection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+const solDevnetConnection = new Connection("https://api.devnet.solana.com", "confirmed");
+const stellarPublic = new StellarSdk.Horizon.Server("https://horizon.stellar.org");
+const stellarTestnet = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
+
 export const POST = withAuth(async (req, { address }) => {
   const body = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(body);
@@ -33,17 +37,26 @@ export const POST = withAuth(async (req, { address }) => {
   await connectDB()
 
   try {
-    const wallet = await Wallet.findOne({ address });
+    const wallet = await Wallet.findOne({ address: address.toLowerCase() });
     if (!wallet) return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
 
-    const flowEvmClient = createPublicClient({
-      chain: mainnet, // Using mainnet as a placeholder for Viem, but transport is Testnet
-      transport: http("https://testnet.evm.nodes.onflow.org"), 
-    });
+    const { base: baseAddr, sol: solAddr, xlm: xlmAddr } = wallet.addresses;
 
-    const flowBalance = await flowEvmClient.getBalance({ address: address as `0x${string}` })
-      .then(b => formatEther(b))
-      .catch(() => "0.00");
+    // Fetch quick mainnet and testnet balances for context
+    const baseBalance = await baseClient.getBalance({ address: baseAddr as `0x${string}` })
+      .then(b => formatEther(b)).catch(() => "0.00");
+    const baseSepoliaBalance = await baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` })
+      .then(b => formatEther(b)).catch(() => "0.00");
+
+    const solBalance = solAddr ? await solMainnetConnection.getBalance(new PublicKey(solAddr))
+      .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : "0.00";
+    const solDevBalance = solAddr ? await solDevnetConnection.getBalance(new PublicKey(solAddr))
+      .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : "0.00";
+
+    const xlmBalance = xlmAddr ? await stellarPublic.loadAccount(xlmAddr)
+      .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : "0.00";
+    const xlmTestBalance = xlmAddr ? await stellarTestnet.loadAccount(xlmAddr)
+      .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : "0.00";
 
     const chatLog = await ChatLog.findOne({ walletAddress: address });
     const history = chatLog?.messages.slice(-10).map(m => ({
@@ -53,32 +66,42 @@ export const POST = withAuth(async (req, { address }) => {
 
     const systemPrompt = `
       You are 3rike AI, the autonomous finance assistant for Jumpa. 
-      Your goal is to parse user prompts into actionable crypto intents for the Flow EVM network.
+      Your goal is to parse user prompts into actionable crypto intents for our supported networks (Solana, Base, Stellar).
       
-      Current User Address: ${address}
+      Current User Main Addresses: 
+      - Base: ${baseAddr}
+      - Solana: ${solAddr}
+      - Stellar: ${xlmAddr}
       Current Time: ${new Date().toISOString()}
       
       LIVE BALANCES:
-      - FLOW: ${flowBalance}
-      - ETH: 0.00 (Mocked for Demo)
+      - BASE-ETH: ${baseBalance}
+      - BASE-ETH (Sepolia): ${baseSepoliaBalance}
+      - SOL (Mainnet): ${solBalance}
+      - SOL (Devnet): ${solDevBalance}
+      - XLM (Public): ${xlmBalance}
+      - XLM (Testnet): ${xlmTestBalance}
 
-      IMPORTANT: Use these LIVE BALANCES to answer users' questions about how much money they have.
-      Example: If they ask "how much flow do i have", you should say "You have ${flowBalance} FLOW on the Flow EVM network."
+      IMPORTANT: Use these LIVE BALANCES to answer users' questions. Example: "You have ${solBalance} SOL"
 
       INTENTS:
-      - SEND_FUNDS: Parameters { amount, token, recipient }
+      - SEND_FUNDS: Parameters { amount: string, token: string, recipient: string } 
+        Valid tokens: SOL, SOL (Dev), ETH-BASE, ETH (Sep), XLM, XLM (Test)
       - CHECK_BALANCE: Parameters {}
       - SWAP_TOKEN: Parameters { fromToken, toToken, fromAmount }
       - CHAT: General conversation.
 
-      TOKENS: ETH, FLOW, USDC, USDT. Default to FLOW if unclear.
-      For swaps, usually the user says "Swap FLOW for USDC" -> { fromToken: "FLOW", toToken: "USDC", fromAmount: "X" }.
+      SWAP RULES: 
+      We ONLY support Swaps for Solana native tokens via Jupiter at this time. 
+      If a user asks to swap Base tokens (ETH-BASE) or Stellar tokens (XLM), you MUST respond using the CHAT intent with a message explaining: "Swapping for Base and Stellar is currently unsupported. We only support Solana swaps via Jupiter today." DO NOT return SWAP_TOKEN for non-Solana assets.
+
+      Default to SOL if unclear.
       
       RESPONSE FORMAT (MUST BE VALID JSON):
       {
         "intent": "INTENT_NAME",
         "params": { ... },
-        "message": "User-friendly response explaining what you understood"
+        "message": "User-friendly response explaining what you understood or what action is about to happen."
       }
     `;
 

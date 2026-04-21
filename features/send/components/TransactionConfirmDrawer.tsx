@@ -110,7 +110,9 @@ export default function TransactionConfirmDrawer({
                   </div>
                   <span className="text-sm text-zinc-400">Network</span>
                 </div>
-                <span className="text-sm font-medium text-white">Flow EVM</span>
+                <span className="text-sm font-medium text-white">
+                  {(details.type === 'transfer' ? details.token : details.fromToken).includes('SOL') ? 'Solana' : (details.type === 'transfer' ? details.token : details.fromToken).includes('XLM') ? 'Stellar' : (details.type === 'transfer' ? details.token : details.fromToken).includes('BASE') ? 'Base Chain' : 'Multi-Chain'}
+                </span>
               </div>
             </div>
           </div>

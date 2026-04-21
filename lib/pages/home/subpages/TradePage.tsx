@@ -7,7 +7,7 @@ import PinSheet from "@/features/send/components/pin-sheet";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 const TOKENS = [
-  { symbol: "FLOW", name: "Flow", icon: "🌊" },
+  { symbol: "SOL", name: "Solana Mainnet", icon: "🟣" },
   { symbol: "USDC", name: "USD Coin", icon: "💵" },
 ];
 
@@ -27,6 +27,7 @@ export default function TradePage() {
   const [quoteError, setQuoteError] = useState("");
   const [workingToken, setWorkingToken] = useState("");
   const [tokenName, setTokenName] = useState("");
+  const [rawQuote, setRawQuote] = useState<any>(null);
 
   useEffect(() => {
     loadBalances();
@@ -55,10 +56,12 @@ export default function TradePage() {
       setToAmount(parseFloat(res.data.amountOut).toFixed(4));
       setWorkingToken(res.data.workingToken);
       setTokenName(res.data.tokenName);
+      setRawQuote(res.data.rawQuote);
     } else {
       setQuoteError(res.error || "Insufficient liquidity");
       setToAmount("");
       setWorkingToken("");
+      setRawQuote(null);
     }
   };
 
@@ -78,7 +81,7 @@ export default function TradePage() {
 
   const getBalanceForToken = (symbol: string) => {
     if (!balances) return "0.00";
-    if (symbol === "FLOW") return balances.balances.flow;
+    if (symbol === "SOL") return balances.balances.sol;
     if (symbol === "USDC") {
        const usdc = balances.tokens.find(t => t.symbol === "USDC");
        return usdc ? usdc.balance : "0.00";
@@ -113,6 +116,7 @@ export default function TradePage() {
         fromAmount,
         pin,
         workingToken,
+        rawQuote,
       });
 
       if (res.data?.success) {
@@ -140,7 +144,7 @@ export default function TradePage() {
             You swapped {fromAmount} {fromToken.symbol} for {toAmount || "?"} {toToken.symbol}
           </p>
           <a 
-            href={`https://evm-testnet.flowscan.io/tx/${txHash}`} 
+            href={`https://solscan.io/tx/${txHash}`} 
             target="_blank" 
             rel="noopener noreferrer"
             className="explorer-link"
@@ -159,7 +163,7 @@ export default function TradePage() {
     <div className="trade-page">
       <header className="trade-header">
         <h1 className="trade-title">Swap Assets</h1>
-        <p className="trade-subtitle">Exchange tokens instantly on Flow EVM</p>
+        <p className="trade-subtitle">Exchange tokens instantly on Solana Mainnet</p>
       </header>
 
       <div className="trade-container">

@@ -62,7 +62,17 @@ export default function SuccessSheet({
         <div className="grid grid-cols-2 gap-3 pt-3">
           <Button
             type="button"
-            onClick={() => window.open(tokenSymbol === 'FLOW' ? `https://evm-testnet.flowscan.io/tx/${hash}` : `https://sepolia.etherscan.io/tx/${hash}`, '_blank')}
+            onClick={() => {
+              let url = `https://sepolia.etherscan.io/tx/${hash}`;
+              if (tokenSymbol.includes('SOL')) {
+                url = `https://solscan.io/tx/${hash}?cluster=${tokenSymbol.includes('Dev') ? 'devnet' : 'mainnet'}`;
+              } else if (tokenSymbol.includes('XLM')) {
+                url = `https://stellar.expert/explorer/${tokenSymbol.includes('Test') ? 'testnet' : 'public'}/tx/${hash}`;
+              } else if (tokenSymbol.includes('BASE')) {
+                url = `https://${tokenSymbol.includes('Sep') ? 'sepolia.' : ''}basescan.org/tx/${hash}`;
+              }
+              window.open(url, '_blank');
+            }}
             className="h-14 rounded-xl bg-violet-500 text-xl text-white hover:bg-violet-400"
           >
             Explorer

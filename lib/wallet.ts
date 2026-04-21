@@ -1,4 +1,8 @@
 import { mnemonicToAccount } from "viem/accounts";
+import * as bip39 from "bip39";
+import { derivePath } from "ed25519-hd-key";
+import { Keypair as SolanaKeypair } from "@solana/web3.js";
+import { Keypair as StellarKeypair } from "@stellar/stellar-sdk";
 
 // localStorage keys for wallet storage
 const WALLET_ADDRESS_KEY = "jumpa_wallet_address";
@@ -8,14 +12,16 @@ export interface DerivedWallet {
   addresses: {
     eth: string;
     btc: string;
+    base: string;
     sol: string;
-    flow: string;
+    xlm: string;
   };
   publicKeys: {
     eth: string;
     btc: string;
+    base: string;
     sol: string;
-    flow: string;
+    xlm: string;
   };
 }
 
@@ -24,35 +30,48 @@ export interface StoredWallet {
   addresses: {
     eth: string;
     btc: string;
+    base: string;
     sol: string;
-    flow: string;
+    xlm: string;
   };
 }
 
 /**
- * Derives public addresses and raw public keys for ETH, BTC, SOL, and FLOW
+ * Derives public addresses and raw public keys for ETH, BTC, SOL, and SOL
  * from a BIP39 mnemonic using viem (for EVM) and standard logic.
  */
 export function deriveAddresses(phrase: string): DerivedWallet {
-  // Use viem's account derivation for Ethereum and Flow EVM
+  // Use viem's account derivation for Ethereum and Base EVM
   const account = mnemonicToAccount(phrase);
   const ethAddress = account.address;
 
-  // For BTC and SOL, we'll keep the placeholders or implement them if needed.
-  // Currently, the app focuses on EVM (Flow/Eth).
+  // Derive Ed25519 Master Seed
+  const seed = bip39.mnemonicToSeedSync(phrase);
+  
+  // Solana Derivation m/44'/501'/0'/0'
+  const solDerived = derivePath("m/44'/501'/0'/0'", seed.toString('hex')).key;
+  const solKeypair = SolanaKeypair.fromSeed(solDerived);
+  const solAddress = solKeypair.publicKey.toBase58();
+
+  // Stellar Derivation m/44'/148'/0'
+  const stellarDerived = derivePath("m/44'/148'/0'", seed.toString('hex')).key;
+  const stellarKeypair = StellarKeypair.fromRawEd25519Seed(Buffer.from(stellarDerived));
+  const xlmAddress = stellarKeypair.publicKey();
 
   return {
     addresses: {
       eth: ethAddress,
       btc: "btc_placeholder",
-      sol: "sol_placeholder",
-      flow: ethAddress,
+      base: ethAddress,
+      sol: solAddress,
+      xlm: xlmAddress,
     },
     publicKeys: {
       eth: account.publicKey,
       btc: "btc_pub_placeholder",
-      sol: "sol_pub_placeholder",
-      flow: account.publicKey,
+      base: account.publicKey,
+      sol: solKeypair.publicKey.toBase58(),
+      xlm: xlmAddress,
     },
   };
 }

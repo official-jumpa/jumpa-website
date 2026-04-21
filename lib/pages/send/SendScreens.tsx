@@ -23,7 +23,6 @@ const CRYPTO_TOKENS = [
   { symbol: "BTC", name: "Btc", balance: "0.0192", icon: "₿", color: "#F7931A" },
   { symbol: "AMA", name: "AMa", balance: "0.0192", icon: "🟩", color: "#00C853" },
   { symbol: "USDC", name: "USDC", balance: "0.00", icon: "💲", color: "#2775CA" },
-  { symbol: "FLOW", name: "Flow", balance: "0.00", icon: "🟢", color: "#00EF8B" },
   { symbol: "USDT", name: "USDT", balance: "0.0192", icon: "₮", color: "#26A17B" },
   { symbol: "CELO", name: "Celo", balance: "0.00", icon: "🟡", color: "#FBCC5C" },
   { symbol: "LSK", name: "Lisk", balance: "0.00", icon: "🔺", color: "#0D4EA6" },

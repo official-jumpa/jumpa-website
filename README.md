@@ -1,6 +1,6 @@
 # Jumpa: Unified Autonomous Finance Interface
 
-> **Jumpa** is a premium, high-performance wallet built for the **PL_Genesis: Frontiers of Collaboration** hackathon. It combines the power of **Claude 4.5 Sonnet** with the high-speed **Flow EVM** to create a seamless, agent-native financial ecosystem.
+> **Jumpa** is a premium, high-performance wallet built that combines the power of **Claude 4.5 Sonnet** with a **Multi-Chain Architecture (Solana, Base, Stellar)** to create a seamless, agent-native financial ecosystem.
 
 ---
 
@@ -8,8 +8,8 @@
 
 Jumpa is engineered to push the boundaries of high-performance consumer coordination across three core frontiers:
 
-- **AI & Robotics**: Features a deeply integrated **3rike AI** assistant powered by **Claude 4.5 Sonnet**. The interface parses complex natural language intent (e.g., *"Send 5 FLOW to @Ola"*, *"Swap all my USDC for FLOW"*) into precise on-chain execution payloads.
-- **Crypto & Economic Systems**: Native, first-class support for **Flow EVM**. Includes a bespoke **Smart Trade** engine integrated with **PunchSwap V2** for real-time liquidity probing and high-efficiency token swaps with minimal slippage.
+- **AI & Robotics**: Features a deeply integrated **3rike AI** assistant powered by **Claude 4.5 Sonnet**. The interface parses complex natural language intent (e.g., *"Send 5 SOL to @Ola"*, *"Swap all my USDC for SOL"*) into precise on-chain execution payloads.
+- **Crypto & Economic Systems**: Native, first-class support for **Solana, Base, and Stellar**. Includes a bespoke **Smart Trade** engine integrated with **Jupiter Aggregator** for real-time liquidity probing and high-efficiency Solana token swaps with minimal slippage.
 - **Infrastructure & Digital Rights**: Implements a **Sovereign Security** model. Users maintain total control over their encrypted mnemonic phrases and private keys, secured by a local-first **AES-256-GCM** encryption layer locked with a 6-digit PIN.
 
 ---
@@ -22,7 +22,7 @@ Jumpa is engineered to push the boundaries of high-performance consumer coordina
 | **Frontend** | **React 19** | Concurrent rendering & ultra-fast state synchronization |
 | **Styling** | **Tailwind CSS v4** | Next-generation utility-first CSS engine |
 | **Logic/AI** | **Claude 4.5 Sonnet** | Advanced multi-turn intent parsing and autonomous coordination |
-| **Web3** | **Flow EVM** | Reliable, high-speed on-chain settlement layer |
+| **Web3** | **Multi-Chain** | Reliable, high-speed on-chain settlement layers (Solana, Base, Stellar) |
 | **Database** | **MongoDB** | High-performance document storage for sessions & histories |
 | **Auth** | **Better-Auth** | Secure, modern authentication with social & passkey support |
 
@@ -36,7 +36,7 @@ jumpa-website/
 │   ├── api/                      # API Endpoints
 │   │   ├── ai/                   # AI intent & multi-turn history
 │   │   ├── auth/                 # Session & authentication management
-│   │   ├── wallet/               # Flow EVM operations & balances
+│   │   ├── wallet/               # Multi-chain operations & live balances
 │   │   └── pin/                  # PIN-secured cryptographic verification
 │   ├── (auth)/                   # Authentication Pages (Login, Recovery)
 │   ├── (home)/                   # Protected Dashboard & Feature Routes
@@ -52,7 +52,7 @@ jumpa-website/
 │   └── ui/                       # Atomic primitives (shadcn/ui style)
 ├── lib/                          # Application logic layers
 │   ├── api.ts                    # Type-safe frontend API client
-│   ├── wallet.ts                 # Flow EVM derivation & transaction signing
+│   ├── wallet.ts                 # Multi-chain derivation & transaction signing
 │   ├── crypto.ts                 # AES-256-GCM sovereign encryption
 │   └── withAuth.ts               # Authenticated route middleware
 ├── models/                       # Mongoose data schemas (Wallet, Transaction, Log)
@@ -73,14 +73,14 @@ Jumpa is built on the principle of **User Sovereignty**:
 ## ⚡ Key Capabilities
 
 ### 1. 3rike AI: Autonomous Agent
-- **Natural Language Parsing**: Direct conversion of text or voice intent into structured JSON payloads for Flow EVM operations.
+- **Natural Language Parsing**: Direct conversion of text or voice intent into structured JSON payloads for Multi-Chain operations.
 - **Focus Blur Interaction**: Implements a premium UI pattern where the background blurs during AI interaction to focus user attention on the decision layer.
 - **Persistent Context**: Uses MongoDB to maintain multi-turn chat memory, allowing for complex follow-up commands like *"now swaphalf of that for USDC"*.
 
-### 2. Smart Execution: Flow EVM
-- **Real-time Settlement**: Low-latency transaction finality on the Flow blockchain.
-- **Liquidity Probing**: Automated quotes from **PunchSwap V2**, ensuring the best rates across multiple token variants.
-- **Unified Assets**: One interface for manageable assets across FLOW, USDC, and ETH ecosystems.
+### 2. Smart Execution: Multi-Chain
+- **Real-time Settlement**: Low-latency transaction finality on Solana, Base, and Stellar networks.
+- **Liquidity Probing**: Automated quotes from **Jupiter Aggregator**, ensuring the best rates across the Solana ecosystem.
+- **Unified Assets**: One interface for manageable assets across SOL, BASE-ETH, XLM, and USDC ecosystems.
 
 ### 3. Integrated Financial Dashboards
 - **Savings & Goals**: Full CRUD support for personal financial targets with real-time progress tracking.
@@ -114,8 +114,8 @@ GOOGLE_CLIENT_SECRET=your_google_secret
 AUTH_SECRET=your_auth_secret
 AUTH_URL=http://localhost:3000
 
-# Blockchain
-NEXT_PUBLIC_FLOW_NETWORK=mainnet
+# Blockchain Connectors
+NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
 ```
 
 ### 3. Development

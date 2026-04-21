@@ -1201,7 +1201,7 @@ export default function GroupAiChat() {
           aiMsg.transactionParams = {
             type: "transfer",
             amount: String(res.data.params.amount || "0"),
-            token: String(res.data.params.token || "FLOW"),
+            token: String(res.data.params.token || "SOL"),
             recipient: String(
               res.data.params.recipient ||
                 res.data.params.toAddress ||
@@ -1219,7 +1219,7 @@ export default function GroupAiChat() {
           aiMsg.isTransaction = true;
           aiMsg.transactionParams = {
             type: "swap",
-            fromToken: String(res.data.params.fromToken || "FLOW"),
+            fromToken: String(res.data.params.fromToken || "SOL"),
             toToken: String(res.data.params.toToken || "USDC"),
             fromAmount: String(res.data.params.fromAmount || "0"),
           };
@@ -1335,13 +1335,13 @@ export default function GroupAiChat() {
             }),
           );
 
-          const explorerUrl = `https://evm-testnet.flowscan.io/tx/${res.data.hash}`;
+          const explorerUrl = `https://solscan.io/tx/${res.data.hash}`;
           setMessages((prev) => [
             ...prev,
             {
               id: `sw-suc-${Date.now()}`,
               role: "ai",
-              text: `Swap complete! Your assets have been exchanged on PunchSwap. [View on Flowscan](${explorerUrl})`,
+              text: `Swap complete! Your assets have been exchanged on Jupiter. [View on Solscan](${explorerUrl})`,
             },
           ]);
         } else {
@@ -1379,13 +1379,13 @@ export default function GroupAiChat() {
             }),
           );
 
-          const explorerUrl = `https://evm-testnet.flowscan.io/tx/${res.data.hash}`;
+          const explorerUrl = `https://solscan.io/tx/${res.data.hash}`;
           setMessages((prev) => [
             ...prev,
             {
               id: `tx-suc-${Date.now()}`,
               role: "ai",
-              text: `Payment sent! Your transaction has been recorded on the blockchain. [View on Flowscan](${explorerUrl})`,
+              text: `Payment sent! Your transaction has been recorded on the blockchain. [View on Solscan](${explorerUrl})`,
             },
           ]);
         } else {

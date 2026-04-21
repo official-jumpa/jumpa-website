@@ -5,10 +5,10 @@ export interface ITransaction extends Document {
   fromAddress: string;
   toAddress: string;
   amount: string;
-  token: string; // ETH, FLOW, USDC, USDT
+  token: string; // ETH, SOL, USDC, USDT
   hash: string;
   status: "pending" | "confirmed" | "failed";
-  chain: "eth" | "flow";
+  chain: "eth" | "solana";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,7 +26,7 @@ const TransactionSchema: Schema = new Schema(
       enum: ["pending", "confirmed", "failed"],
       default: "pending",
     },
-    chain: { type: String, enum: ["eth", "flow"], required: true },
+    chain: { type: String, enum: ["eth", "solana"], required: true },
   },
   { timestamps: true },
 );

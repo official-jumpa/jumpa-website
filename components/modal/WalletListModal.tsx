@@ -23,9 +23,9 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
   };
 
   const tokens = balances?.tokens || [
-      { symbol: 'FLOW', name: 'Flow (EVM)', balance: '0.00', address: 'Loading...' },
-      { symbol: 'ETH', name: 'Ethereum', balance: '0.00', address: 'Loading...' },
-      { symbol: 'USDC', name: 'USD Coin', balance: '0.00', address: 'Loading...' },
+      { symbol: 'SOL', name: 'Solana', balance: '0.00', address: 'Loading...' },
+      { symbol: 'ETH-BASE', name: 'Base Mainnet', balance: '0.00', address: 'Loading...' },
+      { symbol: 'XLM', name: 'Stellar', balance: '0.00', address: 'Loading...' },
   ];
 
   return (
@@ -72,9 +72,10 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
                     className="wallet-row-orb" 
                     style={{ 
                       backgroundColor: 
-                        token.symbol === 'ETH' ? '#627EEA' : 
-                        token.symbol === 'FLOW' ? '#00EF8B' : 
-                        '#2775CA' // USDC Blue
+                        token.symbol.includes('ETH') ? '#627EEA' : 
+                        token.symbol.includes('SOL') ? '#A855F7' : 
+                        token.symbol.includes('XLM') ? '#3F3F46' : 
+                        '#2775CA' // Default/USDC Blue
                     }}
                 />
                 <div className="wallet-row-info">

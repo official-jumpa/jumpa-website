@@ -75,7 +75,7 @@ export default function SendPage() {
                 balanceText: `${t.balance} ${t.symbol}`,
                 balanceRaw: t.balance, // Added for 'Max' button
                 iconLabel: t.symbol[0],
-                iconColor: t.symbol === "FLOW" ? "bg-green-500" : "bg-indigo-500",
+                iconColor: t.symbol.includes("SOL") ? "bg-purple-500 text-white" : t.symbol.includes("BASE") ? "bg-blue-500 text-white" : t.symbol.includes("XLM") ? "bg-zinc-800 text-white" : "bg-indigo-500 text-white",
             }));
             setTokens(newTokens as any);
             
@@ -118,7 +118,7 @@ export default function SendPage() {
   const confirmAmount = amountValue.toString();
 
   const verifyPinAndSend = async (inputPin: string) => {
-    if (inputPin.length !== 4 || processing || isSubmitting.current) return;
+    if (inputPin.length !== WALLET_PIN_LENGTH || processing || isSubmitting.current) return;
     
     isSubmitting.current = true;
     setProcessing(true);
@@ -207,7 +207,13 @@ export default function SendPage() {
     navigate("/home");
   };
 
-  const isAddressValid = recipient.address ? isAddress(recipient.address) : false;
+  const isAddressValid = recipient.address ? (
+    token.symbol.includes("SOL") 
+      ? /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient.address)
+      : token.symbol.includes("XLM")
+      ? /^G[A-Z2-7]{55}$/.test(recipient.address)
+      : isAddress(recipient.address)
+  ) : false;
   const isValid = amountValue > 0 && amountValue <= (token.balanceRaw || 0);
 
   return (
@@ -227,7 +233,8 @@ export default function SendPage() {
           </h1>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-base"
+            onClick={() => setTokenSearchOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-base transition hover:bg-white/20"
           >
             {token.symbol}
             <ChevronDown className="h-4 w-4 text-zinc-500" />

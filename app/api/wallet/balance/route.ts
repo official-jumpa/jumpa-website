@@ -1,147 +1,95 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPublicClient, http, formatEther, defineChain, formatUnits } from "viem";
-import { mainnet } from "viem/chains";
-import * as fcl from "@onflow/fcl";
+import { createPublicClient, http, formatEther } from "viem";
+import { base, baseSepolia } from "viem/chains";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as StellarSdk from "@stellar/stellar-sdk";
 import { withAuth } from "@/lib/withAuth";
-import { publicKeyToAddress } from "viem/utils";
+import { Wallet } from "@/models/Wallet";
+import { connectDB } from "@/lib/db";
 
-fcl.config({
-  "accessNode.api": "https://rest-testnet.onflow.org",
-  "flow.network": "testnet",
-});
-
-const flowTestnet = defineChain({
-  id: 545,
-  name: 'Flow EVM Testnet',
-  network: 'flow-testnet',
-  nativeCurrency: { decimals: 18, name: 'Flow', symbol: 'FLOW' },
-  rpcUrls: {
-    default: { http: ['https://testnet.evm.nodes.onflow.org'] },
-  },
-});
-
-const ethClient = createPublicClient({
-  chain: mainnet,
-  transport: http("https://ethereum-rpc.publicnode.com"),
-});
-
-const flowEvmClient = createPublicClient({
-  chain: flowTestnet,
+// Base Clients
+const baseClient = createPublicClient({
+  chain: base,
   transport: http(), 
 });
+const baseSepoliaClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(),
+});
 
-const USDC_ADDRESS = "0xd7d43ab7b365f0d0789aE83F4385fA710FfdC98F"; // PYUSD0 on Testnet
-const ERC20_ABI = [
-  {
-    name: "balanceOf",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address" }],
-    outputs: [{ name: "balance", type: "uint256" }],
-  },
-] as const;
+// Solana Connections
+const solMainnetConnection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+const solDevnetConnection = new Connection("https://api.devnet.solana.com", "confirmed");
 
-// In-memory cache for balances
-// Key: wallet address
-// Value: { timestamp: number, data: any }
+// Stellar Servers
+const stellarPublic = new StellarSdk.Horizon.Server("https://horizon.stellar.org");
+const stellarTestnet = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
+
 const balanceCache: Record<string, { timestamp: number, data: any }> = {};
-const CACHE_TTL = 35 * 1000; // 35 seconds
+const CACHE_TTL = 35 * 1000;
 
-/**
- * GET /api/wallet/balance
- */
 export const GET = withAuth(async (req, { address }) => {
-
-  const ethAddress = address.length === 66 || (address.startsWith("0x") && address.length === 66+2)
-    ? publicKeyToAddress(address.startsWith("0x") ? address as `0x${string}` : `0x${address}`)
-    : address as `0x${string}`;
-
   // Check cache
   const now = Date.now();
-  const cached = balanceCache[ethAddress];
+  const cached = balanceCache[address];
   if (cached && (now - cached.timestamp < CACHE_TTL)) {
-    console.log(`[Balance] Returning cached balance for ${ethAddress} (age: ${Math.round((now - cached.timestamp)/1000)}s)`);
     return NextResponse.json(cached.data);
   }
 
   try {
-    const ethBalancePromise = ethClient.getBalance({ address: ethAddress })
-      .then(b => formatEther(b))
-      .catch(err => {
-        console.error("[Balance] ETH fetch error:", err);
-        return "0.00";
-      });
+    await connectDB();
+    const wallet = await Wallet.findOne({ address: address.toLowerCase() });
+    
+    if (!wallet) return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
+    const { base: baseAddr, sol: solAddr, xlm: xlmAddr } = wallet.addresses;
 
-    const flowBalancePromise = flowEvmClient.getBalance({ address: ethAddress })
-      .then(b => formatEther(b))
-      .catch(err => {
-        console.error("[Balance] FLOW EVM fetch error:", err);
-        return "0.00";
-      });
+    // --- Base Balances ---
+    const baseBalancePromise = baseClient.getBalance({ address: baseAddr as `0x${string}` })
+      .then(b => formatEther(b)).catch(() => "0.00");
+    const baseSepoliaPromise = baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` })
+      .then(b => formatEther(b)).catch(() => "0.00");
+      
+    // --- Solana Balances ---
+    const solPromise = solAddr ? solMainnetConnection.getBalance(new PublicKey(solAddr))
+      .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : Promise.resolve("0.00");
+    const solDevPromise = solAddr ? solDevnetConnection.getBalance(new PublicKey(solAddr))
+      .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : Promise.resolve("0.00");
 
-    const usdcBalancePromise = flowEvmClient.readContract({
-      address: USDC_ADDRESS,
-      abi: ERC20_ABI,
-      functionName: "balanceOf",
-      args: [ethAddress],
-    })
-      .then(b => formatUnits(b, 6)) // USDC = 6 decimals
-      .catch(err => {
-        console.error("[Balance] USDC fetch error:", err);
-        return "0.00";
-      });
+    // --- Stellar Balances ---
+    const xlmPromise = xlmAddr ? stellarPublic.loadAccount(xlmAddr)
+      .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : Promise.resolve("0.00");
+    const xlmTestPromise = xlmAddr ? stellarTestnet.loadAccount(xlmAddr)
+      .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : Promise.resolve("0.00");
 
-    const [ethBalance, flowBalance, usdcBalance] = await Promise.all([
-      ethBalancePromise,
-      flowBalancePromise,
-      usdcBalancePromise,
+    const [baseBal, baseSepBal, solBal, solDevBal, xlmBal, xlmTestBal] = await Promise.all([
+      baseBalancePromise, baseSepoliaPromise, solPromise, solDevPromise, xlmPromise, xlmTestPromise
     ]);
 
     const result = {
-      address: ethAddress,
-      addresses: {
-        eth: ethAddress,
-        flow: ethAddress,
-      },
+      address: baseAddr,
+      addresses: wallet.addresses,
       balances: {
-        eth: ethBalance,
-        flow: flowBalance,
-        usdc: usdcBalance,
+        base: baseBal,
+        baseSepolia: baseSepBal,
+        sol: solBal,
+        solDevnet: solDevBal,
+        xlm: xlmBal,
+        xlmTestnet: xlmTestBal,
       },
       tokens: [
-        {
-          symbol: "FLOW",
-          name: "Flow (EVM)",
-          address: ethAddress,
-          balance: flowBalance,
-          priceUsd: "0.84",
-        },
-        {
-          symbol: "ETH",
-          name: "Ethereum",
-          address: ethAddress,
-          balance: ethBalance,
-          priceUsd: "2540.21", 
-        },
-        {
-          symbol: "USDC",
-          name: "USD Coin",
-          address: USDC_ADDRESS,
-          balance: usdcBalance,
-          priceUsd: "1.00",
-        }
+        { symbol: "SOL", name: "Solana Mainnet", address: solAddr, balance: solBal, priceUsd: "150.00" },
+        { symbol: "SOL (Dev)", name: "Solana Devnet", address: solAddr, balance: solDevBal, priceUsd: "150.00" },
+        { symbol: "ETH-BASE", name: "Base Mainnet", address: baseAddr, balance: baseBal, priceUsd: "3540.21" },
+        { symbol: "ETH (Sep)", name: "Base Sepolia", address: baseAddr, balance: baseSepBal, priceUsd: "3540.21" },
+        { symbol: "XLM", name: "Stellar", address: xlmAddr, balance: xlmBal, priceUsd: "0.12" },
+        { symbol: "XLM (Test)", name: "Stellar Testnet", address: xlmAddr, balance: xlmTestBal, priceUsd: "0.12" }
       ]
     };
 
-    // Update cache
-    balanceCache[ethAddress] = {
-        timestamp: now,
-        data: result
-    };
-
+    balanceCache[address] = { timestamp: now, data: result };
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[Balance] General error:", err);
+    console.error("[Balance] error:", err);
     return NextResponse.json({ error: "Failed to fetch balances" }, { status: 500 });
   }
 });

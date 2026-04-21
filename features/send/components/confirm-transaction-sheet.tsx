@@ -63,7 +63,7 @@ export default function ConfirmTransactionSheet({
           </div>
           <div className="flex items-center justify-between border-b border-dotted border-zinc-600 pb-3">
             <span className="text-md text-zinc-200">Network</span>
-            <span className="text-lg text-zinc-100">{tokenSymbol === 'FLOW' ? 'Flow EVM' : 'Ethereum'}</span>
+            <span className="text-lg text-zinc-100">{tokenSymbol.includes('SOL') ? 'Solana' : tokenSymbol.includes('XLM') ? 'Stellar' : tokenSymbol.includes('BASE') ? 'Base Chain' : 'Ethereum'}</span>
           </div>
           <div className="flex items-center justify-between border-b border-dotted border-zinc-600 pb-3">
             <span className="text-md text-zinc-200">Fee</span>
