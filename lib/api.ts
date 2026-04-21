@@ -179,7 +179,7 @@ export async function getBalances(): Promise<ApiResponse<BalancesResponse>> {
 // --- AI Agent ---
 
 export interface AiIntentResponse {
-  intent: "SEND_FUNDS" | "CHECK_BALANCE" | "SWAP_TOKEN" | "CHAT";
+  intent: "SEND_FUNDS" | "CHECK_BALANCE" | "SWAP_TOKEN" | "ONRAMP_CRYPTO" | "OFFRAMP_CRYPTO" | "CHAT";
   params: Record<string, any>;
   message: string;
 }

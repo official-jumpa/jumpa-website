@@ -12,6 +12,8 @@ import {
 import { getAiHistory, postAiIntent, postTransfer, postSwap } from "@/lib/api";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
+import OnrampSheet from "@/features/onramp/OnrampSheet";
+import OfframpSheet from "@/features/offramp/OfframpSheet";
 import "@/lib/pages/home/home.css";
 import "./AiChat.css";
 
@@ -51,6 +53,7 @@ interface Message {
   isTransaction?: boolean;
   isVoice?: boolean;
   transactionDetails?: {
+    title?: string;
     label: string;
     sent: string;
     to: string;
@@ -507,20 +510,29 @@ function ChatScreen({
                 </div>
               )
             ) : m.isTransaction ? (
-              <div className="chat-msg-ai-row chat-msg-ai-row--transaction">
-                <button
-                  type="button"
-                  onClick={() => onTransactionClick(m)}
-                  className="chat-msg-tx-wrap"
-                >
-                  <div className="chat-msg-tx-label">{m.transactionDetails?.label}</div>
-                  <div className="chat-msg-tx-card">
-                    <div className="chat-msg-tx-strong">Withdrawal initiated!</div>
-                    <div>{m.transactionDetails?.sent}</div>
-                    <div>{m.transactionDetails?.to}</div>
-                    <div className="chat-msg-tx-result">{m.transactionDetails?.result}</div>
+              <div className="flex flex-col gap-3">
+                {m.text && (
+                  <div className="chat-msg-ai-block mt-1">
+                    <div className="chat-msg-ai-body chat-msg-ai-body--solo">
+                      <TextWithLinks text={m.text} />
+                    </div>
                   </div>
-                </button>
+                )}
+                <div className="chat-msg-ai-row chat-msg-ai-row--transaction">
+                  <button
+                    type="button"
+                    onClick={() => onTransactionClick(m)}
+                    className="chat-msg-tx-wrap"
+                  >
+                    <div className="chat-msg-tx-label">{m.transactionDetails?.label}</div>
+                    <div className="chat-msg-tx-card">
+                      <div className="chat-msg-tx-strong">{m.transactionDetails?.title || "Transaction generated!"}</div>
+                      <div>{m.transactionDetails?.sent}</div>
+                      <div>{m.transactionDetails?.to}</div>
+                      <div className="chat-msg-tx-result">{m.transactionDetails?.result}</div>
+                    </div>
+                  </button>
+                </div>
               </div>
             ) : (
               (() => {
@@ -640,6 +652,12 @@ function VoiceScreen({ processing }: { processing: boolean }) {
 export default function AiChat() {
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("home");
+
+  const [onrampOpen, setOnrampOpen] = useState(false);
+  const [onrampDraft, setOnrampDraft] = useState<{ amount: string, token: string, currency: string } | null>(null);
+
+  const [offrampOpen, setOfframpOpen] = useState(false);
+  const [offrampDraft, setOfframpDraft] = useState<{ amount: string, token: string } | null>(null);
 
   // Persistent messages from the backend
   const [messages, setMessages] = useState<Message[]>([]);
@@ -885,6 +903,7 @@ export default function AiChat() {
           };
           aiMsg.transactionDetails = {
             label: "Transfer Intent",
+            title: "Pending Transfer",
             sent: `Amount: ${res.data.params.amount} ${res.data.params.token}`,
             to: `Recipient: ${res.data.params.recipient}`,
             result: "Tap to confirm and send",
@@ -900,11 +919,44 @@ export default function AiChat() {
           };
           aiMsg.transactionDetails = {
             label: "Swap Intent",
+            title: "Drafted Swap",
             sent: `From: ${res.data.params.fromAmount} ${res.data.params.fromToken}`,
             to: `To: ${res.data.params.toToken}`,
             result: "Tap to confirm swap",
           };
           setPendingTransaction(aiMsg.transactionParams);
+        } else if (res.data.intent === "ONRAMP_CRYPTO") {
+          aiMsg.isTransaction = true;
+          aiMsg.transactionParams = {
+            type: 'onramp',
+            amount: String(res.data.params.amount || ""),
+            token: String(res.data.params.token || "solana:usdc"),
+            currency: String(res.data.params.currency || "NGN"),
+          };
+          aiMsg.transactionDetails = {
+            label: "Buy Crypto Request",
+            title: "Onramp Transaction",
+            sent: res.data.params.currency && res.data.params.currency !== "NGN" 
+              ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}`
+              : `Spend: ${res.data.params.amount ? '₦' + res.data.params.amount : '₦0'}`,
+            to: `Receive: ${res.data.params.token}`,
+            result: "Tap to review or change the amount",
+          };
+          // Don't set pending transaction for onramp since it has its own modal
+        } else if (res.data.intent === "OFFRAMP_CRYPTO") {
+          aiMsg.isTransaction = true;
+          aiMsg.transactionParams = {
+            type: 'offramp',
+            amount: String(res.data.params.amount || ""),
+            token: String(res.data.params.token || "solana:usdc"),
+          };
+          aiMsg.transactionDetails = {
+            label: "Sell Crypto Request",
+            title: "Offramp Transaction",
+            sent: `Selling: ${res.data.params.amount} ${res.data.params.token.toUpperCase()}`,
+            to: `Receive: Naira (Bank)`,
+            result: "Tap to enter bank details and withdraw",
+          };
         }
 
         setMessages((prev) => [...prev, aiMsg]);
@@ -1099,7 +1151,7 @@ export default function AiChat() {
               <div className="chat-blank-main" aria-hidden />
             )}
           </div>
-          {composerEl}
+          {(!onrampOpen && !offrampOpen && !confirmOpen) && composerEl}
         </div>
       );
     }
@@ -1108,12 +1160,27 @@ export default function AiChat() {
         <ChatScreen
           messages={messages}
           showTyping={showTyping}
-          composer={composerEl}
+          composer={(!onrampOpen && !offrampOpen && !confirmOpen) ? composerEl : <div className="h-4" />}
           onBack={() => navigate("/home")}
           onTransactionClick={(msg) => {
             if (msg.transactionParams) {
-              setPendingTransaction(msg.transactionParams);
-              setConfirmOpen(true);
+              if (msg.transactionParams.type === 'onramp') {
+                setOnrampDraft({
+                  amount: msg.transactionParams.amount,
+                  token: msg.transactionParams.token,
+                  currency: msg.transactionParams.currency
+                });
+                setOnrampOpen(true);
+              } else if (msg.transactionParams.type === 'offramp') {
+                setOfframpDraft({
+                  amount: msg.transactionParams.amount,
+                  token: msg.transactionParams.token
+                });
+                setOfframpOpen(true);
+              } else {
+                setPendingTransaction(msg.transactionParams);
+                setConfirmOpen(true);
+              }
             }
           }}
         />
@@ -1155,6 +1222,19 @@ export default function AiChat() {
                 details={pendingTransaction}
                 onConfirm={handleConfirmTransaction}
                 processing={confirmProcessing}
+              />
+              <OnrampSheet 
+                open={onrampOpen} 
+                onOpenChange={setOnrampOpen} 
+                defaultAmount={onrampDraft?.amount}
+                defaultToken={onrampDraft?.token}
+                defaultCurrency={onrampDraft?.currency}
+              />
+              <OfframpSheet
+                open={offrampOpen}
+                onOpenChange={setOfframpOpen}
+                defaultAmount={offrampDraft?.amount}
+                defaultToken={offrampDraft?.token}
               />
             </div>
           </div>

@@ -87,6 +87,12 @@ export const POST = withAuth(async (req, { address }) => {
       INTENTS:
       - SEND_FUNDS: Parameters { amount: string, token: string, recipient: string } 
         Valid tokens: SOL, SOL (Dev), ETH-BASE, ETH (Sep), XLM, XLM (Test)
+      - ONRAMP_CRYPTO: Parameters { amount: string, token: string, currency: string }
+        Valid tokens: solana:usdc, solana:usdt, base:usdc, base:cngn
+        Use this intent when the user wants to buy cryptocurrency. If they specify a Naira fiat amount, set currency to "NGN". If they specify an exact crypto amount (e.g. "Buy 20 USDC"), set currency to the token name (e.g. "USDC") and amount to "20".
+      - OFFRAMP_CRYPTO: Parameters { amount: string, token: string }
+        Valid tokens: solana:usdc, solana:usdt, base:usdc
+        Use this intent when the user wants to sell cryptocurrency for Naira (e.g., "I want to convert 20 usdt to naira").
       - CHECK_BALANCE: Parameters {}
       - SWAP_TOKEN: Parameters { fromToken, toToken, fromAmount }
       - CHAT: General conversation.
@@ -103,6 +109,11 @@ export const POST = withAuth(async (req, { address }) => {
         "params": { ... },
         "message": "User-friendly response explaining what you understood or what action is about to happen."
       }
+
+      TONE & STYLE GUIDELINES:
+      - Always use the '₦' symbol (e.g. ₦50,000) instead of writing NGN or Naira in full.
+      - Be extremely friendly and conversational.
+      - If responding to an ONRAMP_CRYPTO intent, mention that they can fully customize and change the amount, network or asset before they confirm the final checkout.
     `;
 
     let aiResponse;

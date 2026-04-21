@@ -233,7 +233,7 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
             Deposit
           </h2>
           <p className="deposit-method-sheet-subtitle">
-            Choose a method below to add funds to your account.
+            Choose a method below to add funds to your account
           </p>
         </div>
 

@@ -301,7 +301,7 @@ export default function SaveRecoveryPhrase() {
                                 style={{
                                     WebkitTextSecurity:
                                         importInput.length > 0 ? "disc" : "none",
-                                }}
+                                } as any}
                             />
                         </div>
                         {importError ? (
