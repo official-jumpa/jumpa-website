@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import type { Db } from "mongodb";
 
 const MONGO_URI = process.env.MONGO_URI!;
 
@@ -24,6 +25,22 @@ export async function connectDB(): Promise<mongoose.Connection> {
 
   console.log("MongoDB connected:", cached.host);
   return cached;
+}
+
+/**
+ * Returns the native MongoDB Db instance from the live MongoClient.
+ * Using getClient().db() is resilient to Atlas replica set failovers
+ * because the MongoClient manages the connection pool internally.
+ * This avoids the stale-snapshot problem with mongoose.connection.db.
+ */
+export function getDb(): Db {
+  const client = mongoose.connection.getClient();
+  if (!client) {
+    throw new Error(
+      "[DB] MongoClient is not available. Ensure connectDB() has been awaited before calling getDb()."
+    );
+  }
+  return client.db();
 }
 
 export { mongoose };

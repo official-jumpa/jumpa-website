@@ -1,14 +1,13 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { emailOTP } from "better-auth/plugins";
-import { mongoose } from "./db";
-import { connectDB } from "./db";
+import { connectDB, getDb } from "./db";
 import { sendOtpEmail } from "./email-otp-mail";
 
 await connectDB();
 export const auth = betterAuth({
 
-    database: mongodbAdapter(mongoose.connection.db!),
+    database: mongodbAdapter(getDb()),
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
