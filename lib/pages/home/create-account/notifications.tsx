@@ -51,7 +51,7 @@ export default function Notifications() {
           type="button"
           onClick={handleEnable}
           disabled={busy}
-          className="h-14 w-full rounded-xl border-none bg-[#8B5CF6] font-semibold text-base text-white shadow-none transition-colors hover:bg-[#7C3AED]"
+          className="h-14 w-full rounded-md border-none bg-[#8B5CF6] font-semibold text-base text-white shadow-none transition-colors hover:bg-[#7C3AED]"
         >
           {busy ? "Please wait…" : "Enable notification"}
         </Button>
@@ -61,7 +61,7 @@ export default function Notifications() {
           onClick={handleSkip}
           disabled={busy}
           variant="outline"
-          className="h-14 w-full rounded-xl border border-[#333333] bg-transparent font-semibold text-base text-white shadow-none transition-colors hover:bg-[#1C1C1E] hover:text-white"
+          className="h-14 w-full rounded-md border border-[#333333] bg-transparent font-semibold text-base text-white shadow-none transition-colors hover:bg-[#1C1C1E] hover:text-white"
         >
           Skip for now
         </Button>

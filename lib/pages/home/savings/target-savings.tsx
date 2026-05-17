@@ -207,7 +207,7 @@ export default function SavingsTargetDashboard() {
                 <div className="p-6 pb-10 bg-white absolute bottom-0 w-full">
                     <Button
                         onClick={handleCreateTarget}
-                        className="w-full bg-[#22C55E] hover:bg-[#1da64d] text-white rounded-xl h-14 text-md font-normal shadow-none"
+                        className="w-full bg-[#22C55E] hover:bg-[#1da64d] text-white rounded-md h-14 text-md font-normal shadow-none"
                     >
                         Continue
                     </Button>
