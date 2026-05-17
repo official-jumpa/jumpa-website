@@ -16,12 +16,15 @@ const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
   const { balances, selectedSymbol } = useHomeLayout();
   const [copied, setCopied] = useState(false);
 
+  const symbolKey = selectedSymbol.toLowerCase() as "eth" | "base" | "sol" | "xlm";
+  const fallbackAddress = balances?.addresses?.[symbolKey] || balances?.address || "Fetching...";
+
   const activeToken = balances?.tokens?.find(
     (t: any) => t.symbol === selectedSymbol,
   ) || {
     symbol: selectedSymbol,
     name: selectedSymbol === "ETH" ? "Ethereum" : "Multi-Chain",
-    address: "Fetching...",
+    address: fallbackAddress,
   };
 
   const handleCopy = (e: React.MouseEvent) => {

@@ -10,7 +10,7 @@
   padding: var(--space-md) var(--space-base);
   background: var(--bg-surface-1);
   border-radius: var(--radius-card);
-  cursor: pointer;
+  /* cursor: pointer; */
   transition: background var(--transition-fast);
 }
 
