@@ -21,9 +21,7 @@ export default function ImportOptions() {
                     Import using Secret Recovery Phrase
                 </Button>
 
-                <Button onClick={() => router.push("/private-keys")} className="w-full h-14 rounded-xl bg-[#3F443F] hover:bg-[#323632] text-white font-medium text-base shadow-none">
-                    Import using Private Keys
-                </Button>
+
             </div>
         </div>
     );
