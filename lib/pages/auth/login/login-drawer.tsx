@@ -16,7 +16,7 @@ export default function LoginDrawer() {
         <Button
             type="button"
             onClick={handleExistingWallet}
-            className="h-14 w-full rounded-xl bg-[#3F443F] text-base font-medium text-white shadow-none transition-all hover:bg-[#323632] active:scale-[0.98]"
+            className="h-14 w-full rounded-xl cursor-pointer bg-[#3F443F] text-base font-medium text-white shadow-none transition-all hover:bg-[#323632] active:scale-[0.98]"
         >
             I have an existing wallet
         </Button>

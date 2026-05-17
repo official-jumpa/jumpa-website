@@ -62,7 +62,7 @@ export default function CreateAccountDrawer() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button className="h-12 w-full rounded-xl bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
+        <Button className="h-12 w-full cursor-pointer rounded-xl bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
           Create a new wallet
         </Button>
       </DrawerTrigger>
@@ -137,7 +137,7 @@ export default function CreateAccountDrawer() {
               <button
                 type="button"
                 onClick={handleGoogle}
-                className="flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-white px-2.5 text-base leading-[145%] text-black transition-colors hover:bg-gray-100"
+                className="flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-white px-2.5 text-base leading-[145%] text-black transition-colors hover:bg-gray-100 cursor-pointer"
               >
                 <Image
                   src={GOOGLE_ICON}
@@ -152,7 +152,7 @@ export default function CreateAccountDrawer() {
               <button
                 type="button"
                 onClick={handleSecretPhrase}
-                className="flex h-12 w-full shrink-0 items-center justify-center rounded-[10px] bg-[#2D2D2D] px-2.5 text-sm leading-[145%] text-white transition-colors hover:bg-[#3a3a3a]"
+                className="flex h-12 w-full cursor-pointer shrink-0 items-center justify-center rounded-[10px] bg-[#2D2D2D] px-2.5 text-sm leading-[145%] text-white transition-colors hover:bg-[#3a3a3a]"
               >
                 Continue with Secret Phrase
               </button>
