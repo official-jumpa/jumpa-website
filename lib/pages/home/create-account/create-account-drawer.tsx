@@ -56,13 +56,13 @@ export default function CreateAccountDrawer() {
 
   const handleSecretPhrase = () => {
     setOpen(false);
-    navigate("/save-recovery?flow=import", { state: { action: "import" } });
+    navigate("/save-recovery?flow=create", { state: { action: "create" } });
   };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button className="h-12 w-full cursor-pointer rounded-xl bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
+        <Button className="h-12 w-full rounded-md bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
           Create a new wallet
         </Button>
       </DrawerTrigger>
@@ -73,7 +73,7 @@ export default function CreateAccountDrawer() {
         className={cn(
           "mx-auto flex h-[430px] w-full max-w-[390px] flex-col overflow-hidden rounded-t-[28px] border-none bg-[#101010] text-white",
           "data-[vaul-drawer-direction=bottom]:max-h-[430px]",
-          "[&>div:first-child]:hidden"
+          "[&>div:first-child]:hidden",
         )}
       >
         <DrawerTitle className="sr-only">Create a new wallet</DrawerTitle>
@@ -110,7 +110,7 @@ export default function CreateAccountDrawer() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={cn(
-                "h-12 w-full shrink-0 rounded-[10px] border border-[#AAAAAA] bg-transparent px-2.5 pb-[17px] pt-2.5 text-sm leading-[145%] text-white outline-none placeholder:text-[#777777] focus:border-[#AAAAAA] focus:ring-0"
+                "h-12 w-full shrink-0 rounded-[10px] border border-[#AAAAAA] bg-transparent px-2.5 pb-[17px] pt-2.5 text-sm leading-[145%] text-white outline-none placeholder:text-[#777777] focus:border-[#AAAAAA] focus:ring-0",
               )}
             />
 
@@ -122,7 +122,7 @@ export default function CreateAccountDrawer() {
                 "mt-2.5 flex h-12 w-full shrink-0 items-center justify-center rounded-[10px] px-2.5 text-base leading-[145%] transition-colors",
                 emailOk
                   ? "bg-[#6A59CE] text-[#F4F4F4] hover:bg-[#5c4ec0]"
-                  : "cursor-not-allowed bg-[#C3BDEB] text-[#F4F4F4]"
+                  : "cursor-not-allowed bg-[#C3BDEB] text-[#F4F4F4]",
               )}
             >
               Continue
@@ -146,7 +146,7 @@ export default function CreateAccountDrawer() {
                   height={16}
                   className="h-4 w-4 shrink-0"
                 />
-                Sign in with Google
+                Continue with Google
               </button>
 
               <button
@@ -154,7 +154,7 @@ export default function CreateAccountDrawer() {
                 onClick={handleSecretPhrase}
                 className="flex h-12 w-full cursor-pointer shrink-0 items-center justify-center rounded-[10px] bg-[#2D2D2D] px-2.5 text-sm leading-[145%] text-white transition-colors hover:bg-[#3a3a3a]"
               >
-                Continue with Secret Phrase
+                Create with Secret Phrase
               </button>
             </div>
 

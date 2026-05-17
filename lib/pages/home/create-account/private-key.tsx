@@ -25,7 +25,7 @@ export default function ImportPrivateKey() {
 
         {/* Header Text */}
         <h1 className="text-3xl font-bold tracking-tight mb-3">
-          Enter a Private Key
+          Enter a Recovery Phrase
         </h1>
         <p className="text-[#A1A1AA] text-[15px] mb-8">
           Use spaces between words if using a recovery phrase
@@ -36,7 +36,7 @@ export default function ImportPrivateKey() {
         <textarea
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          placeholder="Recovery or private key"
+          placeholder="Recovery phrase"
           className="w-full min-h-30 bg-transparent border border-[#333333] rounded-xl p-4 text-white placeholder:text-[#52525B] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] focus:border-[#8B5CF6] resize-none transition-colors"
         />
       </div>

@@ -68,6 +68,8 @@ export default function VerifyEmailPage() {
         email: addr,
         type: "sign-in",
       });
+      console.log("OTP RES:", res);
+
       if (res.error) {
         setSendError(res.error.message ?? "Could not send code");
         setSending(false);
@@ -216,7 +218,7 @@ export default function VerifyEmailPage() {
               type="button"
               onClick={handleContinueSuccess}
               className={cn(
-                "flex h-12 w-full items-center justify-center rounded-xl text-base leading-6 text-white transition-opacity opacity-100",
+                "flex h-12 w-full items-center justify-center rounded-md text-base leading-6 text-white transition-opacity opacity-100",
               )}
               style={{
                 fontFamily: "Poppins, sans-serif",
@@ -357,7 +359,9 @@ export default function VerifyEmailPage() {
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
               Code expires in{" "}
-              <span className="font-medium text-white">{formatTime(secondsLeft)}</span>
+              <span className="font-medium text-white">
+                {formatTime(secondsLeft)}
+              </span>
             </p>
           ) : null}
 
@@ -391,7 +395,9 @@ export default function VerifyEmailPage() {
               )}
               style={{ fontFamily: "Geist, sans-serif" }}
             >
-              {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : "Resend Code"}
+              {resendCooldown > 0
+                ? `Resend (${resendCooldown}s)`
+                : "Resend Code"}
             </button>
           </div>
         </div>
@@ -401,7 +407,7 @@ export default function VerifyEmailPage() {
           disabled={!canVerify}
           onClick={handleVerify}
           className={cn(
-            "flex h-12 w-full items-center justify-center rounded-xl text-base leading-6 transition-colors",
+            "flex h-12 w-full items-center justify-center rounded-md text-base leading-6 transition-colors",
             canVerify
               ? "bg-[#6A59CE] text-white"
               : "cursor-not-allowed bg-[#C3BDEB] text-white",

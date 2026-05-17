@@ -178,7 +178,7 @@ export default function WithdrawCryptoAsset() {
                     <Button
                         disabled={amount === "0"}
                         onClick={() => setStep('confirm')}
-                        className="w-full h-14 bg-[#01C259] hover:bg-[#01b050] disabled:bg-gray-300 text-white text-lg font-medium rounded-xl shadow-none transition-colors"
+                        className="w-full h-14 bg-[#01C259] hover:bg-[#01b050] disabled:bg-gray-300 text-white text-lg font-medium rounded-md shadow-none transition-colors"
                     >
                         Continue
                     </Button>
