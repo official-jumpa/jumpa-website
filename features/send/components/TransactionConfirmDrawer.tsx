@@ -73,12 +73,12 @@ export default function TransactionConfirmDrawer({
           <div className="flex-1 overflow-y-auto space-y-6 pr-1 custom-scrollbar pt-2">
             {/* Summary Card */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-[#3EC6C6]/10 flex items-center justify-center mb-4">
-                <Send className="w-8 h-8 text-[#3EC6C6]" />
+              <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
+                <Send className="w-8 h-8 text-purple-500" />
               </div>
               <p className="text-3xl font-bold text-white mb-1">
                 {details.type === 'transfer' ? details.amount : details.fromAmount}{" "}
-                <span className="text-[#3EC6C6]">
+                <span className="text-purple-500">
                   {details.type === 'transfer' ? details.token : details.fromToken}
                 </span>
               </p>
@@ -105,8 +105,8 @@ export default function TransactionConfirmDrawer({
 
               <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4 text-[#3EC6C6]" />
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 text-purple-500" />
                   </div>
                   <span className="text-sm text-zinc-400">Network</span>
                 </div>
@@ -123,11 +123,11 @@ export default function TransactionConfirmDrawer({
               type="button"
               disabled={processing}
               onClick={() => setShowPin(true)}
-              className="w-full h-16 rounded-2xl bg-[#3EC6C6] text-zinc-950 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-[0_8px_30px_rgba(62,198,198,0.3)]"
+              className="w-full h-16 rounded-2xl bg-[#A855F7] text-zinc-900 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               {processing ? (
                 <>
-                  <div className="h-5 w-5 rounded-full border-2 border-zinc-950 border-t-transparent animate-spin" />
+                  <div className="h-5 w-5 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin" />
                   <span>Processing...</span>
                 </>
               ) : (
