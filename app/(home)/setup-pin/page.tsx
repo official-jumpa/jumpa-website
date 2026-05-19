@@ -17,12 +17,18 @@ export default function SetupPinPage() {
   const [step, setStep] = useState<1 | 2>(1); // 1: Enter, 2: Confirm
   const [error, setError] = useState<string | null>(null);
   const [isSettingUp, setIsSettingUp] = useState(false);
+  const [checkingWallet, setCheckingWallet] = useState(true);
 
   // Skip PIN setup if user already has a wallet
   useEffect(() => {
     const checkExistingWallet = async () => {
-      if (isPending || !session) return;
+      if (isPending) return;
+      if (!session) {
+        setCheckingWallet(false);
+        return;
+      }
 
+      let shouldStopLoading = true;
       try {
         const res = await fetch("/api/user/wallet");
         if (res.ok) {
@@ -34,10 +40,16 @@ export default function SetupPinPage() {
               addresses: data.addresses,
             });
             router.push("/home");
+            shouldStopLoading = false;
+            return;
           }
         }
       } catch (err) {
         console.error("[SetupPin] Error checking existing wallet:", err);
+      } finally {
+        if (shouldStopLoading) {
+          setCheckingWallet(false);
+        }
       }
     };
 
@@ -148,6 +160,14 @@ export default function SetupPinPage() {
       </div>
     );
   };
+
+  if (isPending || checkingWallet) {
+    return (
+      <div className="min-h-dvh w-full bg-[#050505] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-[#050505] text-white flex flex-col items-center px-6 pt-6 pb-4 overflow-hidden">

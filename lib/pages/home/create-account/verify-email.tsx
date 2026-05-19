@@ -159,8 +159,23 @@ export default function VerifyEmailPage() {
   };
 
   // After OTP verification success, continue to seed phrase / wallet setup
-  const handleContinueSuccess = () => {
+  const handleContinueSuccess = async () => {
     if (!email) return;
+    
+    try {
+      const res = await fetch("/api/user/wallet");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.address) {
+          // User already exists and has a wallet - go straight to /home!
+          navigate("/home");
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("[VerifyEmail] Failed to check existing wallet:", err);
+    }
+
     // Navigate to save-recovery page to generate/view seed phrase
     // The BetterAuth session is already active, so the wallet-setup
     // endpoint will be able to authenticate this user
