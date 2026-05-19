@@ -259,3 +259,25 @@ export async function postSwap(data: {
     body: JSON.stringify(data),
   });
 }
+
+// --- Dynamic Transactions ---
+
+export interface TransactionRecord {
+  _id: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: string;
+  token: string;
+  hash: string;
+  status: "pending" | "confirmed" | "failed";
+  chain: string;
+  createdAt: string;
+}
+
+/** GET /api/wallet/transactions — fetch dynamic user transactions */
+export async function getTransactions(): Promise<
+  ApiResponse<{ addresses: WalletAddresses; transactions: TransactionRecord[] }>
+> {
+  return request<{ addresses: WalletAddresses; transactions: TransactionRecord[] }>("/api/wallet/transactions");
+}
+
