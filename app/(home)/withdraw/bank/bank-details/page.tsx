@@ -1,5 +1,11 @@
-"use client";
+import WithdrawBankDetails from "@/components/home/WithdrawBankDetails";
+import type { Metadata } from "next";
 
-import WithdrawBankDetails from "@/lib/pages/home/withdraw/bank/bank-details";
+export const metadata: Metadata = {
+  title: "Bank Account Details | Jumpa",
+  description: "Provide bank details for completing your secure fiat withdrawal.",
+};
 
-export default WithdrawBankDetails;
+export default function Page() {
+  return <WithdrawBankDetails />;
+}

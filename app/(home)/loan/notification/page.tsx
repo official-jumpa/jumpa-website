@@ -1,5 +1,11 @@
-"use client";
+import LoanNotification from "@/components/home/LoanNotification";
+import type { Metadata } from "next";
 
-import LoanNotification from "@/lib/pages/home/loan/notification";
+export const metadata: Metadata = {
+  title: "Loan Status | Jumpa",
+  description: "View updates and notifications related to your active loan requests on Jumpa.",
+};
 
-export default LoanNotification;
+export default function Page() {
+  return <LoanNotification />;
+}

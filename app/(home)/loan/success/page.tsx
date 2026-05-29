@@ -1,5 +1,11 @@
-"use client";
+import LoanRequestSuccess from "@/components/home/LoanRequestSuccess";
+import type { Metadata } from "next";
 
-import LoanRequestSuccess from "@/lib/pages/home/loan/success";
+export const metadata: Metadata = {
+  title: "Loan Successful | Jumpa",
+  description: "Your loan request has been successfully processed and disbursed.",
+};
 
-export default LoanRequestSuccess;
+export default function Page() {
+  return <LoanRequestSuccess />;
+}

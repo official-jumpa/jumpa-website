@@ -1,5 +1,11 @@
-"use client";
+import VerificationFailedForm from "@/components/home/VerificationFailedForm";
+import type { Metadata } from "next";
 
-import VerificationFailedForm from "@/lib/pages/home/verification/verification-failed";
+export const metadata: Metadata = {
+  title: "Verification Retry | Jumpa",
+  description: "Identity verification failed. Complete the retry form to submit corrections.",
+};
 
-export default VerificationFailedForm;
+export default function Page() {
+  return <VerificationFailedForm />;
+}

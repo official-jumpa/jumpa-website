@@ -1,15 +1,15 @@
 "use client";
-import "../HomePage.css";
-import "../home.css";
-import WalletSelectorCard from "../components/WalletSelectorCard";
-import WalletBalanceCard from "../components/WalletBalanceCard";
-import QuickActionRow from "../components/QuickActionRow";
-import ServiceShortcutGrid from "../components/ServiceShortcutGrid";
-import QuickTransferList from "../components/QuickTransferList";
-import PromoBannerCard from "../components/PromoBannerCard";
-import VirtualAccountBanner from "../components/VirtualAccountBanner";
-import HomeLoanCard from "../components/HomeLoanCard";
-import TransactionListCard from "../components/TransactionListCard";
+import "./HomePage.css";
+import "./home.css";
+import WalletSelectorCard from "./WalletSelectorCard";
+import WalletBalanceCard from "./WalletBalanceCard";
+import QuickActionRow from "./QuickActionRow";
+import ServiceShortcutGrid from "./ServiceShortcutGrid";
+import QuickTransferList from "./QuickTransferList";
+import PromoBannerCard from "./PromoBannerCard";
+import VirtualAccountBanner from "./VirtualAccountBanner";
+import HomeLoanCard from "./HomeLoanCard";
+import TransactionListCard from "./TransactionListCard";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
 import { useRouter } from "next/navigation";
 

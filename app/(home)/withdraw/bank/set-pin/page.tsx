@@ -1,5 +1,11 @@
-"use client";
+import SetPinWithdraw from "@/components/home/SetPinWithdraw";
+import type { Metadata } from "next";
 
-import SetPinWithdraw from "@/lib/pages/home/withdraw/bank/set-pin";
+export const metadata: Metadata = {
+  title: "Set Transaction Pin | Jumpa",
+  description: "Set or confirm your transaction pin to authorize withdrawals on Jumpa.",
+};
 
-export default SetPinWithdraw;
+export default function Page() {
+  return <SetPinWithdraw />;
+}

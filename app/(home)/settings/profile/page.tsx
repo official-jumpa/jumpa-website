@@ -1,5 +1,11 @@
-"use client";
+import SettingsProfile from "@/components/home/SettingsProfile";
+import type { Metadata } from "next";
 
-import SettingsProfile from "@/lib/pages/home/settings/profile";
+export const metadata: Metadata = {
+  title: "Profile Settings | Jumpa",
+  description: "View and configure your Jumpa wallet user profile details.",
+};
 
-export default SettingsProfile;
+export default function Page() {
+  return <SettingsProfile />;
+}

@@ -1,5 +1,11 @@
-"use client";
+import VerificationFailed from "@/components/home/VerificationFailed";
+import type { Metadata } from "next";
 
-import VerificationFailed from "@/lib/pages/home/verification/fail";
+export const metadata: Metadata = {
+  title: "Verification Failed | Jumpa",
+  description: "Identity verification failed. Please check your credentials and retry.",
+};
 
-export default VerificationFailed;
+export default function Page() {
+  return <VerificationFailed />;
+}

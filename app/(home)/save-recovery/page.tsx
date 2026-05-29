@@ -1,5 +1,11 @@
-import SaveRecoveryPhrase from "@/lib/pages/home/create-account/save-recovery";
+import SaveRecoveryPhrase from "@/components/home/SaveRecovery";
 import React, { Suspense } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Save Recovery Phrase | Jumpa",
+  description: "Securely backup your Jumpa recovery phrase or import an existing wallet.",
+};
 
 export default function SaveRecoveryPage() {
   return (

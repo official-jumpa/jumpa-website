@@ -1,5 +1,11 @@
-"use client";
+import VerifyAccountForm from "@/components/home/VerifyAccountForm";
+import type { Metadata } from "next";
 
-import VerifyAccountForm from "@/lib/pages/home/verification/form";
+export const metadata: Metadata = {
+  title: "Verify Account Form | Jumpa",
+  description: "Fill in your personal identification details to verify your Jumpa wallet account.",
+};
 
-export default VerifyAccountForm;
+export default function Page() {
+  return <VerifyAccountForm />;
+}

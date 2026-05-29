@@ -1,5 +1,11 @@
-"use client";
+import LoginForm from "@/components/auth/LoginForm";
+import type { Metadata } from "next";
 
-import Login from "@/lib/pages/auth/login";
+export const metadata: Metadata = {
+  title: "Login | Jumpa",
+  description: "Securely login to your Jumpa wallet and manage your funds.",
+};
 
-export default Login;
+export default function Page() {
+  return <LoginForm />;
+}

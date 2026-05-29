@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import LoginDrawer from "../auth/login/login-drawer";
-import CreateAccountDrawer from "../home/create-account/create-account-drawer";
-import "../../layouts/HomeLayout.css";
+import LoginDrawer from "@/components/auth/LoginDrawer";
+import CreateAccountDrawer from "@/components/home/CreateAccountDrawer";
+import "@/components/layouts/HomeLayout.css";
 import "./Onboarding.css";
 
 

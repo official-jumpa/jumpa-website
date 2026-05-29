@@ -1,5 +1,11 @@
-"use client";
+import Onboarding from "@/components/onboarding/Onboarding";
+import type { Metadata } from "next";
 
-import Onboarding from "@/lib/pages/onboarding";
+export const metadata: Metadata = {
+  title: "Onboarding | Jumpa",
+  description: "Welcome to Jumpa. Get started with chat trading, joint savings, and smart agents.",
+};
 
-export default Onboarding;
+export default function Page() {
+  return <Onboarding />;
+}

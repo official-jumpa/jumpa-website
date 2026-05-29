@@ -1,5 +1,11 @@
-"use client";
+import SavingsDashboard from "@/components/home/SavingsDashboard";
+import type { Metadata } from "next";
 
-import SavingsDashboard from "@/lib/pages/home/savings/dashboard";
+export const metadata: Metadata = {
+  title: "Savings Dashboard | Jumpa",
+  description: "View interest accrued, adjust auto-saving limits, and analyze your active target savings goals on Jumpa.",
+};
 
-export default SavingsDashboard;
+export default function Page() {
+  return <SavingsDashboard />;
+}

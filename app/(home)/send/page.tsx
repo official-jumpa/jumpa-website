@@ -1,5 +1,11 @@
-"use client";
+import Send from "@/components/send/Send";
+import type { Metadata } from "next";
 
-import Send from "@/lib/pages/send";
+export const metadata: Metadata = {
+  title: "Send Funds | Jumpa",
+  description: "Send funds and digital assets to friends, family, or other wallets securely.",
+};
 
-export default Send;
+export default function Page() {
+  return <Send />;
+}

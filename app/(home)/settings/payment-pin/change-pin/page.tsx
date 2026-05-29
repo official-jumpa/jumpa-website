@@ -1,5 +1,11 @@
-"use client";
+import ChangePaymentPin from "@/components/home/ChangePaymentPin";
+import type { Metadata } from "next";
 
-import ChangePaymentPin from "@/lib/pages/home/settings/payment-pin/change-pin";
+export const metadata: Metadata = {
+  title: "Change Payment Pin | Jumpa",
+  description: "Change your secure Jumpa wallet transaction and payment pin.",
+};
 
-export default ChangePaymentPin;
+export default function Page() {
+  return <ChangePaymentPin />;
+}

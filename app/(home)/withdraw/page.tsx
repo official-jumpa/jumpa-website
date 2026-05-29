@@ -1,5 +1,11 @@
-"use client";
+import Withdraw from "@/components/home/Withdraw";
+import type { Metadata } from "next";
 
-import Withdraw from "@/lib/pages/home/withdraw";
+export const metadata: Metadata = {
+  title: "Withdraw Funds | Jumpa",
+  description: "Withdraw your funds securely using local bank transfer or cryptocurrency.",
+};
 
-export default Withdraw;
+export default function Page() {
+  return <Withdraw />;
+}

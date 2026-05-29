@@ -1,5 +1,11 @@
-"use client";
+import CreateAccountForm from "@/components/home/CreateAccountForm";
+import type { Metadata } from "next";
 
-import CreateAccountForm from "@/lib/pages/home/create-account";
+export const metadata: Metadata = {
+  title: "Create Account | Jumpa",
+  description: "Create a secure Jumpa smart wallet account and set up your wallet.",
+};
 
-export default CreateAccountForm;
+export default function Page() {
+  return <CreateAccountForm />;
+}

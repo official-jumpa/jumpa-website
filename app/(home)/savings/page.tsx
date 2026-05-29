@@ -1,5 +1,11 @@
-"use client";
+import Savings from "@/components/home/Savings";
+import type { Metadata } from "next";
 
-import Savings from "@/lib/pages/home/savings";
+export const metadata: Metadata = {
+  title: "Savings | Jumpa",
+  description: "View options, set targets, and manage your automated smart savings portfolios on Jumpa.",
+};
 
-export default Savings;
+export default function Page() {
+  return <Savings />;
+}

@@ -1,5 +1,11 @@
-"use client";
+import SavingsSummary from "@/components/home/SavingsSummary";
+import type { Metadata } from "next";
 
-import SavingsSummary from "@/lib/pages/home/savings/target-summary";
+export const metadata: Metadata = {
+  title: "Target Savings Summary | Jumpa",
+  description: "Review and confirm your target savings goal terms and conditions.",
+};
 
-export default SavingsSummary;
+export default function Page() {
+  return <SavingsSummary />;
+}

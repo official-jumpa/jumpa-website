@@ -1,5 +1,11 @@
-"use client";
+import Loan from "@/components/home/Loan";
+import type { Metadata } from "next";
 
-import Loan from "@/lib/pages/home/loan";
+export const metadata: Metadata = {
+  title: "Loans | Jumpa",
+  description: "Borrow funds, view rates, and manage active loans on Jumpa.",
+};
 
-export default Loan;
+export default function Page() {
+  return <Loan />;
+}

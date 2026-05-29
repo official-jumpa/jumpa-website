@@ -1,7 +1,11 @@
-"use client";
+import AirtimeFlow from "@/components/home/AirtimeFlow";
+import type { Metadata } from "next";
 
-// Import the original page component
-import AirtimeFlow from "@/lib/pages/home/airtime";
+export const metadata: Metadata = {
+  title: "Buy Airtime | Jumpa",
+  description: "Recharge your mobile phone or buy airtime and data easily with Jumpa.",
+};
 
-// Re-export as the page
-export default AirtimeFlow;
+export default function Page() {
+  return <AirtimeFlow />;
+}

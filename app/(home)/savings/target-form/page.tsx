@@ -1,5 +1,11 @@
-"use client";
+import SavingsTargetForm from "@/components/home/SavingsTargetForm";
+import type { Metadata } from "next";
 
-import DefaultExport from "@/lib/pages/home/savings/target-form";
+export const metadata: Metadata = {
+  title: "Create Target Savings | Jumpa",
+  description: "Set up a new target savings portfolio with customized automatic deposit frequencies.",
+};
 
-export default DefaultExport;
+export default function Page() {
+  return <SavingsTargetForm />;
+}

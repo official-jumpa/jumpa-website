@@ -1,5 +1,11 @@
-"use client";
+import SettingsHome from "@/components/home/SettingsHome";
+import type { Metadata } from "next";
 
-import SettingsHome from "@/lib/pages/home/settings/home";
+export const metadata: Metadata = {
+  title: "Settings Home | Jumpa",
+  description: "View and configure your main Jumpa wallet settings.",
+};
 
-export default SettingsHome;
+export default function Page() {
+  return <SettingsHome />;
+}

@@ -9,12 +9,15 @@ import {
 import { getAiHistory, postAiIntent, postTransfer, postSwap } from "@/lib/api";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
-import "@/lib/pages/home/home.css";
+import OnrampSheet from "@/features/onramp/OnrampSheet";
+import OfframpSheet from "@/features/offramp/OfframpSheet";
+import "@/components/home/home.css";
 
 import {
   type Screen,
   type VoiceFlow,
   type Message,
+  type ChatComposerProps,
   backIcon,
   ChatComposer,
   VoiceScreen,
@@ -28,59 +31,31 @@ import {
   MAX_PENDING_CHAT_IMAGES,
 } from "./ChatShared";
 
-const addUser = "/assets/icons/actions/add-user.svg";
+const SUGGESTIONS = [
+  "How do i invest $100 ?",
+  "Analyze my portfolio and suggest investment",
+  "Purchase and iPhone",
+  "Exchange $30 to USDC Sol",
+  "Exchange $30 to USDC ETh",
+];
 
-function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null;
-  return (
-    <div
-      className="absolute inset-0 bg-black/50 z-[100] flex flex-col justify-end px-5 pb-10"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#E1DEF5] rounded-[20px] p-10 px-6 flex flex-col items-center gap-[14px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img src="/assets/icons/invite.svg" alt="" className="w-[118px] h-[67px]" />
-        <div className="flex flex-col gap-3 items-center w-full">
-          <div className="flex flex-col gap-2 items-center">
-            <h2 className="text-[32px] font-medium text-[#2D2D2D] m-0">Invite friends</h2>
-            <p className="text-sm text-[#2D2D2D] text-center m-0 leading-[1.4]">
-              Bring your friends along, splitting bills<br />has never been easier
-            </p>
-          </div>
-          <div className="flex items-center bg-[#F0EEFA] rounded-xl p-[10px] w-full justify-between">
-            <span className="text-[#6A59CE] text-xs">https://manee.34</span>
-            <button type="button" className="bg-none border-none cursor-pointer p-0">
-              <img src="/assets/icons/actions/clipboard-purple.svg" alt="Copy" className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── ChatHomePanel (GroupAiChat-only, has invite btn, no suggestions) ─────────
-function ChatHomePanel({ onBack, onInviteClick }: { onBack: () => void; onInviteClick: () => void }) {
+function ChatHomePanel({
+  onPromptClick,
+  onBack,
+}: {
+  onPromptClick: (p: string) => void;
+  onBack: () => void;
+}) {
   return (
     <div className="box-border w-full max-w-[390px] mx-auto pb-4 pt-0">
-      <div className="pr-6 flex items-center justify-between">
-        <IconBtn
-          onClick={onBack}
-          ariaLabel="Back"
-          className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0px))]"
-        >
-          <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
-        </IconBtn>
-        <IconBtn
-          onClick={onInviteClick}
-          ariaLabel="Invite"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))]"
-        >
-          <img src={addUser} alt="" width={23} height={23} className="block object-contain" />
-        </IconBtn>
-      </div>
+      <IconBtn
+        onClick={onBack}
+        ariaLabel="Back"
+        className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0px))]"
+      >
+        <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
+      </IconBtn>
+
       <header className="mt-6 ml-6 w-[293px] max-w-[calc(100%-48px)] flex flex-col gap-2">
         <div className="flex flex-col gap-0 min-h-[72px]">
           <p className="m-0 font-[Geist,sans-serif] font-bold text-2xl leading-9 tracking-[-0.41px] text-white">Hi Dear</p>
@@ -90,24 +65,40 @@ function ChatHomePanel({ onBack, onInviteClick }: { onBack: () => void; onInvite
           Prompt our Ai to make any transaction .
         </p>
       </header>
+
+      <div className="w-[317px] max-w-[calc(100%-48px)] mt-[207px] ml-6 mr-auto mb-6 flex flex-col gap-2">
+        {SUGGESTIONS.map((s, i) => (
+          <button
+            key={i}
+            type="button"
+            className="flex items-start gap-[14px] w-full min-h-[37px] cursor-pointer border-none bg-transparent p-0 text-left font-inherit hover:opacity-90 active:opacity-85"
+            onClick={() => onPromptClick(s)}
+          >
+            <span className="w-3 h-3 rounded-full bg-[#6a59ce] flex-shrink-0 mt-[11px]" aria-hidden />
+            <div className="chat-suggestion-text-wrap flex-[0_1_auto] w-fit max-w-[min(calc(317px-14px-12px),calc(100%-26px))] min-w-0 pt-[10px] pb-[11px] box-border">
+              <p className="m-0 font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090] block overflow-anywhere wrap-break-word">
+                {s}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─── ChatScreen (GroupAiChat-only, has invite btn + other-user messages) ──────
+// ─── ChatScreen (AiChat-only, no invite btn) ───────────────────────────────────
 function ChatScreen({
   messages,
   showTyping,
   composer,
   onBack,
-  onInviteClick,
   onTransactionClick,
 }: {
   messages: Message[];
   showTyping: boolean;
   composer: React.ReactNode;
   onBack: () => void;
-  onInviteClick: () => void;
   onTransactionClick: (msg: Message) => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
@@ -120,7 +111,7 @@ function ChatScreen({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
-      <header className="flex-shrink-0 px-6 flex justify-between items-center">
+      <header className="shrink-0 px-6 flex justify-between items-center">
         <IconBtn
           onClick={onBack}
           ariaLabel="Back"
@@ -128,48 +119,25 @@ function ChatScreen({
         >
           <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
         </IconBtn>
-        <IconBtn
-          onClick={onInviteClick}
-          ariaLabel="Invite"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))]"
-        >
-          <img src={addUser} alt="" width={23} height={23} className="block object-contain" />
-        </IconBtn>
       </header>
 
       <div className="ai-chat-messages flex-1 min-h-0 overflow-y-auto px-6 pt-3">
-        {/* "Anita joined" system message */}
-        <div className="flex justify-center mb-5">
-          <div className="bg-[#2D2D2D] text-[#DFDFDF] px-[10px] py-[10px] rounded-xl text-sm font-normal">
-            Anita joined
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`mb-4 flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
+          >
+            {m.role === "user" ? (
+              m.imageUrls?.length
+                ? <UserMediaBubble imageUrls={m.imageUrls} text={m.text} />
+                : <UserBubble text={m.text} isVoice={m.isVoice} />
+            ) : m.isTransaction ? (
+              <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+            ) : (
+              <AiTextBlock text={m.text} />
+            )}
           </div>
-        </div>
-
-        {messages.map((m) =>
-          m.isOtherUser ? (
-            <div key={m.id} className="flex justify-start mb-5">
-              <div className="bg-[#2D2D2D] text-[#D5D5D5] p-[10px] rounded-[18px] text-xs font-normal">
-                {m.text}
-              </div>
-            </div>
-          ) : (
-            <div
-              key={m.id}
-              className={`mb-4 flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
-            >
-              {m.role === "user" ? (
-                m.imageUrls?.length
-                  ? <UserMediaBubble imageUrls={m.imageUrls} text={m.text} />
-                  : <UserBubble text={m.text} isVoice={m.isVoice} />
-              ) : m.isTransaction ? (
-                <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
-              ) : (
-                <AiTextBlock text={m.text} />
-              )}
-            </div>
-          ),
-        )}
-
+        ))}
         {showTyping && <ThinkingRow />}
         <div ref={endRef} />
       </div>
@@ -179,11 +147,14 @@ function ChatScreen({
   );
 }
 
-// ─── Main GroupAiChat component ───────────────────────────────────────────────
-export default function GroupAiChat() {
+export default function AiChat() {
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("home");
-  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const [onrampOpen, setOnrampOpen] = useState(false);
+  const [onrampDraft, setOnrampDraft] = useState<{ amount: string; token: string; currency: string } | null>(null);
+  const [offrampOpen, setOfframpOpen] = useState(false);
+  const [offrampDraft, setOfframpDraft] = useState<{ amount: string; token: string } | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [showTyping, setShowTyping] = useState(false);
@@ -304,6 +275,10 @@ export default function GroupAiChat() {
     });
   }, []);
 
+  const clearAllPendingAttachments = useCallback(() => {
+    setPendingAttachments((prev) => { prev.forEach((p) => URL.revokeObjectURL(p.url)); return []; });
+  }, []);
+
   useEffect(() => { if (inputValue.trim()) setAttachMenuOpen(false); }, [inputValue]);
 
   useEffect(() => {
@@ -328,7 +303,15 @@ export default function GroupAiChat() {
   }, [voiceFlow]);
 
   const resetVoice = useCallback(() => { setVoiceFlow("none"); setRecordingTick(0); }, []);
-  const enterThreadIfNeeded = useCallback(() => { if (screen === "home") setScreen("chat-empty"); }, [screen]);
+
+  const hideHomeDiscover =
+    screen === "chat-empty" ||
+    screen === "chat-responding" ||
+    (screen === "home" && (inputValue.length > 0 || voiceFlow !== "none" || pendingAttachments.length > 0));
+
+  const enterThreadIfNeeded = useCallback(() => {
+    if (screen === "home") setScreen("chat-empty");
+  }, [screen]);
 
   const handleSendText = useCallback(async () => {
     const t = inputValue.trim();
@@ -362,13 +345,21 @@ export default function GroupAiChat() {
         if (res.data.intent === "SEND_FUNDS") {
           aiMsg.isTransaction = true;
           aiMsg.transactionParams = { type: "transfer", amount: String(res.data.params.amount || "0"), token: String(res.data.params.token || "SOL"), recipient: String(res.data.params.recipient || res.data.params.toAddress || "Unknown") };
-          aiMsg.transactionDetails = { label: "Transfer Intent", sent: `Amount: ${res.data.params.amount} ${res.data.params.token}`, to: `Recipient: ${res.data.params.recipient}`, result: "Tap to confirm and send" };
+          aiMsg.transactionDetails = { label: "Transfer Intent", title: "Pending Transfer", sent: `Amount: ${res.data.params.amount} ${res.data.params.token}`, to: `Recipient: ${res.data.params.recipient}`, result: "Tap to confirm and send" };
           setPendingTransaction(aiMsg.transactionParams);
         } else if (res.data.intent === "SWAP_TOKEN") {
           aiMsg.isTransaction = true;
           aiMsg.transactionParams = { type: "swap", fromToken: String(res.data.params.fromToken || "SOL"), toToken: String(res.data.params.toToken || "USDC"), fromAmount: String(res.data.params.fromAmount || "0") };
-          aiMsg.transactionDetails = { label: "Swap Intent", sent: `From: ${res.data.params.fromAmount} ${res.data.params.fromToken}`, to: `To: ${res.data.params.toToken}`, result: "Tap to confirm swap" };
+          aiMsg.transactionDetails = { label: "Swap Intent", title: "Drafted Swap", sent: `From: ${res.data.params.fromAmount} ${res.data.params.fromToken}`, to: `To: ${res.data.params.toToken}`, result: "Tap to confirm swap" };
           setPendingTransaction(aiMsg.transactionParams);
+        } else if (res.data.intent === "ONRAMP_CRYPTO") {
+          aiMsg.isTransaction = true;
+          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
+          aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${res.data.params.token}`, result: "Tap to review or change the amount" };
+        } else if (res.data.intent === "OFFRAMP_CRYPTO") {
+          aiMsg.isTransaction = true;
+          aiMsg.transactionParams = { type: "offramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc") };
+          aiMsg.transactionDetails = { label: "Sell Crypto Request", title: "Offramp Transaction", sent: `Selling: ${res.data.params.amount} ${res.data.params.token.toUpperCase()}`, to: "Receive: Naira (Bank)", result: "Tap to enter bank details and withdraw" };
         }
 
         setMessages((prev) => [...prev, aiMsg]);
@@ -379,11 +370,6 @@ export default function GroupAiChat() {
       setShowTyping(false);
       setMessages((prev) => [...prev, { id: `err-${Date.now()}`, role: "ai", text: "Network error. Please check your connection." }]);
     }
-
-    // Fake other-user reply
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `other-${Date.now()}`, role: "ai", text: "Yes Jumpa", isOtherUser: true }]);
-    }, 3000);
   }, [inputValue, pendingAttachments, enterThreadIfNeeded, resetVoice]);
 
   const handleVoiceSendFinal = useCallback(() => {
@@ -412,7 +398,7 @@ export default function GroupAiChat() {
         const swapData = res.data;
         if (swapData && swapData.success) {
           setMessages((prev) => prev.map((msg) => msg.role === "ai" && msg.isTransaction && msg.transactionDetails?.label === "Swap Intent" ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Swap Complete! 🔄" } } : msg));
-          setMessages((prev) => [...prev, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! [View on Solscan](https://solscan.io/tx/${swapData.hash})` }]);
+          setMessages((prev) => [...prev, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! Your assets have been exchanged on Jupiter. [View on Solscan](https://solscan.io/tx/${swapData.hash})` }]);
         } else { alert(res.error || "Swap failed"); }
       } else if (pendingTransaction.type === "transfer") {
         const res = await postTransfer({ to: pendingTransaction.recipient, amount: pendingTransaction.amount, token: pendingTransaction.token, pin });
@@ -421,7 +407,7 @@ export default function GroupAiChat() {
         const transferData = res.data;
         if (transferData && transferData.success) {
           setMessages((prev) => prev.map((msg) => msg.role === "ai" && msg.isTransaction && (msg.transactionDetails?.label === "Transfer Intent" || msg.transactionDetails?.label === "Schedule Intent") ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Transaction Sent! ✅" } } : msg));
-          setMessages((prev) => [...prev, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! [View on Solscan](https://solscan.io/tx/${transferData.hash})` }]);
+          setMessages((prev) => [...prev, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! Your transaction has been recorded on the blockchain. [View on Solscan](https://solscan.io/tx/${transferData.hash})` }]);
         } else { alert(res.error || "Transfer failed"); }
       }
     } catch { setConfirmProcessing(false); alert("Network error while processing transaction"); }
@@ -459,32 +445,62 @@ export default function GroupAiChat() {
     />
   );
 
+  const showHomeShell = screen === "home";
+  const showThread = screen === "chat-empty" || screen === "chat-responding";
+
   const renderMain = () => {
-    if (screen === "home") {
+    if (showHomeShell) {
       return (
         <div className="flex-1 min-h-0 flex flex-col w-full items-stretch">
           <div className="chat-main-panel flex-1 min-h-0 w-full max-w-[390px] mx-auto bg-black relative flex flex-col overflow-x-hidden overflow-y-auto">
-            <ChatHomePanel onBack={() => navigate("/home")} onInviteClick={() => setInviteOpen(true)} />
+            {!hideHomeDiscover ? (
+              <ChatHomePanel
+                onBack={() => navigate("/home")}
+                onPromptClick={(p) => {
+                  clearAllPendingAttachments();
+                  setInputValue(p);
+                  setMessages([]);
+                  setShowTyping(false);
+                  setScreen("chat-empty");
+                  resetVoice();
+                }}
+              />
+            ) : (
+              <div className="flex-1 min-h-[120px] bg-black" aria-hidden />
+            )}
           </div>
-          {composerEl}
+          {!onrampOpen && !offrampOpen && !confirmOpen && composerEl}
         </div>
+      );
+    }
+    if (showThread) {
+      return (
+        <ChatScreen
+          messages={messages}
+          showTyping={showTyping}
+          composer={(!onrampOpen && !offrampOpen && !confirmOpen) ? composerEl : <div className="h-4" />}
+          onBack={() => navigate("/home")}
+          onTransactionClick={(msg) => {
+            if (msg.transactionParams) {
+              if (msg.transactionParams.type === "onramp") {
+                setOnrampDraft({ amount: msg.transactionParams.amount, token: msg.transactionParams.token, currency: msg.transactionParams.currency });
+                setOnrampOpen(true);
+              } else if (msg.transactionParams.type === "offramp") {
+                setOfframpDraft({ amount: msg.transactionParams.amount, token: msg.transactionParams.token });
+                setOfframpOpen(true);
+              } else {
+                setPendingTransaction(msg.transactionParams);
+                setConfirmOpen(true);
+              }
+            }
+          }}
+        />
       );
     }
     if (screen === "voice-recording" || screen === "voice-processing") {
       return <VoiceScreen processing={screen === "voice-processing"} />;
     }
-    return (
-      <ChatScreen
-        messages={messages}
-        showTyping={showTyping}
-        composer={composerEl}
-        onBack={() => navigate("/home")}
-        onInviteClick={() => setInviteOpen(true)}
-        onTransactionClick={(msg) => {
-          if (msg.transactionParams) { setPendingTransaction(msg.transactionParams); setConfirmOpen(true); }
-        }}
-      />
-    );
+    return null;
   };
 
   return (
@@ -496,7 +512,8 @@ export default function GroupAiChat() {
               {renderMain()}
             </div>
             <TransactionConfirmDrawer open={confirmOpen} onOpenChange={setConfirmOpen} details={pendingTransaction} onConfirm={handleConfirmTransaction} processing={confirmProcessing} />
-            <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+            <OnrampSheet open={onrampOpen} onOpenChange={setOnrampOpen} defaultAmount={onrampDraft?.amount} defaultToken={onrampDraft?.token} defaultCurrency={onrampDraft?.currency} />
+            <OfframpSheet open={offrampOpen} onOpenChange={setOfframpOpen} defaultAmount={offrampDraft?.amount} defaultToken={offrampDraft?.token} />
           </div>
         </div>
       </div>

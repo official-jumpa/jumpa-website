@@ -1,5 +1,11 @@
-"use client";
+import WithdrawSendMoney from "@/components/home/WithdrawSendMoney";
+import type { Metadata } from "next";
 
-import WithdrawSendMoney from "@/lib/pages/home/withdraw/bank/send-money";
+export const metadata: Metadata = {
+  title: "Withdraw Send | Jumpa",
+  description: "Initiate bank wire or instant bank transfer payout from your Jumpa wallet.",
+};
 
-export default WithdrawSendMoney;
+export default function Page() {
+  return <WithdrawSendMoney />;
+}

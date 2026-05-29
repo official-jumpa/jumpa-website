@@ -1,5 +1,11 @@
-"use client";
+import WithdrawOptions from "@/components/home/WithdrawOptions";
+import type { Metadata } from "next";
 
-import DefaultExport from "@/lib/pages/home/withdraw/options";
+export const metadata: Metadata = {
+  title: "Withdrawal Options | Jumpa",
+  description: "Select your preferred withdrawal method: bank account or wallet.",
+};
 
-export default DefaultExport;
+export default function Page() {
+  return <WithdrawOptions />;
+}

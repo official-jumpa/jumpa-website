@@ -1,5 +1,11 @@
-"use client";
+import PaymentSettings from "@/components/home/PaymentSettings";
+import type { Metadata } from "next";
 
-import PaymentSettings from "@/lib/pages/home/settings/payment-settings";
+export const metadata: Metadata = {
+  title: "Payment Settings | Jumpa",
+  description: "Configure your payment pin, recovery choices, and security methods on Jumpa.",
+};
 
-export default PaymentSettings;
+export default function Page() {
+  return <PaymentSettings />;
+}

@@ -1,5 +1,11 @@
-"use client";
+import WithdrawCryptoAsset from "@/components/home/WithdrawCryptoAsset";
+import type { Metadata } from "next";
 
-import WithdrawCryptoAsset from "@/lib/pages/home/withdraw/crypto/withdraw-crypto";
+export const metadata: Metadata = {
+  title: "Withdraw Crypto | Jumpa",
+  description: "Provide destination address and complete your cryptocurrency transfer.",
+};
 
-export default WithdrawCryptoAsset;
+export default function Page() {
+  return <WithdrawCryptoAsset />;
+}

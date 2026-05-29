@@ -1,11 +1,15 @@
-import Notifications from '@/lib/pages/home/create-account/notifications'
+import NotificationsSetup from "@/components/home/NotificationsSetup";
+import type { Metadata } from "next";
 
-const page = () => {
+export const metadata: Metadata = {
+  title: "Notifications Setup | Jumpa",
+  description: "Set up notifications preferences for your Jumpa account.",
+};
+
+export default function Page() {
   return (
     <div>
-      <Notifications/>
+      <NotificationsSetup />
     </div>
-  )
+  );
 }
-
-export default page

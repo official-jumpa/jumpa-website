@@ -1,5 +1,11 @@
-"use client";
+import InvestmentHome from "@/components/home/InvestmentHome";
+import type { Metadata } from "next";
 
-import InvestmentApp from "@/lib/pages/home/investment/home";
+export const metadata: Metadata = {
+  title: "Investment Platform | Jumpa",
+  description: "Access high-performing automated portfolios powered by AI trading systems.",
+};
 
-export default InvestmentApp;
+export default function Page() {
+  return <InvestmentHome />;
+}

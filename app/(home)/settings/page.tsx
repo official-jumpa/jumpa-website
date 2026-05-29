@@ -1,5 +1,11 @@
-"use client";
+import Settings from "@/components/home/Settings";
+import type { Metadata } from "next";
 
-import DefaultExport from "@/lib/pages/home/settings/index";
+export const metadata: Metadata = {
+  title: "Settings | Jumpa",
+  description: "Configure your Jumpa account, security credentials, and general settings.",
+};
 
-export default DefaultExport;
+export default function Page() {
+  return <Settings />;
+}

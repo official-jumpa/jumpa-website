@@ -1,5 +1,11 @@
-"use client";
+import GroupFlow from "@/components/home/GroupFlow";
+import type { Metadata } from "next";
 
-import GroupFlow from "@/lib/pages/home/group";
+export const metadata: Metadata = {
+  title: "Community Group Trade | Jumpa",
+  description: "Pool funds, assign traders, and automatically split profits with community group trade.",
+};
 
-export default GroupFlow;
+export default function Page() {
+  return <GroupFlow />;
+}

@@ -1,4 +1,11 @@
+import ForgotPasswordEmailForm from "@/components/auth/ForgotPasswordEmailForm";
+import type { Metadata } from "next";
 
-import ForgotPasswordEmailForm from "@/lib/pages/auth/forgot-password/email";
+export const metadata: Metadata = {
+  title: "Forgot Password | Jumpa",
+  description: "Recover your Jumpa account passcode securely by validating your email address.",
+};
 
-export default ForgotPasswordEmailForm;
+export default function Page() {
+  return <ForgotPasswordEmailForm />;
+}

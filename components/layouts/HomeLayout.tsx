@@ -21,9 +21,9 @@ import VirtualAccountModal from "@/components/modal/VirtualAccountModal";
 import DepositMethodSheet from "@/components/modal/DepositMethodSheet";
 import PinEntryScreen from "@/components/pin/PinEntryScreen";
 import PrivateKeyScreen from "@/components/wallet/PrivateKeyScreen";
-import WithdrawOptions from "@/lib/pages/home/withdraw/options";
-import TradePage from "@/lib/pages/home/subpages/TradePage";
-import DAppPage from "@/lib/pages/home/subpages/DAppPage";
+import WithdrawOptions from "@/components/home/WithdrawOptions";
+import TradePage from "@/components/home/TradePage";
+import DAppPage from "@/components/home/DAppPage";
 import type { BalancesResponse } from "@/lib/api";
 import { getBalances } from "@/lib/api";
 

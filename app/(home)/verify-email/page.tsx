@@ -1,5 +1,11 @@
-import VerifyEmailPage from "@/lib/pages/home/create-account/verify-email";
+import VerifyEmailPage from "@/components/home/VerifyEmail";
 import React, { Suspense } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Verify Email | Jumpa",
+  description: "Verify your email address to continue setting up your Jumpa wallet.",
+};
 
 export default function VerifyEmail() {
   return (

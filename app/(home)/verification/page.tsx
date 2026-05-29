@@ -1,5 +1,11 @@
-"use client";
+import Verification from "@/components/home/Verification";
+import type { Metadata } from "next";
 
-import Verification from "@/lib/pages/home/verification";
+export const metadata: Metadata = {
+  title: "Identity Verification | Jumpa",
+  description: "Verify your identity (KYC) to unlock full limits and trade/send limits on Jumpa.",
+};
 
-export default Verification;
+export default function Page() {
+  return <Verification />;
+}

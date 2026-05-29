@@ -1,5 +1,11 @@
-"use client";
+import VerificationSuccess from "@/components/home/VerificationSuccess";
+import type { Metadata } from "next";
 
-import VerificationSuccess from "@/lib/pages/home/verification/success";
+export const metadata: Metadata = {
+  title: "Verification Successful | Jumpa",
+  description: "Identity verification successfully completed. Your account limits are now updated.",
+};
 
-export default VerificationSuccess;
+export default function Page() {
+  return <VerificationSuccess />;
+}
