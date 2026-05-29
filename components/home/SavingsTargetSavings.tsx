@@ -1,3 +1,4 @@
+"use client"
 import EmptyState from "@/components/emptyStateSavings";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";

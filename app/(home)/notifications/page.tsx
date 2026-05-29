@@ -3,13 +3,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Notifications Setup | Jumpa",
-  description: "Set up notifications preferences for your Jumpa account.",
+  description: "Configure your notifications preferences",
 };
 
 export default function Page() {
-  return (
-    <div>
-      <NotificationsSetup />
-    </div>
-  );
+  return <NotificationsSetup />;
 }

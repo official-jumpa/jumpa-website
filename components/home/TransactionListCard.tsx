@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import { getTransactions, type TransactionRecord, type WalletAddresses } from "@/lib/api";
 

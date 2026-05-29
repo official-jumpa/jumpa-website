@@ -1,4 +1,4 @@
-import { LoanDashboard } from '@/lib/pages'
+import LoanDashboard from "@/components/home/LoanDashboard"
 
 function LoanPage() {
   return (

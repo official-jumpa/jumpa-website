@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Loan Status | Jumpa",
-  description: "View updates and notifications related to your active loan requests on Jumpa.",
+  description: "View loan requests",
 };
 
 export default function Page() {

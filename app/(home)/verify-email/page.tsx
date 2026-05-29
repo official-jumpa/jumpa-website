@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Verify Email | Jumpa",
-  description: "Verify your email address to continue setting up your Jumpa wallet.",
+  description: "Verify your email address",
 };
 
 export default function VerifyEmail() {

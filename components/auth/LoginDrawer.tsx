@@ -47,7 +47,7 @@ export default function LoginDrawer() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "/home", // Existing users probably go home if they already have a wallet
+        callbackURL: "/home",
       });
     } catch (error) {
       console.error("[LoginDrawer] Google sign-in failed:", error);
@@ -64,7 +64,7 @@ export default function LoginDrawer() {
       <DrawerTrigger asChild>
         <Button
           type="button"
-          className="h-12 w-full rounded-md bg-[#3F443F] text-base font-medium text-white shadow-none transition-all hover:bg-[#323632] active:scale-[0.98]"
+          className="h-12 w-full cursor-pointer rounded-md bg-[#3F443F] text-base font-medium text-white shadow-none transition-all hover:bg-[#323632] active:scale-[0.98]"
         >
           I have an existing wallet
         </Button>

@@ -1,3 +1,5 @@
+"use client";
+
 const jumpaTypoLogo = '/assets/logos/brand/Jumpa Typo I@4x.png';
 import Link from 'next/link';
 import JumpaPhoneDemo from "./JumpaPhoneDemo";

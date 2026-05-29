@@ -1,4 +1,4 @@
-import { AirtimeFlow } from '@/lib/pages'
+import AirtimeFlow from "@/components/home/AirtimeFlow"
 
 const page = () => {
   return (

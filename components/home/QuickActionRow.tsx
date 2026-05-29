@@ -1,4 +1,3 @@
-import React from "react";
 const sendIcon = "/send.svg";
 const receiveIcon = "/receive.svg";
 const swapIcon = "/swap.svg";

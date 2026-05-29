@@ -62,7 +62,7 @@ export default function CreateAccountDrawer() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button className="h-12 w-full rounded-md bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
+        <Button className="h-12 cursor-pointer w-full rounded-md bg-white text-base text-black shadow-none transition-colors hover:bg-gray-200">
           Create a new wallet
         </Button>
       </DrawerTrigger>

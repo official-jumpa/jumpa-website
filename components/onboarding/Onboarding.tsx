@@ -9,8 +9,6 @@ import "@/components/layouts/HomeLayout.css";
 import "./Onboarding.css";
 
 
-// Assets
-// /assets/images/illustrations/onboard-one.svg
 const onboardOne = '/assets/images/illustrations/onboard-one.svg';
 const nairaIcon = '/assets/images/illustrations/naira.svg';
 const onboardTwo = '/assets/images/illustrations/onboard-two.svg';

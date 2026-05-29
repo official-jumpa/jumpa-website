@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Savings Notifications | Jumpa",
-  description: "View updates related to your active target savings and investment portfolios.",
+  description: "View updates related to your active target savings and investment portfolios",
 };
 
 export default function Page() {

@@ -142,7 +142,7 @@ export const POST = withAuth(async (req, { address }) => {
         amount,
         token: t,
         hash,
-        chain: chainName,
+        chain: chainName as any,
         status: "pending",
       });
     } catch (e: any) {}

@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react";
 
 // Using public folder references for SVG assets

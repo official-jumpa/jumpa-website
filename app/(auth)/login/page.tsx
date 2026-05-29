@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Login | Jumpa",
-  description: "Securely login to your Jumpa wallet and manage your funds.",
+  description: "Securely login to your Jumpa wallet",
 };
 
 export default function Page() {

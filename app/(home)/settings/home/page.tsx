@@ -2,8 +2,8 @@ import SettingsHome from "@/components/home/SettingsHome";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Settings Home | Jumpa",
-  description: "View and configure your main Jumpa wallet settings.",
+  title: "Settings | Jumpa",
+  description: "Configure your Jumpa account",
 };
 
 export default function Page() {

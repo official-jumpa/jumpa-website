@@ -1,3 +1,4 @@
+"use client"
 import { useMemo, useRef, useState } from 'react';
 import type { AddressStatus, BorrowAsset, BorrowFlowStep, PinStatus } from './borrow-flow.types';
 import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';

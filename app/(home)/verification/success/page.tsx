@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Verification Successful | Jumpa",
-  description: "Identity verification successfully completed. Your account limits are now updated.",
+  description: "Identity verification completed",
 };
 
 export default function Page() {

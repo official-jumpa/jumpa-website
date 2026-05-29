@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Loans | Jumpa",
-  description: "Borrow funds, view rates, and manage active loans on Jumpa.",
+  description: "Borrow funds, view rates, and manage active loans",
 };
 
 export default function Page() {

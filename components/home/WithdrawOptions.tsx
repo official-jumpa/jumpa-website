@@ -1,33 +1,42 @@
+"use client"
 import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 interface WithdrawOptionsProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function WithdrawOptions({ isOpen, onClose }: WithdrawOptionsProps) {
+export default function WithdrawOptions({ isOpen = true, onClose }: WithdrawOptionsProps) {
     const router = useRouter();
+
+    const handleClose = () => {
+        if (onClose) {
+            onClose();
+        } else {
+            router.back();
+        }
+    };
 
     const handleBankClick = () => {
         router.push('/driver/withdraw');
-        onClose();
+        handleClose();
     };
      const handleCryptoClick = () => {
         router.push('/driver/withdraw/crypto');
-        onClose();
+        handleClose();
     };
 
     return (
         <div 
-            className={`fixed inset-0 z-[999] flex items-end justify-center p-5 pb-8 transition-all duration-300 ${
+            className={`fixed inset-0 z-999 flex items-end justify-center p-5 pb-8 transition-all duration-300 ${
                 isOpen ? "pointer-events-auto visible" : "pointer-events-none invisible delay-300"
             }`}
         >
             
             {/* Backdrop */}
             <div
-                onClick={onClose}
+                onClick={handleClose}
                 className={`
                     absolute inset-0 bg-[#F5F5F5E5] backdrop-blur-sm transition-opacity duration-300
                     ${isOpen ? "opacity-100" : "opacity-0"}

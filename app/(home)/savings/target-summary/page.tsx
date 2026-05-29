@@ -2,8 +2,8 @@ import SavingsSummary from "@/components/home/SavingsSummary";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Target Savings Summary | Jumpa",
-  description: "Review and confirm your target savings goal terms and conditions.",
+  title: "Target Savings | Jumpa",
+  description: "Review and confirm your target savings goal terms",
 };
 
 export default function Page() {

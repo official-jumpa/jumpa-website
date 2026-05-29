@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Withdraw Crypto | Jumpa",
-  description: "Provide destination address and complete your cryptocurrency transfer.",
+  description: "Provide destination address and complete your transfer",
 };
 
 export default function Page() {

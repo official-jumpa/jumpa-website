@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Verification Retry | Jumpa",
-  description: "Identity verification failed. Complete the retry form to submit corrections.",
+  description: "Verification failed",
 };
 
 export default function Page() {

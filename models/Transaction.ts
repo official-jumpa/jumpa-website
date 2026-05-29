@@ -8,7 +8,7 @@ export interface ITransaction extends Document {
   token: string; // ETH, SOL, USDC, USDT
   hash: string;
   status: "pending" | "confirmed" | "failed";
-  chain: "eth" | "solana";
+  chain: "eth" | "base" | "baseSepolia" | "solana" | "solDevnet" | "stellar" | "stellarTestnet";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,7 +26,11 @@ const TransactionSchema: Schema = new Schema(
       enum: ["pending", "confirmed", "failed"],
       default: "pending",
     },
-    chain: { type: String, enum: ["eth", "solana"], required: true },
+    chain: { 
+      type: String, 
+      enum: ["eth", "base", "baseSepolia", "solana", "solDevnet", "stellar", "stellarTestnet"], 
+      required: true 
+    },
   },
   { timestamps: true },
 );

@@ -1,3 +1,4 @@
+"use client"
 import { useNavigate } from '@/lib/pages-adapter';
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from 'react';
 import './DAppPage.css';
 const successIcon = '/assets/success.png';

@@ -2,8 +2,8 @@ import InvestmentHome from "@/components/home/InvestmentHome";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Investment Platform | Jumpa",
-  description: "Access high-performing automated portfolios powered by AI trading systems.",
+  title: "Invest | Jumpa",
+  description: "Invest your funds in stable high-yield options",
 };
 
 export default function Page() {

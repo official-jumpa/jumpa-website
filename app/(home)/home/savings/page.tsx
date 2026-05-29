@@ -1,10 +1,9 @@
-import { Savings, SavingsDashboard, } from '@/lib/pages'
-import React from 'react'
+import SavingsDashboard from "@/components/home/SavingsDashboard"
 
 const page = () => {
   return (
     <div>
-      <SavingsDashboard/>
+      <SavingsDashboard />
     </div>
   )
 }

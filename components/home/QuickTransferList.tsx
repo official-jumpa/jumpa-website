@@ -1,4 +1,3 @@
-import React from "react";
 import { quickTransfers } from "@/data/quickTransfers";
 
 const QuickTransferList: React.FC = () => {

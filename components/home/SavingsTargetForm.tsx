@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -230,7 +232,7 @@ export default function SavingsTargetForm() {
                                                                 </FormControl>
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-0" align="start">
-                                                                <Calendar mode="single" selected={field.value} onSelect={(d) => { field.onChange(d); setOpenStart(false); }} disabled={(date) => date < new Date("1900-01-01")} initialFocus />
+                                                                <Calendar mode="single" selected={field.value} onSelect={(d) => { field.onChange(d); setOpenStart(false); }} disabled={(date) => date < new Date("1900-01-01")} />
                                                             </PopoverContent>
                                                         </Popover>
                                                         <FormMessage />
@@ -255,7 +257,7 @@ export default function SavingsTargetForm() {
                                                                 </FormControl>
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-0" align="start">
-                                                                <Calendar mode="single" selected={field.value} onSelect={(d) => { field.onChange(d); setOpenEnd(false); }} disabled={(date) => date < new Date("1900-01-01")} initialFocus />
+                                                                <Calendar mode="single" selected={field.value} onSelect={(d) => { field.onChange(d); setOpenEnd(false); }} disabled={(date) => date < new Date("1900-01-01")} />
                                                             </PopoverContent>
                                                         </Popover>
                                                         <FormMessage />

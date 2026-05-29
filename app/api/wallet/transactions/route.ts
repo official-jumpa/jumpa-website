@@ -31,7 +31,6 @@ export async function GET(req: NextRequest) {
     const transactions = await Transaction.find({ userId: wallet._id })
       .sort({ createdAt: -1 })
       .limit(30);
-    console.log("transaction response", transactions);
 
     return NextResponse.json({
       success: true,

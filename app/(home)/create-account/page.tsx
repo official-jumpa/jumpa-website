@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Create Account | Jumpa",
-  description: "Create a secure Jumpa smart wallet account and set up your wallet.",
+  description: "Create a secure Jumpa account",
 };
 
 export default function Page() {

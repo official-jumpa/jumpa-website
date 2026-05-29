@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import { RefreshCw, AlertCircle, ChevronDown, Wallet } from "lucide-react";
 import "./TradePage.css";

@@ -1,5 +1,6 @@
 import ForgotPasswordVerificationForm from "@/components/auth/ForgotPasswordVerificationForm";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Verify Verification Code | Jumpa",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ForgotPasswordVerificationForm />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ForgotPasswordVerificationForm />
+    </Suspense>
+  );
 }

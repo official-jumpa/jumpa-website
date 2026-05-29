@@ -1,3 +1,5 @@
+"use client";
+
 // Removed react-router imports - using Next.js router instead;
 import { ChevronLeft, ChevronDown, ArrowUpDown, Pencil, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";

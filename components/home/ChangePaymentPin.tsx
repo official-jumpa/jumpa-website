@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { X, Lock, Eye, EyeOff } from "lucide-react";

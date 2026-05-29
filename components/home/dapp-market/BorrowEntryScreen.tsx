@@ -1,3 +1,4 @@
+"use client"
 import { useState } from 'react';
 const clipboardIcon = '/assets/icons/actions/clipboard.svg';;
 const closeIcon = '/assets/icons/actions/close.svg';;
@@ -150,10 +151,16 @@ export default function BorrowEntryScreen({
           </div>
         )}
         
-        <button
-          type="button"
-          className="borrow-entry-balance-card"
+        <div
+          role="button"
+          tabIndex={0}
+          className="borrow-entry-balance-card cursor-pointer"
           onClick={onChangeNetwork}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              onChangeNetwork();
+            }
+          }}
         >
           <div className="borrow-entry-balance-main">
             <div className="borrow-entry-token-icon">
@@ -174,7 +181,7 @@ export default function BorrowEntryScreen({
           >
             Change
           </button>
-        </button>
+        </div>
 
         <div className="borrow-entry-info-card">
           <p className="borrow-entry-info-text">

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "AI Chat Assistant | Jumpa",
-  description: "Chat with the Jumpa AI financial agent to trade, save, and manage your assets with natural language.",
+  description: "Chat with the Jumpa AI financial agent",
 };
 
 export default function Page() {

@@ -1,3 +1,4 @@
+"use client"
 import { useState } from 'react';
 import type { PinStatus } from './borrow-flow.types';
 import { WALLET_PIN_LENGTH } from '@/lib/wallet-pin';

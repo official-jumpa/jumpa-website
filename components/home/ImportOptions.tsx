@@ -1,3 +1,4 @@
+"use client"
 import { Button } from "@/components/ui/button"; // Assuming Shadcn Button
 import { useRouter } from 'next/navigation';
 

@@ -1,4 +1,4 @@
-import { GroupFlow } from '@/lib/pages'
+import GroupFlow from "@/components/home/GroupFlow"
 
 const page = () => {
   return (

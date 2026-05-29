@@ -1,4 +1,3 @@
-import React from 'react';
 const promoImg = '/assets/promo-invite-users.svg';
 
 const PromoBannerCard: React.FC = () => {

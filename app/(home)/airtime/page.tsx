@@ -2,8 +2,8 @@ import AirtimeFlow from "@/components/home/AirtimeFlow";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Buy Airtime | Jumpa",
-  description: "Recharge your mobile phone or buy airtime and data easily with Jumpa.",
+  title: "Airtime | Jumpa",
+  description: "Buy airtime and data",
 };
 
 export default function Page() {
