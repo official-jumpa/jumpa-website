@@ -276,7 +276,7 @@ export const ChatComposer = forwardRef<HTMLDivElement, ChatComposerProps>(
           )}
           <textarea
             ref={textAreaRef}
-            className="w-full min-h-[18px] max-h-[160px] resize-none border-none outline-none bg-transparent font-[Geist,sans-serif] font-normal text-sm leading-[1.45] text-[#f4f4f4] px-3 pt-2 pb-1 pl-[25px] overflow-y-auto placeholder:text-[#5a5a5a]"
+            className="w-full min-h-[18px] max-h-[160px] resize-none border-none outline-none bg-transparent font-[Geist,sans-serif] font-normal text-base leading-[1.45] text-[#f4f4f4] px-3 pt-2 pb-1 pl-[25px] box-border overflow-y-auto placeholder:text-[#5a5a5a]"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Send a message.."
