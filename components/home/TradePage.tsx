@@ -195,7 +195,7 @@ export default function TradePage() {
         {/* Swap Icon */}
         <div className="trade-switch-container">
           <button className="trade-switch-btn" onClick={handleSwapTokens} aria-label="Switch tokens">
-            <RefreshCw className="w-5 h-5 text-[#3EC6C6]" />
+            <RefreshCw className="w-5 h-5 text-[#8B5CF6]" />
           </button>
         </div>
 
@@ -210,7 +210,7 @@ export default function TradePage() {
           <div className="trade-input-row">
             <div className="flex-1 flex items-center h-[36px]">
               {quoteLoading ? (
-                <div className="flex items-center gap-2 text-[#3EC6C6]/60 text-sm animate-pulse">
+                <div className="flex items-center gap-2 text-[#8B5CF6]/60 text-sm animate-pulse">
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>Fetching quote...</span>
                 </div>
@@ -252,7 +252,7 @@ export default function TradePage() {
             <p className="text-red-400 text-xs font-semibold">{quoteError}</p>
           ) : fromAmount && toAmount ? (
             <div className="flex flex-col items-end">
-              <p className="text-[#3EC6C6] text-xs font-medium">
+                <p className="text-[#8B5CF6] text-xs font-medium">
                 1 {fromToken.symbol} ≈ {(parseFloat(toAmount) / parseFloat(fromAmount)).toFixed(4)} {toToken.symbol}
               </p>
               {tokenName && <span className="text-[10px] text-zinc-600 uppercase tracking-widest mt-0.5">Found pool via {tokenName}</span>}
