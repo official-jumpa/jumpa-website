@@ -25,6 +25,7 @@ import {
   UserMediaBubble,
   AiTextBlock,
   TransactionBlock,
+  BuyCryptoBlock,
   ThinkingRow,
   IconBtn,
   barsFromRecordingTick,
@@ -132,7 +133,11 @@ function ChatScreen({
                 ? <UserMediaBubble imageUrls={m.imageUrls} text={m.text} />
                 : <UserBubble text={m.text} isVoice={m.isVoice} />
             ) : m.isTransaction ? (
-              <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+              m.transactionParams?.type === "onramp" ? (
+                <BuyCryptoBlock msg={m} />
+              ) : (
+                <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+              )
             ) : (
               <AiTextBlock text={m.text} />
             )}
@@ -354,6 +359,7 @@ export default function AiChat() {
           setPendingTransaction(aiMsg.transactionParams);
         } else if (res.data.intent === "ONRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
+          aiMsg.text = "Got it I've parsed your transfer required - here's the summary. Please review and confirm before sending";
           aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
           aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${res.data.params.token}`, result: "Tap to review or change the amount" };
         } else if (res.data.intent === "OFFRAMP_CRYPTO") {

@@ -22,6 +22,7 @@ import {
   UserMediaBubble,
   AiTextBlock,
   TransactionBlock,
+  BuyCryptoBlock,
   ThinkingRow,
   IconBtn,
   barsFromRecordingTick,
@@ -162,7 +163,11 @@ function ChatScreen({
                   ? <UserMediaBubble imageUrls={m.imageUrls} text={m.text} />
                   : <UserBubble text={m.text} isVoice={m.isVoice} />
               ) : m.isTransaction ? (
-                <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+                m.transactionParams?.type === "onramp" ? (
+                  <BuyCryptoBlock msg={m} />
+                ) : (
+                  <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+                )
               ) : (
                 <AiTextBlock text={m.text} />
               )}
@@ -369,6 +374,10 @@ export default function GroupAiChat() {
           aiMsg.transactionParams = { type: "swap", fromToken: String(res.data.params.fromToken || "SOL"), toToken: String(res.data.params.toToken || "USDC"), fromAmount: String(res.data.params.fromAmount || "0") };
           aiMsg.transactionDetails = { label: "Swap Intent", sent: `From: ${res.data.params.fromAmount} ${res.data.params.fromToken}`, to: `To: ${res.data.params.toToken}`, result: "Tap to confirm swap" };
           setPendingTransaction(aiMsg.transactionParams);
+        } else if (res.data.intent === "ONRAMP_CRYPTO") {
+          aiMsg.isTransaction = true;
+          aiMsg.text = "Got it I've parsed your transfer required - here's the summary. Please review and confirm before sending";
+          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
         }
 
         setMessages((prev) => [...prev, aiMsg]);
