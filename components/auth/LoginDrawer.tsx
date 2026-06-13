@@ -36,6 +36,7 @@ export default function LoginDrawer() {
     if (!emailOk) return;
     try {
       sessionStorage.setItem("onboardingEmail", email.trim());
+      sessionStorage.setItem("walletIntent", "import");
     } catch {
       /* ignore */
     }
@@ -54,10 +55,6 @@ export default function LoginDrawer() {
     }
   };
 
-  const handleSecretPhrase = () => {
-    setOpen(false);
-    navigate("/save-recovery?flow=import", { state: { action: "import" } });
-  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -150,14 +147,6 @@ export default function LoginDrawer() {
                   className="h-4 w-4 shrink-0"
                 />
                 Continue with Google
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSecretPhrase}
-                className="flex h-12 w-full shrink-0 items-center justify-center rounded-[10px] bg-[#2D2D2D] px-2.5 text-sm leading-[145%] text-white transition-colors hover:bg-[#3a3a3a]"
-              >
-                Import with Secret Phrase
               </button>
             </div>
 

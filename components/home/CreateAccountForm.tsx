@@ -107,7 +107,7 @@ export default function CreateAccountForm() {
     const res = await walletSetup(finalPin, phrase, action);
 
     if (res.error || !res.data) {
-      console.error("[CreateAccount] Wallet creation failed:", res.error);
+      console.error("[CreateAccount] Wallet creation failed:", res.error), res;
       setHasError(true);
       setErrorMessage(res.error ?? "Something went wrong. Please try again.");
       setLoading(false);

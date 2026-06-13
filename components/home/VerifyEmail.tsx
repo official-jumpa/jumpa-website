@@ -176,10 +176,13 @@ export default function VerifyEmailPage() {
       console.error("[VerifyEmail] Failed to check existing wallet:", err);
     }
 
-    // Navigate to save-recovery page to generate/view seed phrase
+    // Retrieve the user's wallet intent (create or import) saved during onboarding
+    const intent = typeof window !== "undefined" ? (sessionStorage.getItem("walletIntent") || "create") : "create";
+
+    // Navigate to save-recovery page to generate/view or import seed phrase
     // The BetterAuth session is already active, so the wallet-setup
     // endpoint will be able to authenticate this user
-    navigate("/save-recovery?flow=create");
+    navigate(`/save-recovery?flow=${intent}`);
   };
 
   const handleResend = async () => {

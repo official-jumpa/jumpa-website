@@ -36,6 +36,7 @@ export default function CreateAccountDrawer() {
     if (!emailOk) return;
     try {
       sessionStorage.setItem("onboardingEmail", email.trim());
+      sessionStorage.setItem("walletIntent", "create");
     } catch {
       /* ignore */
     }
@@ -54,10 +55,6 @@ export default function CreateAccountDrawer() {
     }
   };
 
-  const handleSecretPhrase = () => {
-    setOpen(false);
-    navigate("/save-recovery?flow=create", { state: { action: "create" } });
-  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -147,14 +144,6 @@ export default function CreateAccountDrawer() {
                   className="h-4 w-4 shrink-0"
                 />
                 Continue with Google
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSecretPhrase}
-                className="flex h-12 w-full cursor-pointer shrink-0 items-center justify-center rounded-[10px] bg-[#2D2D2D] px-2.5 text-sm leading-[145%] text-white transition-colors hover:bg-[#3a3a3a]"
-              >
-                Create with Secret Phrase
               </button>
             </div>
 
