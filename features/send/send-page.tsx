@@ -23,15 +23,7 @@ import type { Recipient, Token } from "./types";
 
 import { getBalances, getRecipients, postTransfer } from "@/lib/api";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
-import {
-  solIcon, solanaChain,
-  ethIcon,
-  btcIcon,
-  usdcIcon,
-  usdtIcon,
-  xlmIcon,
-  baseChain,
-} from "@/lib/constants/wallet-icons";
+import { getCoinIcon } from "@/lib/constants/wallet-icons";
 
 const quickAmounts = ["0.01", "0.1", "0.5"];
 
@@ -225,17 +217,7 @@ export default function SendPage() {
   ) : false;
   const isValid = amountValue > 0 && amountValue <= (token.balanceRaw || 0);
 
-  const tokenImg = (() => {
-    const sym = token.symbol?.toUpperCase() || "";
-    if (sym.includes("SOL")) return solanaChain;
-    if (sym.includes("ETH")) return ethIcon;
-    if (sym.includes("BASE")) return baseChain;
-    if (sym.includes("BTC")) return btcIcon;
-    if (sym.includes("USDC")) return usdcIcon;
-    if (sym.includes("USDT")) return usdtIcon;
-    if (sym.includes("XLM")) return xlmIcon;
-    return null;
-  })();
+  const tokenImg = getCoinIcon(token.symbol);
 
   return (
     <div className="min-h-screen bg-[#16171d] text-white">

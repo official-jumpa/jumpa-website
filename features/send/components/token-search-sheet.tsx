@@ -2,17 +2,7 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Token } from "../types";
 import SheetShell from "./sheet-shell";
-import {
-  baseChain,
-  stellarChain,
-  solanaChain2,
-  solIcon,
-  ethIcon,
-  btcIcon,
-  usdcIcon,
-  usdtIcon,
-  xlmIcon,
-} from "@/lib/constants/wallet-icons";
+import { getChainIcon, getCoinIcon } from "@/lib/constants/wallet-icons";
 import Image from "next/image";
 
 type TokenSearchSheetProps = {
@@ -23,25 +13,8 @@ type TokenSearchSheetProps = {
 };
 
 function TokenIcon({ token }: { token: Token }) {
-  const chainIcon = useMemo(() => {
-    const sym = token.symbol.toUpperCase();
-    if (sym.includes("SOL")) return solanaChain2;
-    if (sym.includes("ETH") || sym.includes("BASE")) return baseChain;
-    if (sym.includes("XLM")) return stellarChain;
-    return null;
-  }, [token.symbol]);
-
-  const tokenImg = useMemo(() => {
-    const sym = token.symbol.toUpperCase();
-    if (sym.includes("SOL")) return solIcon;
-    if (sym.includes("ETH")) return ethIcon;
-    if (sym.includes("BASE")) return baseChain;
-    if (sym.includes("BTC")) return btcIcon;
-    if (sym.includes("USDC")) return usdcIcon;
-    if (sym.includes("USDT")) return usdtIcon;
-    if (sym.includes("XLM")) return xlmIcon;
-    return null;
-  }, [token.symbol]);
+  const chainIcon = getChainIcon(token.symbol);
+  const tokenImg = getCoinIcon(token.symbol);
 
   return (
     <div className="relative">
