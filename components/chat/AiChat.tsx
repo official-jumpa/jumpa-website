@@ -15,20 +15,12 @@ import {
   type Screen,
   type VoiceFlow,
   type Message,
-  type ChatComposerProps,
-  backIcon,
-  ChatComposer,
-  VoiceScreen,
-  UserBubble,
-  UserMediaBubble,
-  AiTextBlock,
-  TransactionBlock,
-  BuyCryptoBlock,
-  ThinkingRow,
-  IconBtn,
-  barsFromRecordingTick,
-  MAX_PENDING_CHAT_IMAGES,
-} from "./ChatShared";
+} from "./chat-types";
+import { backIcon, MAX_PENDING_CHAT_IMAGES } from "./chat-assets";
+import { ChatComposer } from "./ChatComposer";
+import { barsFromRecordingTick } from "./VoiceRecorderPanel";
+import { VoiceScreen, IconBtn } from "./ChatHelpers";
+import ChatMessageList from "./ChatMessageList";
 
 const SUGGESTIONS = [
   "How do i invest $100 ?",
@@ -100,18 +92,6 @@ function ChatScreen({
   onBack: () => void;
   onTransactionClick: (msg: Message) => void;
 }) {
-  const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [messages, showTyping]);
-
-  const lastTransactionMsgId = [...messages]
-    .reverse()
-    .find((m) => m.isTransaction && m.transactionParams?.type !== "onramp")?.id;
-
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
       <header className="shrink-0 px-6 flex justify-between items-center">
@@ -124,30 +104,11 @@ function ChatScreen({
         </IconBtn>
       </header>
 
-      <div className="ai-chat-messages flex-1 min-h-0 overflow-y-auto px-6 pt-3">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`mb-4 flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
-          >
-            {m.role === "user" ? (
-              m.imageUrls?.length
-                ? <UserMediaBubble imageUrls={m.imageUrls} text={m.text} />
-                : <UserBubble text={m.text} isVoice={m.isVoice} />
-            ) : m.isTransaction ? (
-              m.transactionParams?.type === "onramp" ? (
-                <BuyCryptoBlock msg={m} />
-              ) : (
-                <TransactionBlock msg={m} onTransactionClick={onTransactionClick} disabled={m.id !== lastTransactionMsgId} />
-              )
-            ) : (
-              <AiTextBlock text={m.text} />
-            )}
-          </div>
-        ))}
-        {showTyping && <ThinkingRow />}
-        <div ref={endRef} />
-      </div>
+      <ChatMessageList
+        messages={messages}
+        showTyping={showTyping}
+        onTransactionClick={onTransactionClick}
+      />
 
       {composer}
     </div>
