@@ -209,6 +209,16 @@ export async function getAiHistory(): Promise<
   return request<{ messages: any[] }>("/api/ai/history");
 }
 
+/** PUT /api/ai/history — save/sync persistent chat history logs */
+export async function putAiHistory(
+  messages: any[],
+): Promise<ApiResponse<{ success: boolean }>> {
+  return request<{ success: boolean }>("/api/ai/history", {
+    method: "PUT",
+    body: JSON.stringify({ messages }),
+  });
+}
+
 // --- Transfers & History ---
 
 export interface Recipient {

@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useCallback,
 } from "react";
-import { getAiHistory, postAiIntent, postTransfer, postSwap } from "@/lib/api";
+import { getAiHistory, postAiIntent, postTransfer, postSwap, putAiHistory } from "@/lib/api";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
 import {
@@ -117,6 +117,10 @@ function ChatScreen({
     return () => clearTimeout(timer);
   }, [messages, showTyping]);
 
+  const lastTransactionMsgId = [...messages]
+    .reverse()
+    .find((m) => m.isTransaction && m.transactionParams?.type !== "onramp")?.id;
+
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
       <header className="shrink-0 px-6 flex justify-between items-center">
@@ -135,7 +139,7 @@ function ChatScreen({
           <img src={addUser} alt="" width={23} height={23} className="block object-contain" />
         </IconBtn>
       </header>
-
+ 
       <div className="ai-chat-messages flex-1 min-h-0 overflow-y-auto px-6 pt-3">
         {/* "Anita joined" system message */}
         <div className="flex justify-center mb-5">
@@ -164,7 +168,7 @@ function ChatScreen({
                 m.transactionParams?.type === "onramp" ? (
                   <BuyCryptoBlock msg={m} />
                 ) : (
-                  <TransactionBlock msg={m} onTransactionClick={onTransactionClick} />
+                  <TransactionBlock msg={m} onTransactionClick={onTransactionClick} disabled={m.id !== lastTransactionMsgId} />
                 )
               ) : (
                 <AiTextBlock text={m.text} />
@@ -222,21 +226,15 @@ export default function GroupAiChat() {
 
     if (frame) {
       const r = frame.getBoundingClientRect();
-      if (isMobile) {
-        composer.style.left = `${r.left}px`;
-        composer.style.width = `${r.width}px`;
-        composer.style.transform = "none";
-        composer.style.maxWidth = "none";
-      } else {
-        const w = Math.min(390, r.width);
-        composer.style.left = `${r.left + (r.width - w) / 2}px`;
-        composer.style.width = `${w}px`;
-        composer.style.transform = "none";
-        composer.style.maxWidth = "none";
-      }
+      const w = Math.min(390, r.width);
+      composer.style.left = `${r.left + (r.width - w) / 2}px`;
+      composer.style.width = `${w}px`;
+      composer.style.transform = "none";
+      composer.style.maxWidth = "none";
     } else if (isMobile) {
-      composer.style.left = "0";
-      composer.style.width = "100%";
+      const w = Math.min(390, window.innerWidth);
+      composer.style.left = `${(window.innerWidth - w) / 2}px`;
+      composer.style.width = `${w}px`;
       composer.style.maxWidth = "none";
       composer.style.transform = "none";
     } else {
@@ -418,8 +416,10 @@ export default function GroupAiChat() {
         setConfirmOpen(false);
         const swapData = res.data;
         if (swapData && swapData.success) {
-          setMessages((prev) => prev.map((msg) => msg.role === "ai" && msg.isTransaction && msg.transactionDetails?.label === "Swap Intent" ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Swap Complete! 🔄" } } : msg));
-          setMessages((prev) => [...prev, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! [View on Solscan](https://solscan.io/tx/${swapData.hash})` }]);
+          const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && msg.transactionDetails?.label === "Swap Intent" ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Swap Complete! 🔄" } } : msg);
+          const finalMsgs: Message[] = [...updated, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! [View on Solscan](https://solscan.io/tx/${swapData.hash})` }];
+          setMessages(finalMsgs);
+          await putAiHistory(finalMsgs);
         } else { alert(res.error || "Swap failed"); }
       } else if (pendingTransaction.type === "transfer") {
         const res = await postTransfer({ to: pendingTransaction.recipient, amount: pendingTransaction.amount, token: pendingTransaction.token, pin });
@@ -427,8 +427,10 @@ export default function GroupAiChat() {
         setConfirmOpen(false);
         const transferData = res.data;
         if (transferData && transferData.success) {
-          setMessages((prev) => prev.map((msg) => msg.role === "ai" && msg.isTransaction && (msg.transactionDetails?.label === "Transfer Intent" || msg.transactionDetails?.label === "Schedule Intent") ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Transaction Sent! ✅" } } : msg));
-          setMessages((prev) => [...prev, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! [View on Solscan](https://solscan.io/tx/${transferData.hash})` }]);
+          const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && (msg.transactionDetails?.label === "Transfer Intent" || msg.transactionDetails?.label === "Schedule Intent") ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Transaction Sent! ✅" } } : msg);
+          const finalMsgs: Message[] = [...updated, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! [View on Solscan](https://solscan.io/tx/${transferData.hash})` }];
+          setMessages(finalMsgs);
+          await putAiHistory(finalMsgs);
         } else { alert(res.error || "Transfer failed"); }
       }
     } catch { setConfirmProcessing(false); alert("Network error while processing transaction"); }

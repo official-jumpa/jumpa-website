@@ -4,6 +4,19 @@ export interface IChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isTransaction?: boolean;
+  transactionParams?: any;
+  transactionDetails?: {
+    title?: string;
+    label: string;
+    sent: string;
+    to: string;
+    result: string;
+    isScheduled?: boolean;
+  };
+  imageUrls?: string[];
+  isVoice?: boolean;
+  isOtherUser?: boolean;
 }
 
 export interface IChatLog extends Document {
@@ -23,6 +36,19 @@ const ChatLogSchema: Schema = new Schema(
         role: { type: String, enum: ["user", "assistant"], required: true },
         content: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
+        isTransaction: { type: Boolean, default: false },
+        transactionParams: { type: Schema.Types.Mixed },
+        transactionDetails: {
+          title: { type: String },
+          label: { type: String },
+          sent: { type: String },
+          to: { type: String },
+          result: { type: String },
+          isScheduled: { type: Boolean },
+        },
+        imageUrls: [{ type: String }],
+        isVoice: { type: Boolean, default: false },
+        isOtherUser: { type: Boolean, default: false },
       },
     ],
   },

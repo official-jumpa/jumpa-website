@@ -132,7 +132,7 @@ export default function PinSheet({
             type="button"
             disabled={pin.length !== WALLET_PIN_LENGTH || processing}
             onClick={onDone}
-            className="w-full h-16 rounded-2xl bg-[#3EC6C6] text-zinc-950 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 shadow-[0_8px_30px_rgba(62,198,198,0.2)]"
+            className="w-full h-16 rounded-2xl bg-[#A855F7] hover:bg-[#b56ef8] text-zinc-950 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 shadow-[0_8px_30px_rgba(62,198,198,0.2)]"
           >
             {processing ? (
               <>

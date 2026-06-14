@@ -257,9 +257,9 @@ export const ChatComposer = forwardRef<HTMLDivElement, ChatComposerProps>(
       );
     } else {
       row = (
-        <div className="flex flex-col gap-[10px] w-full">
+        <div className="flex flex-col gap-10 w-full p-2 box-border rounded-[31px_31px_0_0] bg-black">
           {pendingAttachmentPreviews.length > 0 && (
-            <div className="flex flex-row flex-wrap gap-2 w-full px-6 pl-[25px] box-border">
+            <div className="flex flex-row flex-wrap gap-2 w-full px-3 mb-1 ">
               {pendingAttachmentPreviews.map((p) => (
                 <div key={p.id} className="relative w-[60px] h-[60px] shrink-0 rounded-[4px] overflow-hidden">
                   <img className="w-full h-full object-cover block" src={p.url} alt="" />
@@ -275,69 +275,95 @@ export const ChatComposer = forwardRef<HTMLDivElement, ChatComposerProps>(
               ))}
             </div>
           )}
-          <textarea
-            ref={textAreaRef}
-            className="w-full min-h-[18px] max-h-[160px] resize-none border-none outline-none bg-transparent font-[Geist,sans-serif] font-normal text-base leading-[1.45] text-[#f4f4f4] px-3 pt-2 pb-1 pl-[25px] box-border overflow-y-auto placeholder:text-[#5a5a5a]"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="Send a message.."
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && (value.trim() || pendingAttachmentPreviews.length > 0)) {
-                e.preventDefault();
-                onTypingSend();
-              }
-            }}
-          />
-          <div className="w-full min-h-[38.982px] m-0 px-3 pl-[25px] box-border flex flex-row items-center justify-between gap-[6.49px]">
-            <div className="relative shrink-0 inline-flex flex-col items-start justify-end">
-              {attachMenuOpen && (
-                <div className="absolute left-0 bottom-[calc(100%+24.3px)] w-[176px] h-[120px] rounded-[20px] bg-[#101010] shadow-[0_40px_40px_0_rgba(0,0,0,0.05)] z-102 flex flex-col overflow-hidden" role="menu" aria-label="Attach file">
-                  <input ref={filesInputRef} type="file" className="chat-hidden-file-input" tabIndex={-1} multiple accept="image/*"
-                    onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
-                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="chat-hidden-file-input" tabIndex={-1}
-                    onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
-                  <input ref={photosInputRef} type="file" accept="image/*" className="chat-hidden-file-input" tabIndex={-1} multiple
-                    onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
+          <div className="flex flex-row items-end gap-2 w-full px-2">
+            {/* Input field */}
+            <div className="flex-1 min-w-0 bg-transparent flex items-center min-h-[40px]">
+              <textarea
+                ref={textAreaRef}
+                className="w-full min-h-[20px] max-h-[160px] resize-none border-none outline-none bg-transparent font-[Geist,sans-serif] font-normal text-[15px] leading-[1.4] text-[#f4f4f4] py-2 px-1 box-border overflow-y-auto placeholder:text-[#5a5a5a]"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Send a message.."
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && (value.trim() || pendingAttachmentPreviews.length > 0)) {
+                    e.preventDefault();
+                    onTypingSend();
+                  }
+                }}
+              />
+            </div>
+            {/* Action buttons on the right */}
+            <div className="flex flex-row items-center gap-2 shrink-0 pb-[3px]">
+              {/* Attachment Button */}
+              <div className="relative inline-flex items-center">
+                {attachMenuOpen && (
+                  <div className="absolute right-0 bottom-[calc(100%+12px)] w-[176px] h-[120px] rounded-[20px] bg-[#101010] shadow-[0_40px_40px_0_rgba(0,0,0,0.5)] z-102 flex flex-col overflow-hidden" role="menu" aria-label="Attach file">
+                    <input ref={filesInputRef} type="file" className="chat-hidden-file-input" tabIndex={-1} multiple accept="image/*"
+                      onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
+                    <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="chat-hidden-file-input" tabIndex={-1}
+                      onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
+                    <input ref={photosInputRef} type="file" accept="image/*" className="chat-hidden-file-input" tabIndex={-1} multiple
+                      onChange={(e) => { onImageFilesSelected(e.target.files); e.target.value = ""; onAttachClose(); }} />
 
-                  <button type="button" role="menuitem"
-                    className="chat-attach-menu-row--first flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[10px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
-                    onClick={() => filesInputRef.current?.click()}>
-                    <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Files</span>
-                    <img src={fileMenuIcon} alt="" className="block shrink-0 object-contain w-[13.33px] h-[16.66px]" />
-                  </button>
-                  <button type="button" role="menuitem"
-                    className="chat-attach-menu-row flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[10px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
-                    onClick={() => cameraInputRef.current?.click()}>
-                    <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Camera</span>
-                    <img src={cameraMenuIcon} alt="" className="block shrink-0 object-contain w-[16.67px] h-[15px]" />
-                  </button>
-                  <button type="button" role="menuitem"
-                    className="chat-attach-menu-row flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[10px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
-                    onClick={() => photosInputRef.current?.click()}>
-                    <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Photos</span>
-                    <img src={photoMenuIcon} alt="" className="block shrink-0 object-contain w-[15px] h-[15.84px]" />
-                  </button>
-                </div>
-              )}
+                    <button type="button" role="menuitem"
+                      className="chat-attach-menu-row--first flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[15px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
+                      onClick={() => filesInputRef.current?.click()}>
+                      <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Files</span>
+                      <img src={fileMenuIcon} alt="" className="block shrink-0 object-contain w-[13.33px] h-[16.66px]" />
+                    </button>
+                    <button type="button" role="menuitem"
+                      className="chat-attach-menu-row flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[15px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
+                      onClick={() => cameraInputRef.current?.click()}>
+                      <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Camera</span>
+                      <img src={cameraMenuIcon} alt="" className="block shrink-0 object-contain w-[16.67px] h-[15px]" />
+                    </button>
+                    <button type="button" role="menuitem"
+                      className="chat-attach-menu-row flex-[0_0_40px] h-10 box-border w-full flex flex-row items-center justify-between gap-[10px] px-[15px] border-none bg-transparent cursor-pointer text-inherit font-inherit text-left transition-[background] duration-120 hover:bg-white/0.04"
+                      onClick={() => photosInputRef.current?.click()}>
+                      <span className="font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090]">Photos</span>
+                      <img src={photoMenuIcon} alt="" className="block shrink-0 object-contain w-[15px] h-[15.84px]" />
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="w-10 h-10 p-0 border-none rounded-full bg-[#6a59ce] cursor-pointer flex items-center justify-center transition-all duration-150 hover:bg-[#7d6df3] hover:shadow-[0_0_10px_rgba(106,89,206,0.3)] active:scale-95 shrink-0"
+                  onClick={(e) => { e.stopPropagation(); onAttachToggle(); }}
+                  aria-label="Attach"
+                  aria-expanded={attachMenuOpen}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-[45deg]">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Voice Button */}
               <button
                 type="button"
-                className="shrink-0 p-[6.49px] border-none rounded-[38.95px] bg-transparent cursor-pointer inline-flex items-center justify-center gap-[6.49px] leading-none transition-opacity duration-150 hover:opacity-90 active:scale-[0.97]"
-                onClick={(e) => { e.stopPropagation(); onAttachToggle(); }}
-                aria-label="Attach"
-                aria-expanded={attachMenuOpen}
+                className="w-10 h-10 p-0 border-none rounded-full bg-[#6a59ce] cursor-pointer flex items-center justify-center transition-all duration-150 hover:bg-[#7d6df3] hover:shadow-[0_0_10px_rgba(106,89,206,0.3)] active:scale-95 shrink-0"
+                onClick={onMic}
+                aria-label="Voice note"
               >
-                <img src={attachMenuOpen ? docActiveIcon : docIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} className="block object-contain" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
               </button>
-            </div>
 
-            {/* Right action buttons */}
-            <div className="flex items-center gap-[3px]">
-              <button type="button" className="shrink-0 p-[6.49px] border-none rounded-[38.95px] bg-transparent cursor-pointer inline-flex items-center justify-center leading-none transition-opacity duration-150 hover:opacity-90 active:scale-[0.97]" onClick={onMic} aria-label="Voice note">
-                <img src={voiceIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} className="block object-contain" />
-              </button>
-              <button type="button" className="shrink-0 p-[6.49px] border-none rounded-[38.95px] bg-transparent cursor-pointer inline-flex items-center justify-center leading-none transition-opacity duration-150 hover:opacity-90 active:scale-[0.97]" onClick={onIdleSendClick} aria-label="Send">
-                <img src={sendBtnIcon} alt="" width={COMPOSER_ACTION_IMG.width} height={COMPOSER_ACTION_IMG.height} className="block object-contain" />
+              {/* Send Button */}
+              <button
+                type="button"
+                className="w-10 h-10 p-0 border-none rounded-full bg-[#6a59ce] cursor-pointer flex items-center justify-center transition-all duration-150 hover:bg-[#7d6df3] hover:shadow-[0_0_10px_rgba(106,89,206,0.3)] active:scale-95 shrink-0"
+                onClick={onIdleSendClick}
+                aria-label="Send"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-[1px] mt-[1px]">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
               </button>
             </div>
           </div>
@@ -346,12 +372,12 @@ export const ChatComposer = forwardRef<HTMLDivElement, ChatComposerProps>(
     }
 
     return (
-      <div ref={ref} className="chat-composer-section fixed bottom-0 z-500 left-1/2 -translate-x-1/2 w-full max-w-[390px] box-border flex flex-col justify-end items-stretch bg-black max-md:left-0 max-md:translate-x-0 max-md:max-w-none">
+      <div ref={ref} className="chat-composer-section fixed bottom-0 z-500 left-1/2 -translate-x-1/2 w-full max-w-[390px] mx-auto box-border flex flex-col justify-end items-stretch bg-black">
         {attachMenuOpen && !isVoice && (
           <div className="fixed inset-0 z-101 bg-black/45 cursor-default" role="presentation" onClick={onAttachClose} />
         )}
-        <div className="chat-composer-dock-gradient w-full max-w-[390px] box-border rounded-[32px_32px_0_0] overflow-visible max-md:max-w-none">
-          <div className="box-border min-h-[129px] rounded-[31px_31px_0_0] bg-black p-[5px] flex flex-col gap-[10px] justify-end overflow-visible">
+        <div className="chat-composer-dock-gradient w-full max-w-[390px] mx-auto box-border rounded-[32px_32px_0_0] overflow-visible">
+          <div className="box-border min-h-[72px] rounded-[31px_31px_0_0] bg-black p-[5px] flex flex-col gap-[10px] justify-end overflow-visible">
             {row}
           </div>
         </div>
@@ -450,33 +476,152 @@ export function AiTextBlock({ text }: { text: string }) {
 export function TransactionBlock({
   msg,
   onTransactionClick,
+  disabled = false,
 }: {
   msg: Message;
   onTransactionClick: (msg: Message) => void;
+  disabled?: boolean;
 }) {
+  const isSwap = msg.transactionParams?.type === "swap";
+  const labelText = msg.transactionDetails?.label || (isSwap ? "Swap Intent" : "Transfer Intent");
+  const titleText = msg.transactionDetails?.title || (isSwap ? "Drafted Swap" : "Pending Transfer");
+
+  // Clean values from params
+  const isCompleted = msg.transactionDetails?.result?.toLowerCase().includes("complete") || msg.transactionDetails?.result?.toLowerCase().includes("sent");
+
+  // If disabled and NOT completed, we remove the card block completely from the UI (only rendering the preceding helper text if any).
+  if (disabled && !isCompleted) {
+    if (!msg.text) return null;
+    return (
+      <div className="flex flex-col gap-3 w-full max-w-[324px]">
+        <div className="w-full ml-0 mr-auto flex flex-col gap-[6px] self-start mt-1">
+          <div className="m-0 font-[Geist,sans-serif] font-normal text-sm leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
+            <TextWithLinks text={msg.text} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-full max-w-[324px]">
       {msg.text && (
-        <div className="max-w-[324px] w-full ml-0 mr-auto flex flex-col gap-[6px] self-start mt-1">
+        <div className="w-full ml-0 mr-auto flex flex-col gap-[6px] self-start mt-1">
           <div className="m-0 font-[Geist,sans-serif] font-normal text-sm leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
             <TextWithLinks text={msg.text} />
           </div>
         </div>
       )}
-      <div className="flex justify-start w-full self-start max-w-[324px]">
+      <div className="flex justify-start w-full self-start">
         <button
           type="button"
+          disabled={disabled || isCompleted}
           onClick={() => onTransactionClick(msg)}
-          className="flex flex-col gap-2 w-full text-left bg-none border-none p-0 cursor-pointer"
+          className={`group flex flex-col gap-2 w-full text-left bg-transparent border-none p-0 select-none outline-none ${
+            isCompleted || disabled ? "cursor-default" : "cursor-pointer"
+          }`}
         >
-          <div className="inline-block bg-[#6a59ce] text-white px-4 py-2 rounded-[20px] text-[13px] font-semibold">
-            {msg.transactionDetails?.label}
-          </div>
-          <div className="bg-white/5 text-white px-4 py-3 rounded-xl text-[13px] leading-[1.7] border border-white/0.08 w-full">
-            <div className="font-bold">{msg.transactionDetails?.title || "Transaction generated!"}</div>
-            <div>{msg.transactionDetails?.sent}</div>
-            <div>{msg.transactionDetails?.to}</div>
-            <div className="text-[#3ec6c6] font-semibold">{msg.transactionDetails?.result}</div>
+          {/* Card Body */}
+          <div className={`bg-[#18181b]/85 backdrop-blur-md text-white p-4 rounded-2xl text-[13px] border border-white/10 w-full shadow-2xl transition-all duration-300 flex flex-col gap-3.5 relative overflow-hidden ${
+            isCompleted || disabled
+              ? "opacity-60 border-white/5"
+              : "group-hover:border-[#7c5cfc]/40 group-hover:bg-[#202024]/90"
+          }`}>
+            {/* Glossy top highlight glow */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            
+            {/* Header: Title & Intent Badge */}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                {isSwap ? (
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                    isCompleted || disabled
+                      ? "bg-white/5 border border-white/10 text-white/40"
+                      : "bg-[#7c5cfc]/15 border border-[#7c5cfc]/20 text-[#9f7aea]"
+                  }`}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 1l4 4-4 4" />
+                      <path d="M3 11h18" />
+                      <path d="M7 23l-4-4 4-4" />
+                      <path d="M21 13H3" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                    isCompleted || disabled
+                      ? "bg-white/5 border border-white/10 text-white/40"
+                      : "bg-[#3ec6c6]/15 border border-[#3ec6c6]/20 text-[#3ec6c6]"
+                  }`}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </div>
+                )}
+                <span className={`font-bold text-sm tracking-tight ${isCompleted || disabled ? "text-[#909090]" : "text-[#f4f4f4]"}`}>{titleText}</span>
+              </div>
+              
+              <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase border ${
+                isCompleted || disabled
+                  ? "bg-white/5 text-[#909090] border-white/10"
+                  : isSwap 
+                    ? "bg-[#7c5cfc]/10 text-[#a78bfa] border-[#7c5cfc]/20" 
+                    : "bg-[#3ec6c6]/10 text-[#3ec6c6] border-[#3ec6c6]/20"
+              }`}>
+                {labelText}
+              </div>
+            </div>
+
+            {/* Transaction Data Rows */}
+            <div className="flex flex-col gap-2.5 w-full bg-white/[0.02] border border-white/5 rounded-xl p-3">
+              {/* Sent / From Asset Row */}
+              <div className="flex justify-between items-center w-full">
+                <span className="text-[#909090] text-xs">{isSwap ? "From Asset" : "Amount"}</span>
+                <span className={`font-semibold tracking-wide text-sm ${isCompleted || disabled ? "text-[#909090]" : "text-white"}`}>{msg.transactionDetails?.sent.replace("Amount: ", "").replace("From: ", "")}</span>
+              </div>
+
+              {/* Arrow Divider for Swaps */}
+              {isSwap && (
+                <div className="flex justify-center w-full py-0.5 border-t border-white/5">
+                  <div className="text-[#909090] py-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <polyline points="19 12 12 19 5 12" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* To / Recipient Row */}
+              <div className="flex flex-col gap-1 w-full pt-1.5 border-t border-white/5">
+                <span className="text-[#909090] text-xs">{isSwap ? "To Asset" : "To Recipient"}</span>
+                <div className="break-all font-mono text-[11px] bg-black/40 border border-white/5 p-2 rounded-lg text-[#d4d4d8] leading-[1.4] select-text">
+                  {msg.transactionDetails?.to.replace("Recipient: ", "").replace("To: ", "")}
+                </div>
+              </div>
+            </div>
+
+            {/* Status / Confirm Bottom Bar */}
+            <div className="flex items-center gap-2 mt-0.5 pt-1">
+              {!isCompleted ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7c5cfc] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#7c5cfc]"></span>
+                  </span>
+                  <span className="text-[#a78bfa] font-bold text-xs tracking-tight group-hover:text-white transition-colors">
+                    {msg.transactionDetails?.result || "Tap to confirm and send"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-[#22c55e]"></span>
+                  <span className="text-[#22c55e] font-bold text-xs tracking-tight">
+                    {msg.transactionDetails?.result}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </button>
       </div>
@@ -486,10 +631,36 @@ export function TransactionBlock({
 
 export function ThinkingRow() {
   return (
-    <div className="mb-4 flex flex-col items-start">
-      <div className="inline-flex flex-row items-center gap-[6px] mb-3">
-        <span className="w-1 h-4 rounded-[2px] bg-[#5a5a5a] shrink-0" aria-hidden />
-        <AiThinkingIndicator />
+    <div className="mb-4 flex flex-row items-end gap-2 ml-0 mr-auto self-start">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes thinking-dots {
+          0%, 100% { transform: translateY(0); opacity: 0.35; }
+          50% { transform: translateY(-4px); opacity: 1; }
+        }
+        .thinking-dot {
+          animation: thinking-dots 1.2s infinite ease-in-out;
+        }
+      `}} />
+
+      {/* Avatar (Left) */}
+      <div className="w-8 h-8 rounded-full bg-[#3ec6c6] flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(62,198,198,0.2)]">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </div>
+
+      {/* Thought Bubble (Right) */}
+      <div className="relative">
+        <div className="bg-[#18181b]/85 backdrop-blur-md border border-[#7c5cfc]/20 px-4 py-3 rounded-2xl flex flex-row gap-1.5 items-center justify-center min-w-[70px] h-[38px] box-border shadow-lg">
+          <span className="thinking-dot w-2 h-2 rounded-full bg-[#a78bfa]" style={{ animationDelay: "0s" }} />
+          <span className="thinking-dot w-2 h-2 rounded-full bg-[#a78bfa]" style={{ animationDelay: "0.2s" }} />
+          <span className="thinking-dot w-2 h-2 rounded-full bg-[#a78bfa]" style={{ animationDelay: "0.4s" }} />
+        </div>
+        
+        {/* Thought bubble trail dots */}
+        <div className="w-2 h-2 rounded-full bg-[#18181b]/85 border border-[#7c5cfc]/20 absolute -bottom-1 -left-1 box-border" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[#18181b]/85 border border-[#7c5cfc]/20 absolute -bottom-2 -left-2 box-border" />
       </div>
     </div>
   );

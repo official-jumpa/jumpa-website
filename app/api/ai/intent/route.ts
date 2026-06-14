@@ -120,7 +120,7 @@ export const POST = withAuth(async (req, { address }) => {
     if (process.env.ANTHROPIC_API_KEY) {
       const msg = await anthropic.messages.create({
         model: "claude-haiku-4-5", 
-        system: systemPrompt + "\nIMPORTANT: Return ONLY the raw JSON object. Do NOT use markdown code blocks or backticks.",
+        system: systemPrompt + "\nIMPORTANT: You MUST return ONLY a single JSON object. Do not include any other text, explanations, or markdown code blocks (e.g. no ```json). Start your response with '{' and end with '}'.",
         max_tokens: 1000,
         messages: [
           ...history,
@@ -128,15 +128,21 @@ export const POST = withAuth(async (req, { address }) => {
         ] as any
       });
 
-      let text = (msg.content[0] as any).text;
+      let text = (msg.content[0] as any).text.trim();
       
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      const cleanJsonStr = jsonMatch ? jsonMatch[0] : text;
-
-      try {
-        aiResponse = JSON.parse(cleanJsonStr);
-      } catch (e) {
-        console.error("[AI JSON Parse Error]", e, "Clean JSON Str:", cleanJsonStr);
+      if (jsonMatch) {
+        try {
+          aiResponse = JSON.parse(jsonMatch[0]);
+        } catch (e) {
+          console.error("[AI JSON Parse Error]", e, "Clean JSON Str:", jsonMatch[0]);
+          aiResponse = {
+            intent: "CHAT",
+            params: {},
+            message: text
+          };
+        }
+      } else {
         aiResponse = {
           intent: "CHAT",
           params: {},
@@ -151,17 +157,93 @@ export const POST = withAuth(async (req, { address }) => {
       };
     }
 
+    let isTransaction = false;
+    let transactionParams: any = undefined;
+    let transactionDetails: any = undefined;
+
+    if (aiResponse.intent === "SEND_FUNDS") {
+      isTransaction = true;
+      transactionParams = {
+        type: "transfer",
+        amount: String(aiResponse.params.amount || "0"),
+        token: String(aiResponse.params.token || "SOL"),
+        recipient: String(aiResponse.params.recipient || aiResponse.params.toAddress || "Unknown")
+      };
+      transactionDetails = {
+        label: "Transfer Intent",
+        title: "Pending Transfer",
+        sent: `Amount: ${aiResponse.params.amount} ${aiResponse.params.token}`,
+        to: `Recipient: ${aiResponse.params.recipient}`,
+        result: "Tap to confirm and send"
+      };
+    } else if (aiResponse.intent === "SWAP_TOKEN") {
+      isTransaction = true;
+      transactionParams = {
+        type: "swap",
+        fromToken: String(aiResponse.params.fromToken || "SOL"),
+        toToken: String(aiResponse.params.toToken || "USDC"),
+        fromAmount: String(aiResponse.params.fromAmount || "0")
+      };
+      transactionDetails = {
+        label: "Swap Intent",
+        title: "Drafted Swap",
+        sent: `From: ${aiResponse.params.fromAmount} ${aiResponse.params.fromToken}`,
+        to: `To: ${aiResponse.params.toToken}`,
+        result: "Tap to confirm swap"
+      };
+    } else if (aiResponse.intent === "ONRAMP_CRYPTO") {
+      isTransaction = true;
+      transactionParams = {
+        type: "onramp",
+        amount: String(aiResponse.params.amount || ""),
+        token: String(aiResponse.params.token || "solana:usdc"),
+        currency: String(aiResponse.params.currency || "NGN")
+      };
+      transactionDetails = {
+        label: "Buy Crypto Request",
+        title: "Onramp Transaction",
+        sent: aiResponse.params.currency && aiResponse.params.currency !== "NGN"
+          ? `Crypto: ${aiResponse.params.amount} ${aiResponse.params.currency}`
+          : `Spend: ${aiResponse.params.amount ? "₦" + aiResponse.params.amount : "₦0"}`,
+        to: `Receive: ${aiResponse.params.token}`,
+        result: "Tap to review or change the amount"
+      };
+    } else if (aiResponse.intent === "OFFRAMP_CRYPTO") {
+      isTransaction = true;
+      transactionParams = {
+        type: "offramp",
+        amount: String(aiResponse.params.amount || ""),
+        token: String(aiResponse.params.token || "solana:usdc")
+      };
+      transactionDetails = {
+        label: "Sell Crypto Request",
+        title: "Offramp Transaction",
+        sent: `Selling: ${aiResponse.params.amount} ${aiResponse.params.token.toUpperCase()}`,
+        to: "Receive: Naira (Bank)",
+        result: "Tap to enter bank details and withdraw"
+      };
+    }
+
+    const assistantMsg = {
+      role: "assistant" as const,
+      content: aiResponse.message,
+      timestamp: new Date(),
+      isTransaction,
+      transactionParams,
+      transactionDetails
+    };
+
     if (chatLog) {
-      chatLog.messages.push({ role: "user", content: prompt, timestamp: new Date() });
-      chatLog.messages.push({ role: "assistant", content: aiResponse.message, timestamp: new Date() });
+      chatLog.messages.push({ role: "user" as const, content: prompt, timestamp: new Date() });
+      chatLog.messages.push(assistantMsg);
       await chatLog.save();
     } else {
       await ChatLog.create({
         userId: wallet._id,
         walletAddress: address,
         messages: [
-          { role: "user", content: prompt, timestamp: new Date() },
-          { role: "assistant", content: aiResponse.message, timestamp: new Date() }
+          { role: "user" as const, content: prompt, timestamp: new Date() },
+          assistantMsg
         ]
       });
     }
