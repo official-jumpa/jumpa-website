@@ -26,7 +26,20 @@ export async function getSession(
 
     
     // Find the wallet associated with this session user
-    const wallet = await Wallet.findOne({ userId: session.user.id });
+    const cookieStore = await cookies();
+    const selectedAddress = cookieStore.get("selected_wallet_address")?.value;
+
+    let wallet = null;
+    if (selectedAddress) {
+      wallet = await Wallet.findOne({
+        userId: session.user.id,
+        address: selectedAddress.toLowerCase(),
+      });
+    }
+
+    if (!wallet) {
+      wallet = await Wallet.findOne({ userId: session.user.id });
+    }
     
     if (!wallet) {
       console.warn("[Session] No wallet linked to user:", session.user.id);

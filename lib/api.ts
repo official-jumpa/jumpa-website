@@ -176,6 +176,16 @@ export async function getBalances(): Promise<ApiResponse<BalancesResponse>> {
   return request<BalancesResponse>("/api/wallet/balance");
 }
 
+export interface WalletBalanceSummary {
+  address: string;
+  totalUsd: string;
+}
+
+/** GET /api/wallet/balance?q=all — fetch total USD balance for all user wallets */
+export async function getAllWalletBalances(): Promise<ApiResponse<WalletBalanceSummary[]>> {
+  return request<WalletBalanceSummary[]>("/api/wallet/balance?q=all");
+}
+
 // --- AI Agent ---
 
 export interface AiIntentResponse {
@@ -279,5 +289,33 @@ export async function getTransactions(): Promise<
   ApiResponse<{ addresses: WalletAddresses; transactions: TransactionRecord[] }>
 > {
   return request<{ addresses: WalletAddresses; transactions: TransactionRecord[] }>("/api/wallet/transactions");
+}
+
+export interface UserWallet {
+  address: string;
+  name: string;
+  createdAt: string;
+  isSelected: boolean;
+}
+
+/** GET /api/user/wallets — fetch all wallets for the authenticated user */
+export async function getWallets(): Promise<ApiResponse<UserWallet[]>> {
+  return request<UserWallet[]>("/api/user/wallets");
+}
+
+/** POST /api/user/wallets/select — select active wallet */
+export async function selectWallet(address: string): Promise<ApiResponse<{ message: string; address: string }>> {
+  return request<{ message: string; address: string }>("/api/user/wallets/select", {
+    method: "POST",
+    body: JSON.stringify({ address }),
+  });
+}
+
+/** POST /api/user/wallets — rename a wallet */
+export async function renameWallet(address: string, name: string): Promise<ApiResponse<{ message: string; name: string }>> {
+  return request<{ message: string; name: string }>("/api/user/wallets", {
+    method: "POST",
+    body: JSON.stringify({ address, name }),
+  });
 }
 

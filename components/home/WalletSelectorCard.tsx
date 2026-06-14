@@ -1,16 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
+import { WALLET_ICONS, getChainIcon } from "@/lib/constants/wallet-icons";
 
 const chevronDown = "/assets/icons/actions/chevron-down.svg";
-const closeIcon = '/assets/icons/actions/close.svg';
-const copyIcon = '/assets/icons/actions/copy.svg';
-const addIcon = '/assets/icons/actions/add.svg';
-const baseChain = '/assets/chains/base.svg';
-const stellarChain = '/assets/chains/stellar.png';
-const stellarChain2 = '/assets/chains/stellar-coin.png';
-const solanaChain = '/assets/chains/solana.png';
-const solanaChain2 = '/assets/chains/solana-2.png';
 
 
 interface WalletSelectorCardProps {
@@ -20,7 +13,7 @@ interface WalletSelectorCardProps {
 const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
   onDropdown,
 }) => {
-  const { balances, selectedSymbol } = useHomeLayout();
+  const { balances, selectedSymbol, activeWallet } = useHomeLayout();
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -72,17 +65,12 @@ const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
       <div className="flex items-center gap-[6px]">
         <img
           className="w-10 h-10 rounded-full"
-          src={
-            activeToken.symbol.includes('SOL') ? solanaChain2 :
-            activeToken.symbol.includes('ETH') || activeToken.symbol.includes('BASE') ? baseChain :
-            activeToken.symbol.includes('XLM') ? stellarChain :
-            baseChain
-          }
+          src={getChainIcon(activeToken.symbol)}
           alt={activeToken.symbol}
           style={{ objectFit: 'contain', backgroundColor: 'transparent' }}
         />
         <div className="flex flex-col gap-[2px] flex-1">
-          <span className="text-sm font-semibold text-[#f3f3f5]">{activeToken.name}</span>
+          <span className="text-sm font-semibold text-[#f3f3f5]">{activeWallet?.name || activeToken.name}</span>
           <div className="flex items-center gap-[6px]">
             <span className="text-xs text-[#8b8b93]">{truncatedAddress}</span>
             <button
@@ -91,7 +79,7 @@ const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
               aria-label="Copy address"
               type="button"
             >
-              <img src={copyIcon} alt="Copy" width="14" height="14" />
+              <img src={WALLET_ICONS.copy} alt="Copy" width="14" height="14" />
             </button>
             {copied && <span className="text-[10px] text-[#22c55e] font-medium animate-[fadeIn_0.15s_ease_forwards]">Copied!</span>}
           </div>

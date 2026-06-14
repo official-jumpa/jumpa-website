@@ -23,8 +23,8 @@ import PrivateKeyScreen from "@/components/wallet/PrivateKeyScreen";
 import WithdrawOptions from "@/components/home/WithdrawOptions";
 import TradePage from "@/components/home/TradePage";
 import DAppPage from "@/components/home/DAppPage";
-import type { BalancesResponse } from "@/lib/api";
-import { getBalances } from "@/lib/api";
+import type { BalancesResponse, UserWallet } from "@/lib/api";
+import { getBalances, getWallets, selectWallet, renameWallet } from "@/lib/api";
 
 // Data
 import { type Wallet } from "@/data/wallets";
@@ -43,6 +43,11 @@ interface HomeLayoutContextType {
   selectedSymbol: string;
   onSelectAsset: (symbol: string) => void;
   refreshBalances: () => void;
+  wallets: UserWallet[];
+  activeWallet: UserWallet | null;
+  onSelectWallet: (address: string) => Promise<void>;
+  onRenameWallet: (address: string, name: string) => Promise<boolean>;
+  refreshWallets: () => void;
 }
 
 const HomeLayoutContext = createContext<HomeLayoutContextType | undefined>(
@@ -78,6 +83,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [balances, setBalances] = useState<BalancesResponse | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState<string>("ETH");
+  const [wallets, setWallets] = useState<UserWallet[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("jumpa-selected-symbol");
@@ -93,11 +99,41 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     }
   }, []);
 
+  const fetchWallets = useCallback(async () => {
+    const res = await getWallets();
+    if (res.data) {
+      setWallets(res.data);
+    }
+  }, []);
+
+  const handleSelectWallet = useCallback(async (address: string) => {
+    const res = await selectWallet(address);
+    if (!res.error) {
+      await fetchWallets();
+      await fetchBalances();
+    }
+  }, [fetchWallets, fetchBalances]);
+
+  const handleRenameWallet = useCallback(async (address: string, name: string) => {
+    const res = await renameWallet(address, name);
+    if (!res.error) {
+      await fetchWallets();
+      return true;
+    }
+    return false;
+  }, [fetchWallets]);
+
   useEffect(() => {
     fetchBalances();
     const interval = setInterval(fetchBalances, 90000); // 90s poll
     return () => clearInterval(interval);
   }, [fetchBalances]);
+
+  useEffect(() => {
+    fetchWallets();
+  }, [fetchWallets]);
+
+  const activeWallet = wallets.find(w => w.isSelected) || wallets[0] || null;
 
   // Modals
   const [walletListOpen, setWalletListOpen] = useState(false);
@@ -160,6 +196,11 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
       localStorage.setItem("jumpa-selected-symbol", symbol);
     },
     refreshBalances: fetchBalances,
+    wallets,
+    activeWallet,
+    onSelectWallet: handleSelectWallet,
+    onRenameWallet: handleRenameWallet,
+    refreshWallets: fetchWallets,
   };
 
   // Check if we should hide the global UI shell (TopBar, etc.)
@@ -265,7 +306,6 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           {walletListOpen && (
             <WalletListModal onClose={() => setWalletListOpen(false)} />
           )}
-
           {selectedWallet && (
             <WalletDetailsModal
               wallet={selectedWallet}

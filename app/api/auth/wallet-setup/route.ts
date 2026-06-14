@@ -49,17 +49,22 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // Check if user already has a wallet
-    const existingWallet = await Wallet.findOne({ userId: session.user.id });
-
-    if (existingWallet) {
-        console.log("[WalletSetup] Returning existing wallet for user:", session.user.id);
-        return NextResponse.json({
-            message: "Wallet already exists",
-            address: existingWallet.address,
-            addresses: existingWallet.addresses,
-        });
+    // Enforce 5 wallet limit per user
+    const existingWallets = await Wallet.find({ userId: session.user.id });
+    if (existingWallets.length >= 5) {
+        return NextResponse.json(
+            { error: "Maximum limit of 5 wallets reached" },
+            { status: 400 }
+        );
     }
+
+    // Determine default sequential name (Wallet 1, Wallet 2...)
+    const existingNames = existingWallets.map(w => w.name);
+    let walletIndex = 1;
+    while (existingNames.includes(`Wallet ${walletIndex}`)) {
+        walletIndex++;
+    }
+    const walletName = `Wallet ${walletIndex}`;
 
     // Determine which phrase to use
     let phrase: string;
@@ -96,6 +101,7 @@ export async function POST(req: NextRequest) {
     // Save to DB linked to BetterAuth user
     const wallet = await Wallet.create({
         userId: session.user.id,
+        name: walletName,
         address,
         addresses,
         publicKeys,
@@ -109,15 +115,26 @@ export async function POST(req: NextRequest) {
     console.log(
         "[WalletSetup] Wallet created for user:",
         session.user.id,
+        "name:",
+        wallet.name,
         "address:",
         wallet.address,
         "action:",
         action ?? (providedPhrase ? "create" : "auto-generate"),
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
         message: action === "import" ? "Wallet imported" : "Wallet created",
         address: wallet.address,
         addresses: wallet.addresses,
     }, { status: 201 });
+
+    response.cookies.set("selected_wallet_address", wallet.address, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+    });
+
+    return response;
 }
