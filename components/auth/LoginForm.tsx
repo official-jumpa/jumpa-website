@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Delete, ChevronRight, Lock } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { getMe, verifyPin } from "@/lib/api";
+import { getMyWallet, verifyPin } from "@/lib/api";
 import { getStoredWallet, saveWalletLocally } from "@/lib/wallet";
 import { Button } from "@/components/ui/button";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
@@ -37,7 +37,7 @@ export default function LoginForm() {
     }
 
     // 2. Session exists — check if user already has a wallet
-    getMe()
+    getMyWallet()
       .then((res) => {
         if (res.data && res.data.address) {
           // User has a wallet — proceed to PIN unlock UI

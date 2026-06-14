@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { Wallet } from "@/models/Wallet";
 
+/**
+ * GET /api/wallet/list
+ * Returns all wallets for the authenticated user, including an isSelected flag.
+ */
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -15,7 +19,10 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
 
-  const wallets = await Wallet.find({ userId: session.user.id }, "address name createdAt");
+  const wallets = await Wallet.find(
+    { userId: session.user.id },
+    "address name addresses publicKeys createdAt"
+  );
 
   // Read selected cookie
   const selectedAddress = req.cookies.get("selected_wallet_address")?.value;
@@ -24,6 +31,8 @@ export async function GET(req: NextRequest) {
   const result = wallets.map((w, index) => ({
     address: w.address,
     name: w.name || `Wallet ${index + 1}`,
+    addresses: w.addresses,
+    publicKeys: w.publicKeys,
     createdAt: w.createdAt,
     isSelected: selectedAddress
       ? w.address.toLowerCase() === selectedAddress.toLowerCase()
@@ -33,7 +42,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(result);
 }
 
-export async function POST(req: NextRequest) {
+/**
+ * PATCH /api/wallet/list
+ * Rename a wallet. Body: { address, name }
+ */
+export async function PATCH(req: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -75,4 +88,45 @@ export async function POST(req: NextRequest) {
   await wallet.save();
 
   return NextResponse.json({ message: "Wallet renamed successfully", name: wallet.name });
+}
+
+/**
+ * PUT /api/wallet/list
+ * Select the active wallet. Body: { address }
+ * Sets an httpOnly cookie so subsequent requests use this wallet.
+ */
+export async function PUT(req: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const { address } = body as { address?: string };
+
+  if (!address) {
+    return NextResponse.json({ error: "Address is required" }, { status: 400 });
+  }
+
+  await connectDB();
+
+  // Verify ownership
+  const wallet = await Wallet.findOne({ userId: session.user.id, address: address.toLowerCase() });
+  if (!wallet) {
+    return NextResponse.json({ error: "Wallet not found or not owned by user" }, { status: 404 });
+  }
+
+  const response = NextResponse.json({ message: "Wallet selected", address: wallet.address });
+
+  response.cookies.set("selected_wallet_address", wallet.address, {
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  return response;
 }

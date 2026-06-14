@@ -85,6 +85,8 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("ETH");
   const [wallets, setWallets] = useState<UserWallet[]>([]);
 
+  const activeWallet = wallets.find(w => w.isSelected) || wallets[0] || null;
+
   useEffect(() => {
     const saved = localStorage.getItem("jumpa-selected-symbol");
     if (saved) {
@@ -94,9 +96,11 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
 
   const fetchBalances = useCallback(async () => {
     const res = await getBalances();
+    console.log("[HomeLayout] getBalances() result:", res);
     if (res.data) {
       setBalances(res.data);
     }
+    return res;
   }, []);
 
   const fetchWallets = useCallback(async () => {
@@ -104,17 +108,19 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     if (res.data) {
       setWallets(res.data);
     }
+    return res;
   }, []);
 
   const handleSelectWallet = useCallback(async (address: string) => {
+    console.log("[HomeLayout] Selecting wallet address:", address);
     const res = await selectWallet(address);
     if (!res.error) {
       await fetchWallets();
-      await fetchBalances();
     }
-  }, [fetchWallets, fetchBalances]);
+  }, [fetchWallets]);
 
   const handleRenameWallet = useCallback(async (address: string, name: string) => {
+    console.log("[HomeLayout] Renaming wallet:", address, "to:", name);
     const res = await renameWallet(address, name);
     if (!res.error) {
       await fetchWallets();
@@ -123,17 +129,88 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     return false;
   }, [fetchWallets]);
 
+  // Load wallets on mount with retry logic (up to 3 times)
   useEffect(() => {
-    fetchBalances();
-    const interval = setInterval(fetchBalances, 90000); // 90s poll
-    return () => clearInterval(interval);
-  }, [fetchBalances]);
+    const skipLoad = [
+      "/onboarding",
+      "/verify-email",
+      "/create-account",
+      "/save-recovery",
+      "/setup-pin",
+    ].some((p) => pathname === p || pathname?.startsWith(p + "/"));
 
+    if (skipLoad) {
+      console.log("[HomeLayout] On onboarding/auth path. Skipping fetchWallets.");
+      return;
+    }
+
+    let active = true;
+    let retryCount = 0;
+    let timer: NodeJS.Timeout;
+
+    async function run() {
+      console.log(`[HomeLayout] Running fetchWallets, attempt ${retryCount + 1}...`);
+      const res = await fetchWallets();
+      if (!active) return;
+      if (!res.data && retryCount < 3) {
+        retryCount++;
+        console.warn(`[HomeLayout] fetchWallets failed. Retrying (${retryCount}/3) in 5s...`);
+        timer = setTimeout(run, 5000);
+      }
+    }
+
+    run();
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [fetchWallets, pathname]);
+
+  // Fetch balances reactively when active wallet changes, with 3 retry attempts
   useEffect(() => {
-    fetchWallets();
-  }, [fetchWallets]);
+    console.log("[HomeLayout] activeWallet address changed:", activeWallet?.address);
+    if (!activeWallet?.address) {
+      console.log("[HomeLayout] No activeWallet address. Skipping balances fetch.");
+      return;
+    }
 
-  const activeWallet = wallets.find(w => w.isSelected) || wallets[0] || null;
+    const skipLoad = [
+      "/onboarding",
+      "/verify-email",
+      "/create-account",
+      "/save-recovery",
+      "/setup-pin",
+    ].some((p) => pathname === p || pathname?.startsWith(p + "/"));
+
+    if (skipLoad) {
+      console.log("[HomeLayout] On onboarding/auth path. Skipping fetchBalances.");
+      return;
+    }
+
+    let active = true;
+    let retryCount = 0;
+    let timer: NodeJS.Timeout;
+
+    async function run() {
+      console.log(`[HomeLayout] Running fetchBalances for address ${activeWallet.address}, attempt ${retryCount + 1}...`);
+      const res = await fetchBalances();
+      if (!active) return;
+      if (!res.data && retryCount < 3) {
+        retryCount++;
+        console.warn(`[HomeLayout] fetchBalances failed. Retrying (${retryCount}/3) in 5s...`);
+        timer = setTimeout(run, 5000);
+      }
+    }
+
+    run();
+    const interval = setInterval(run, 90000); // 90s poll
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [activeWallet?.address, fetchBalances, pathname]);
 
   // Modals
   const [walletListOpen, setWalletListOpen] = useState(false);

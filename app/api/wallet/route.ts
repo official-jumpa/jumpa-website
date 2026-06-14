@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateMnemonic } from "@scure/bip39";
+import { generateMnemonic, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -16,9 +16,21 @@ const BodySchema = z.object({
 });
 
 /**
+ * GET /api/wallet
+ * Returns a fresh 12-word BIP39 mnemonic.
+ * Nothing is saved — the user must confirm they've written it down
+ * before calling POST /api/wallet?action=create.
+ */
+export async function GET() {
+  // 128 bits of entropy → 12 words (standard for most wallets)
+  const phrase = generateMnemonic(wordlist, 128);
+  return NextResponse.json({ phrase });
+}
+
+/**
  * POST /api/wallet?action=create|import
  *
- * action=create  → user confirmed they wrote down the phrase from GET /api/wallet/phrase
+ * action=create  → user confirmed they wrote down the phrase from GET /api/wallet
  * action=import  → user is providing their own existing phrase
  */
 export async function POST(req: NextRequest) {

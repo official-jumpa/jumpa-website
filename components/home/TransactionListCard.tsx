@@ -1,14 +1,19 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import { getTransactions, type TransactionRecord, type WalletAddresses } from "@/lib/api";
+import { useHomeLayout } from "@/components/layouts/HomeLayout";
 
 export default function TransactionListCard() {
+  const { activeWallet } = useHomeLayout();
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   const [addresses, setAddresses] = useState<WalletAddresses | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!activeWallet?.address) return;
+
     async function load() {
+      setLoading(true);
       try {
         const res = await getTransactions();
         if (res.data) {
@@ -22,7 +27,7 @@ export default function TransactionListCard() {
       }
     }
     load();
-  }, []);
+  }, [activeWallet?.address]);
 
   if (loading) {
     return (

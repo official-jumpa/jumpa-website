@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { saveWalletLocally } from "@/lib/wallet";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
+import { getMyWallet } from "@/lib/api";
 
 export default function SetupPinPage() {
   const router = useRouter();
@@ -30,19 +31,16 @@ export default function SetupPinPage() {
 
       let shouldStopLoading = true;
       try {
-        const res = await fetch("/api/user/wallet");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.address) {
-            console.log("[SetupPin] Wallet already exists, redirecting...");
-            saveWalletLocally({
-              address: data.address,
-              addresses: data.addresses,
-            });
-            router.push("/home");
-            shouldStopLoading = false;
-            return;
-          }
+        const res = await getMyWallet();
+        if (res.data?.address) {
+          console.log("[SetupPin] Wallet already exists, redirecting...");
+          saveWalletLocally({
+            address: res.data.address,
+            addresses: res.data.addresses,
+          });
+          router.push("/home");
+          shouldStopLoading = false;
+          return;
         }
       } catch (err) {
         console.error("[SetupPin] Error checking existing wallet:", err);

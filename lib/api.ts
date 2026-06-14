@@ -64,11 +64,11 @@ export interface WalletCreatedResponse {
   addresses: WalletAddresses;
 }
 
-/** GET /api/wallet/phrase — generate a fresh 12-word seed phrase */
+/** GET /api/wallet — generate a fresh 12-word seed phrase */
 export async function generatePhrase(): Promise<
   ApiResponse<{ phrase: string }>
 > {
-  return request<{ phrase: string }>("/api/wallet/phrase");
+  return request<{ phrase: string }>("/api/wallet");
 }
 
 /** POST /api/wallet?action=create|import — save a wallet to the backend */
@@ -113,12 +113,6 @@ export interface WalletSetupResponse {
   addresses: WalletAddresses;
 }
 
-export interface MeResponse {
-  address: string;
-  addresses: WalletAddresses;
-  createdAt: string;
-}
-
 /**
  * POST /api/auth/wallet-setup — unified wallet creation for any
  * authenticated user (email OTP or Google social login).
@@ -134,9 +128,13 @@ export async function walletSetup(
   });
 }
 
-/** GET /api/user/wallet — returns the current session wallet (null if not logged in) */
-export async function getMe(): Promise<ApiResponse<MeResponse>> {
-  return request<MeResponse>("/api/user/wallet");
+/** Returns the selected (or first) wallet for the authenticated user */
+export async function getMyWallet(): Promise<ApiResponse<UserWallet>> {
+  const res = await getWallets();
+  if (res.error || !res.data) return { data: null, error: res.error, status: res.status };
+  const selected = res.data.find(w => w.isSelected) || res.data[0] || null;
+  if (!selected) return { data: null, error: "No wallet found", status: 404 };
+  return { data: selected, error: null, status: 200 };
 }
 
 /** POST /api/auth/logout — clears the session cookie */
@@ -294,27 +292,29 @@ export async function getTransactions(): Promise<
 export interface UserWallet {
   address: string;
   name: string;
+  addresses: WalletAddresses;
+  publicKeys: Record<string, string>;
   createdAt: string;
   isSelected: boolean;
 }
 
-/** GET /api/user/wallets — fetch all wallets for the authenticated user */
+/** GET /api/wallet/list — fetch all wallets for the authenticated user */
 export async function getWallets(): Promise<ApiResponse<UserWallet[]>> {
-  return request<UserWallet[]>("/api/user/wallets");
+  return request<UserWallet[]>("/api/wallet/list");
 }
 
-/** POST /api/user/wallets/select — select active wallet */
+/** PUT /api/wallet/list — select active wallet */
 export async function selectWallet(address: string): Promise<ApiResponse<{ message: string; address: string }>> {
-  return request<{ message: string; address: string }>("/api/user/wallets/select", {
-    method: "POST",
+  return request<{ message: string; address: string }>("/api/wallet/list", {
+    method: "PUT",
     body: JSON.stringify({ address }),
   });
 }
 
-/** POST /api/user/wallets — rename a wallet */
+/** PATCH /api/wallet/list — rename a wallet */
 export async function renameWallet(address: string, name: string): Promise<ApiResponse<{ message: string; name: string }>> {
-  return request<{ message: string; name: string }>("/api/user/wallets", {
-    method: "POST",
+  return request<{ message: string; name: string }>("/api/wallet/list", {
+    method: "PATCH",
     body: JSON.stringify({ address, name }),
   });
 }

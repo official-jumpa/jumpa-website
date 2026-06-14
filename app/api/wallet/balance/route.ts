@@ -29,33 +29,83 @@ const balanceCache: Record<string, { timestamp: number, data: any }> = {};
 const CACHE_TTL = 35 * 1000;
 
 /**
+ * Wrap a promise with a timeout. If it takes longer than `ms`,
+ * it rejects, which is caught and returns the `fallback` value.
+ * Logs detail on failures or timeouts.
+ */
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timeout on ${label}`)), ms)),
+  ]).catch((err) => {
+    console.error(`[Balance API] Connection error / timeout [${label}]:`, err instanceof Error ? err.message : err);
+    return fallback;
+  });
+}
+
+/**
  * Fetch on-chain balances for all 6 chains given a wallet's address set.
  * Returns the structured result object (addresses, balances, tokens).
  */
 async function fetchWalletBalances(addresses: { base: string; sol: string; xlm: string }) {
   const { base: baseAddr, sol: solAddr, xlm: xlmAddr } = addresses;
+  console.log(`[Balance API] Querying on-chain balances. Base: ${baseAddr}, Solana: ${solAddr}, Stellar: ${xlmAddr}`);
 
   // --- Base Balances ---
-  const baseBalancePromise = baseClient.getBalance({ address: baseAddr as `0x${string}` })
-    .then(b => formatEther(b)).catch(() => "0.00");
-  const baseSepoliaPromise = baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` })
-    .then(b => formatEther(b)).catch(() => "0.00");
+  const baseBalancePromise = withTimeout(
+    baseClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
+    4000,
+    "0.00",
+    "Base Mainnet"
+  );
+  const baseSepoliaPromise = withTimeout(
+    baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
+    4000,
+    "0.00",
+    "Base Sepolia"
+  );
     
   // --- Solana Balances ---
-  const solPromise = solAddr ? solMainnetConnection.getBalance(new PublicKey(solAddr))
-    .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : Promise.resolve("0.00");
-  const solDevPromise = solAddr ? solDevnetConnection.getBalance(new PublicKey(solAddr))
-    .then(b => (b / LAMPORTS_PER_SOL).toFixed(4)).catch(() => "0.00") : Promise.resolve("0.00");
+  const solPromise = solAddr
+    ? withTimeout(
+        solMainnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
+        4000,
+        "0.00",
+        "Solana Mainnet"
+      )
+    : Promise.resolve("0.00");
+  const solDevPromise = solAddr
+    ? withTimeout(
+        solDevnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
+        4000,
+        "0.00",
+        "Solana Devnet"
+      )
+    : Promise.resolve("0.00");
 
   // --- Stellar Balances ---
-  const xlmPromise = xlmAddr ? stellarPublic.loadAccount(xlmAddr)
-    .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : Promise.resolve("0.00");
-  const xlmTestPromise = xlmAddr ? stellarTestnet.loadAccount(xlmAddr)
-    .then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00").catch(() => "0.00") : Promise.resolve("0.00");
+  const xlmPromise = xlmAddr
+    ? withTimeout(
+        stellarPublic.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
+        4000,
+        "0.00",
+        "Stellar Mainnet"
+      )
+    : Promise.resolve("0.00");
+  const xlmTestPromise = xlmAddr
+    ? withTimeout(
+        stellarTestnet.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
+        4000,
+        "0.00",
+        "Stellar Testnet"
+      )
+    : Promise.resolve("0.00");
 
   const [baseBal, baseSepBal, solBal, solDevBal, xlmBal, xlmTestBal] = await Promise.all([
     baseBalancePromise, baseSepoliaPromise, solPromise, solDevPromise, xlmPromise, xlmTestPromise
   ]);
+
+  console.log(`[Balance API] On-chain query finished. Results: Base: ${baseBal}, Sepolia: ${baseSepBal}, Solana: ${solBal}, Devnet: ${solDevBal}, Stellar: ${xlmBal}, Testnet: ${xlmTestBal}`);
 
   const tokens = [
     { symbol: "SOL", name: "Solana Mainnet", address: solAddr, balance: solBal, priceUsd: "150.00" },
@@ -94,6 +144,7 @@ function computeTotalUsd(tokens: { balance: string; priceUsd: string }[]): strin
 export const GET = withAuth(async (req, { address, userId }) => {
   const url = new URL(req.url);
   const query = url.searchParams.get("q");
+  console.log(`[Balance API] Request for user: ${userId}, activeAddress: ${address}, query: ${query}`);
 
   // --- ALL WALLETS SUMMARY (for wallet list modal) ---
   if (query === "all") {
@@ -101,22 +152,26 @@ export const GET = withAuth(async (req, { address, userId }) => {
       await connectDB();
       // Validate userId to ensure we only query wallets owned by the authenticated user
       if (!userId) {
+        console.warn("[Balance API] User context missing for query=all");
         return NextResponse.json({ error: "User context missing" }, { status: 400 });
       }
 
       const wallets = await Wallet.find({ userId });
+      console.log(`[Balance API] Query=all: Found ${wallets.length} wallets for user ${userId}`);
 
       const results = await Promise.all(wallets.map(async (w) => {
         // Check per-wallet cache
         const now = Date.now();
         const cached = balanceCache[w.address];
         if (cached && (now - cached.timestamp < CACHE_TTL)) {
+          console.log(`[Balance API] Cache hit (q=all) for address: ${w.address}`);
           return {
             address: w.address,
             totalUsd: computeTotalUsd(cached.data.tokens),
           };
         }
 
+        console.log(`[Balance API] Cache miss (q=all) for address: ${w.address}. Querying on-chain...`);
         const data = await fetchWalletBalances(w.addresses);
         balanceCache[w.address] = { timestamp: now, data };
 
@@ -137,18 +192,24 @@ export const GET = withAuth(async (req, { address, userId }) => {
   const now = Date.now();
   const cached = balanceCache[address];
   if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    console.log(`[Balance API] Cache hit for address: ${address}`);
     return NextResponse.json(cached.data);
   }
 
+  console.log(`[Balance API] Cache miss for address: ${address}. Querying database and on-chain...`);
   try {
     await connectDB();
     const wallet = await Wallet.findOne({ address: address.toLowerCase() });
     
-    if (!wallet) return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
+    if (!wallet) {
+      console.error(`[Balance API] Wallet not found in database for address: ${address}`);
+      return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
+    }
 
     const result = await fetchWalletBalances(wallet.addresses);
 
     balanceCache[address] = { timestamp: now, data: result };
+    console.log(`[Balance API] Balance query successful for address: ${address}`);
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Balance] error:", err);

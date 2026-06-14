@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useNavigate } from "@/lib/pages-adapter";
 import { emailOtp, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { getMyWallet } from "@/lib/api";
 
 const OTP_SUCCESS_ICON = "/assets/icons/IMG_5310%201.svg";
 
@@ -163,14 +164,11 @@ export default function VerifyEmailPage() {
     if (!email) return;
     
     try {
-      const res = await fetch("/api/user/wallet");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.address) {
-          // User already exists and has a wallet - go straight to /home!
-          navigate("/home");
-          return;
-        }
+      const res = await getMyWallet();
+      if (res.data?.address) {
+        // User already exists and has a wallet - go straight to /home!
+        navigate("/home");
+        return;
       }
     } catch (err) {
       console.error("[VerifyEmail] Failed to check existing wallet:", err);

@@ -1,33 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { withAuth } from "@/lib/withAuth";
 import { connectDB } from "@/lib/db";
 import { Wallet } from "@/models/Wallet";
 import { Transaction } from "@/models/Transaction";
 
 /**
  * GET /api/wallet/transactions
- * Fetch on-chain transaction history for the authenticated user session.
+ * Fetch transaction history for the currently selected wallet
  */
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req, { address }) => {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectDB();
 
-    // 1. Locate the active wallet
-    const wallet = await Wallet.findOne({ userId: session.user.id });
+    // Locate the wallet by address
+    const wallet = await Wallet.findOne({ address: address.toLowerCase() });
     if (!wallet) {
       return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
     }
 
-    // 2. Fetch all transaction records matching the wallet's database ID
+    // Fetch all transaction records matching the wallet's database ID
     const transactions = await Transaction.find({ userId: wallet._id })
       .sort({ createdAt: -1 })
       .limit(30);
@@ -44,4 +35,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
