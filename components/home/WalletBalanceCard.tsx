@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 
 // Using public folder references for SVG assets
 const balanceEyeOpen = "/assets/icons/actions/eye-open.svg";
@@ -21,6 +22,27 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
 }) => {
   const { balances, selectedSymbol, onWalletDropdown } = useHomeLayout();
   const isUp = true;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !balances || !balances.tokens || balances.tokens.length === 0) {
+    return (
+      <div className="bg-[#1f1f1f] rounded-[20px] p-4 flex flex-col gap-1 animate-pulse h-[114px]">
+        <div className="text-xs text-[#8b8b93] flex gap-2 items-center">
+          Wallet Balance
+          <span className="w-16 h-4 bg-[#252525] rounded-full" />
+        </div>
+        <div className="flex items-center gap-[6px] my-1">
+          <div className="w-32 h-8 bg-[#252525] rounded" />
+          <div className="w-6 h-6 bg-[#252525] rounded-full" />
+        </div>
+        <div className="w-20 h-4 bg-[#252525] rounded" />
+      </div>
+    );
+  }
 
   const activeToken = balances?.tokens?.find(
     (t: any) => t.symbol === selectedSymbol,
@@ -46,36 +68,11 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
     rawDecimalPart.length > 5 ? rawDecimalPart.substring(0, 5) : rawDecimalPart;
 
   return (
-    <div className="balance-card">
-      {/* <div className="balance-token-row">
-        <div
-          className="balance-token-orb"
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            backgroundColor: selectedSymbol === "ETH" ? "#627EEA" : "#00EF8B",
-          }}
-        />
-        <span
-          className="token-label"
-          onClick={onWalletDropdown}
-          style={{ cursor: "pointer" }}
-        >
-          {tokenLabel}
-          <img
-            src={dropdownChevron}
-            alt=""
-            width="10"
-            height="10"
-            className="token-chevron"
-          />
-        </span>
-      </div> */}
-      <div className="balance-label">
+    <div className="bg-[#1f1f1f] rounded-[20px] p-4 flex flex-col gap-1">
+      <div className="text-xs text-[#8b8b93] flex gap-2 items-center">
         Wallet Balance
         <span
-          className="token-label"
+          className="text-[11px] text-[#b7b7be] bg-[#2b2b2b] py-[2px] px-2 rounded-full font-medium inline-flex items-center gap-1"
           onClick={onWalletDropdown}
           style={{ cursor: "pointer" }}
         >
@@ -85,27 +82,27 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
             alt=""
             width="10"
             height="10"
-            className="token-chevron"
+            className="opacity-60"
           />
         </span>
       </div>
-      <div className="balance-amount-row">
+      <div className="flex items-center gap-[6px]">
         {hidden ? (
           <img
             src={balanceCloseSvg}
             alt="Hidden"
-            className="balance-hidden-img"
+            className="h-[35px]"
           />
         ) : (
-          <span className="balance-amount">
+          <span className="text-[32px] font-extrabold text-[#f3f3f5] tracking-[-1px]">
             {wholePart}
             {hasDecimal && (
-              <span className="balance-decimal">{decimalPart}</span>
+              <span className="text-[#777777]">{decimalPart}</span>
             )}
           </span>
         )}
         <button
-          className="balance-eye-btn"
+          className="bg-transparent border-none cursor-pointer flex items-center p-1"
           onClick={onToggle}
           aria-label="Toggle balance"
           type="button"
@@ -118,7 +115,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
           />
         </button>
       </div>
-      <div className={`balance-change ${isUp ? "up" : "down"}`}>
+      <div className={`flex items-center gap-1 text-xs font-semibold ${isUp ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
         <img src={isUp ? graphUp : graphDown} alt="" width="18" height="18" />
         <span>{hidden ? "••••" : "+0.00%"}</span>
       </div>

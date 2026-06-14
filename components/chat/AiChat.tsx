@@ -11,8 +11,6 @@ import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
 import OnrampSheet from "@/features/onramp/OnrampSheet";
 import OfframpSheet from "@/features/offramp/OfframpSheet";
-import "@/components/home/home.css";
-
 import {
   type Screen,
   type VoiceFlow,
@@ -52,7 +50,7 @@ function ChatHomePanel({
       <IconBtn
         onClick={onBack}
         ariaLabel="Back"
-        className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0px))]"
+        className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0))]"
       >
         <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
       </IconBtn>
@@ -75,7 +73,7 @@ function ChatHomePanel({
             className="flex items-start gap-[14px] w-full min-h-[37px] cursor-pointer border-none bg-transparent p-0 text-left font-inherit hover:opacity-90 active:opacity-85"
             onClick={() => onPromptClick(s)}
           >
-            <span className="w-3 h-3 rounded-full bg-[#6a59ce] flex-shrink-0 mt-[11px]" aria-hidden />
+            <span className="w-3 h-3 rounded-full bg-[#6a59ce] shrink-0 mt-[11px]" aria-hidden />
             <div className="chat-suggestion-text-wrap flex-[0_1_auto] w-fit max-w-[min(calc(317px-14px-12px),calc(100%-26px))] min-w-0 pt-[10px] pb-[11px] box-border">
               <p className="m-0 font-[Geist,sans-serif] font-normal text-xs leading-[145%] text-[#909090] block overflow-anywhere wrap-break-word">
                 {s}
@@ -88,7 +86,7 @@ function ChatHomePanel({
   );
 }
 
-// ─── ChatScreen (AiChat-only, no invite btn) ───────────────────────────────────
+// ─── ChatScreen (AiChat-only, no invite btn)
 function ChatScreen({
   messages,
   showTyping,
@@ -116,7 +114,7 @@ function ChatScreen({
         <IconBtn
           onClick={onBack}
           ariaLabel="Back"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))] ml-0"
+          className="mt-[calc(90px+env(safe-area-inset-top,0))] ml-0"
         >
           <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
         </IconBtn>
@@ -510,8 +508,8 @@ export default function AiChat() {
   };
 
   return (
-    <div className="jumpa-theme-wrapper">
-      <div className="phone-frame" ref={phoneFrameRef}>
+    <div className="flex justify-center items-center min-h-screen bg-black font-sans text-[#f3f3f5]">
+      <div className="w-full max-w-[450px] h-screen bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]" ref={phoneFrameRef}>
         <div className="app-content app-content--ai-chat flex flex-col min-h-0 h-full overflow-hidden">
           <div className="ai-chat-root relative flex flex-col flex-1 min-h-0 w-full h-full bg-black overflow-hidden">
             <div className="flex-1 min-h-0 flex flex-col h-full">

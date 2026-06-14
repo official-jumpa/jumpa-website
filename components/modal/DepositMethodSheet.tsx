@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import "./DepositMethodSheet.css";
 const closeIcon = "/assets/icons/actions/close.svg";
 const backIcon = "/assets/icons/actions/back.svg";
 const sendCircleIcon = "/assets/icons/actions/send-circle.svg";
 const sideIcon = "/assets/icons/navigation/side.svg";
 const cardIllustration = "/assets/images/illustrations/card.svg";
-
 
 export interface DepositMethodSheetProps {
   onClose: () => void;
@@ -80,60 +78,60 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
   if (step === "bank") {
     return (
       <div
-        className="deposit-method-sheet deposit-method-sheet--bank"
+        className="deposit-method-sheet deposit-method-sheet-bank"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="deposit-bank-title"
         aria-modal="true"
       >
-        <div className="deposit-bank-topbar">
+        <div className="absolute top-3.5 left-[23px] w-[298px] max-w-[calc(100%-46px)] h-[35px] flex items-center justify-between z-10">
           <button
             type="button"
-            className="deposit-sheet-icon-btn"
+            className="w-[35px] h-[35px] p-2 border-none rounded-[51.1px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer shrink-0 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]"
             onClick={goBackToMethods}
             aria-label="Back"
           >
-            <img src={backIcon} alt="" className="deposit-sheet-back-icon" />
+            <img src={backIcon} alt="" className="w-3.5 h-[11px] block" />
           </button>
           <button
             type="button"
-            className="deposit-sheet-icon-btn"
+            className="w-[35px] h-[35px] p-2 border-none rounded-[51.1px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer shrink-0 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]"
             onClick={onClose}
             aria-label="Close"
           >
-            <img src={closeIcon} alt="" className="deposit-method-sheet-close-icon" />
+            <img src={closeIcon} alt="" className="w-[11.72px] h-[11.72px] block opacity-70" />
           </button>
         </div>
 
-        <div className="deposit-bank-main">
-          <div className="deposit-bank-card-wrap">
+        <div className="mt-[85px] mx-4 w-[310px] max-w-[calc(100%-32px)] box-border flex flex-col items-center gap-4">
+          <div className="w-full flex justify-center pt-[13.33px] px-[6.67px] pb-0 box-border">
             <img
               src={cardIllustration}
               alt=""
-              className="deposit-bank-card-icon"
+              className="w-[66.67px] h-[53.33px] block object-contain"
               width={67}
               height={54}
             />
           </div>
 
-          <div className="deposit-bank-headings">
-            <h2 id="deposit-bank-title" className="deposit-bank-title">
+          <div className="w-[300px] max-w-full min-h-[55px] flex flex-col items-center gap-1.5 text-center">
+            <h2 id="deposit-bank-title" className="m-0 font-sans font-bold text-lg leading-[120%] tracking-[-0.02em] text-white">
               Bank Transfer
             </h2>
-            <p className="deposit-bank-subtitle">
+            <p className="m-0 max-w-[203px] font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#959595]/60">
               Transfer to the account number below.
             </p>
           </div>
 
-          <div className="deposit-bank-account-card">
-            <div className="deposit-bank-account-row">
-              <div className="deposit-bank-account-texts">
-                <span className="deposit-bank-account-number">{BANK_ACCOUNT_DISPLAY}</span>
-                <span className="deposit-bank-account-meta">GTBank - Ndukwe Anita</span>
+          <div className="w-full min-h-[66px] box-border bg-[#2d2d2d] rounded-2xl p-0">
+            <div className="w-full max-w-[272px] mx-auto min-h-[39px] py-3.5 px-[19px] box-border flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-0.5 min-w-0 text-left">
+                <span className="font-sans font-semibold text-sm leading-[145%] tracking-[-0.02em] text-[#f4f4f4]">{BANK_ACCOUNT_DISPLAY}</span>
+                <span className="font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#5a5a5a]">GTBank - Ndukwe Anita</span>
               </div>
               <button
                 type="button"
-                className={`deposit-bank-copy-btn${copied ? " is-copied" : ""}`}
+                className={`w-[83px] min-h-[25px] box-border py-1 px-2.5 rounded-[8px] border bg-transparent cursor-pointer font-sans font-normal text-[10px] leading-[145%] tracking-[-0.02em] shrink-0 transition-all duration-150 ease-out hover:opacity-90 ${copied ? "text-[#25ad3e] border-[#25ad3e]" : "text-[#5a5a5a] border-[#aaaaaa]"}`}
                 onClick={handleCopyNumber}
                 aria-live="polite"
               >
@@ -149,48 +147,48 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
   if (step === "crypto") {
     return (
       <div
-        className="deposit-method-sheet deposit-method-sheet--bank deposit-method-sheet--crypto"
+        className="deposit-method-sheet deposit-method-sheet-crypto"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
       >
-        <div className="deposit-bank-topbar">
-          <button type="button" className="deposit-sheet-icon-btn" onClick={goBackToMethods}>
-            <img src={backIcon} alt="" className="deposit-sheet-back-icon" />
+        <div className="absolute top-3.5 left-[23px] w-[298px] max-w-[calc(100%-46px)] h-[35px] flex items-center justify-between z-10">
+          <button type="button" className="w-[35px] h-[35px] p-2 border-none rounded-[51.1px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer shrink-0 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]" onClick={goBackToMethods}>
+            <img src={backIcon} alt="" className="w-3.5 h-[11px] block" />
           </button>
-          <button type="button" className="deposit-sheet-icon-btn" onClick={onClose}>
-            <img src={closeIcon} alt="" className="deposit-method-sheet-close-icon" />
+          <button type="button" className="w-[35px] h-[35px] p-2 border-none rounded-[51.1px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer shrink-0 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]" onClick={onClose}>
+            <img src={closeIcon} alt="" className="w-[11.72px] h-[11.72px] block opacity-70" />
           </button>
         </div>
 
-        <div className="deposit-bank-main" style={{ marginTop: 60 }}>
-          <div className="deposit-bank-headings" style={{ minHeight: "auto" }}>
-            <h2 className="deposit-bank-title">Receive {selectedSymbol || "Crypto"}</h2>
-            <p className="deposit-bank-subtitle text-center">
+        <div className="mt-[85px] mx-4 w-[310px] max-w-[calc(100%-32px)] box-border flex flex-col items-center gap-4" style={{ marginTop: 60 }}>
+          <div className="w-[300px] max-w-full min-h-[55px] flex flex-col items-center gap-1.5 text-center" style={{ minHeight: "auto" }}>
+            <h2 className="m-0 font-sans font-bold text-lg leading-[120%] tracking-[-0.02em] text-white">Receive {selectedSymbol || "Crypto"}</h2>
+            <p className="m-0 max-w-[203px] font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#959595]/60 text-center">
               Scan the QR code or copy the address below
             </p>
           </div>
 
-          <div className="deposit-qr-wrapper">
-            <div className="deposit-qr-code-box">
+          <div className="my-4 mx-auto flex flex-col items-center justify-center rounded-[20px] bg-white/[0.04] p-6 border border-white/[0.08] w-full box-border">
+            <div className="bg-white p-3 rounded-2xl mb-3 shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
               <QRCodeSVG value={address || ""} size={160} />
             </div>
-            <span className="deposit-qr-label">Your Wallet Address</span>
-            <span className="deposit-qr-address">
+            <span className="uppercase text-[10px] tracking-widest text-[#5a5a5a] font-semibold mb-1">Your Wallet Address</span>
+            <span className="font-mono text-xs text-white text-center break-all leading-[1.45] max-w-[220px]">
               {address}
             </span>
           </div>
 
-          <div className="deposit-bank-account-card">
-            <div className="deposit-bank-account-row">
-              <div className="deposit-bank-account-texts">
-                <span className="deposit-bank-account-number text-sm break-all">{address}</span>
-                <span className="deposit-bank-account-meta">
+          <div className="w-full min-h-[66px] box-border bg-[#2d2d2d] rounded-2xl p-0">
+            <div className="w-full max-w-[272px] mx-auto min-h-[39px] py-3.5 px-[19px] box-border flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-0.5 min-w-0 text-left">
+                <span className="font-sans font-semibold text-sm leading-[145%] tracking-[-0.02em] text-[#f4f4f4] break-all">{address}</span>
+                <span className="font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#5a5a5a]">
                   Your {selectedSymbol || "EVM"} Address
                 </span>
               </div>
               <button
                 type="button"
-                className={`deposit-bank-copy-btn${copied ? " is-copied" : ""}`}
+                className={`w-[83px] min-h-[25px] box-border py-1 px-2.5 rounded-[8px] border bg-transparent cursor-pointer font-sans font-normal text-[10px] leading-[145%] tracking-[-0.02em] shrink-0 transition-all duration-150 ease-out hover:opacity-90 ${copied ? "text-[#25ad3e] border-[#25ad3e]" : "text-[#5a5a5a] border-[#aaaaaa]"}`}
                 onClick={handleCopyCrypto}
               >
                 {copied ? "Copied" : "Copy"}
@@ -204,7 +202,7 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
 
   return (
     <div
-      className="deposit-method-sheet"
+      className="deposit-method-sheet deposit-method-sheet-default"
       onClick={(e) => e.stopPropagation()}
       role="dialog"
       aria-labelledby="deposit-sheet-title"
@@ -212,62 +210,62 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
     >
       <button
         type="button"
-        className="deposit-method-sheet-close"
+        className="absolute top-3.5 right-[21px] w-[35px] h-[35px] p-2 border-none rounded-[50.91px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer gap-2 z-10 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]"
         onClick={onClose}
         aria-label="Close"
       >
-        <img src={closeIcon} alt="" width={12} height={12} className="deposit-method-sheet-close-icon" />
+        <img src={closeIcon} alt="" width={12} height={12} className="w-[11.72px] h-[11.72px] block opacity-70" />
       </button>
 
-      <div className="deposit-method-sheet-body">
+      <div className="flex flex-col items-center w-full pt-14 px-4 pb-5 box-border flex-1 min-h-0">
         <img
           src={sendCircleIcon}
           alt=""
-          className="deposit-method-sheet-icon"
+          className="w-20 h-20 shrink-0 block object-contain"
           width={80}
           height={80}
         />
 
-        <div className="deposit-method-sheet-headings">
-          <h2 id="deposit-sheet-title" className="deposit-method-sheet-title">
+        <div className="w-[300px] max-w-full min-h-[57px] mt-2.5 flex flex-col items-center gap-1.5 text-center">
+          <h2 id="deposit-sheet-title" className="m-0 font-sans font-bold text-xl leading-[120%] tracking-[-0.02em] text-white">
             Deposit
           </h2>
-          <p className="deposit-method-sheet-subtitle">
+          <p className="m-0 max-w-[286px] font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#959595]/60">
             Choose a method below to add funds to your account
           </p>
         </div>
 
-        <div className="deposit-method-sheet-cards">
-          <button type="button" className="deposit-method-card" onClick={goToBank}>
-            <div className="deposit-method-card-row">
-              <div className="deposit-method-card-texts">
-                <span className="deposit-method-card-title deposit-method-card-title--medium">
+        <div className="w-[310px] max-w-full mt-auto flex flex-col gap-3 pb-1">
+          <button type="button" className="w-full h-[66px] box-border border-none rounded-2xl bg-[#2d2d2d] cursor-pointer text-left py-3.5 px-[19px] flex items-center transition-all duration-150 ease-out hover:bg-[#353535] active:opacity-[0.92]" onClick={goToBank}>
+            <div className="w-full max-w-[272px] mx-auto flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="font-sans text-sm leading-[145%] tracking-[-0.02em] text-[#f4f4f4] font-medium">
                   Bank Transfer
                 </span>
-                <span className="deposit-method-card-desc">
+                <span className="font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#5a5a5a]">
                   Deposit from your bank account.
                 </span>
               </div>
-              <img src={sideIcon} alt="" className="deposit-method-card-chevron" />
+              <img src={sideIcon} alt="" className="w-[5px] h-2 shrink-0 object-contain brightness-0 invert opacity-90" />
             </div>
           </button>
 
           <button
             type="button"
-            className="deposit-method-card"
+            className="w-full h-[66px] box-border border-none rounded-2xl bg-[#2d2d2d] cursor-pointer text-left py-3.5 px-[19px] flex items-center transition-all duration-150 ease-out hover:bg-[#353535] active:opacity-[0.92]"
             onClick={() => {
                 onSelectCrypto?.();
                 setStep("crypto");
             }}
           >
-            <div className="deposit-method-card-row">
-              <div className="deposit-method-card-texts">
-                <span className="deposit-method-card-title deposit-method-card-title--semibold">
+            <div className="w-full max-w-[272px] mx-auto flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="font-sans text-sm leading-[145%] tracking-[-0.02em] text-[#f4f4f4] font-semibold">
                   Crypto
                 </span>
-                <span className="deposit-method-card-desc">Receive crypto coins.</span>
+                <span className="font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#5a5a5a]">Receive crypto coins.</span>
               </div>
-              <img src={sideIcon} alt="" className="deposit-method-card-chevron" />
+              <img src={sideIcon} alt="" className="w-[5px] h-2 shrink-0 object-contain brightness-0 invert opacity-90" />
             </div>
           </button>
         </div>

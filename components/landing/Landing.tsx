@@ -5,11 +5,9 @@ import FeaturesGrid from "./FeaturesGrid";
 import PersonasGrid from "./PersonasGrid";
 import FAQSection from "./FAQSection";
 import Footer from "./Footer";
-import "./landing.css";
-
 export default function Landing() {
   return (
-    <div className="landing bg-[#fffdf2] text-black flex flex-col gap-8">
+    <div className="font-sans bg-[#fffdf2] text-black flex flex-col gap-8">
       <NavBar />
       <main className="container w-full mx-auto">
         <HeroSection />

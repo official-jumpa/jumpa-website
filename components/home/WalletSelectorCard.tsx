@@ -1,11 +1,17 @@
-"use client"
-import React, { useState } from "react";
-
-// Using public folder references for SVG assets
-const chevronDown = "/assets/icons/actions/chevron-down.svg";
-const copyIcon = "/assets/icons/actions/copy.svg";
-
+"use client";
+import React, { useState, useEffect } from "react";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
+
+const chevronDown = "/assets/icons/actions/chevron-down.svg";
+const closeIcon = '/assets/icons/actions/close.svg';
+const copyIcon = '/assets/icons/actions/copy.svg';
+const addIcon = '/assets/icons/actions/add.svg';
+const baseChain = '/assets/chains/base.svg';
+const stellarChain = '/assets/chains/stellar.png';
+const stellarChain2 = '/assets/chains/stellar-coin.png';
+const solanaChain = '/assets/chains/solana.png';
+const solanaChain2 = '/assets/chains/solana-2.png';
+
 
 interface WalletSelectorCardProps {
   onDropdown: () => void;
@@ -16,6 +22,26 @@ const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
 }) => {
   const { balances, selectedSymbol } = useHomeLayout();
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !balances || !balances.tokens || balances.tokens.length === 0) {
+    return (
+      <div className="flex justify-between items-center py-3 px-4 bg-[#1f1f1f] rounded-[20px] animate-pulse h-[64px]">
+        <div className="flex items-center gap-[6px]">
+          <div className="w-10 h-10 rounded-full bg-[#252525]" />
+          <div className="flex flex-col gap-[6px] flex-1">
+            <div className="w-24 h-4 bg-[#252525] rounded" />
+            <div className="w-32 h-3 bg-[#252525] rounded" />
+          </div>
+        </div>
+        <div className="w-4 h-2 bg-[#252525] rounded" />
+      </div>
+    );
+  }
 
   const symbolKey = selectedSymbol.toLowerCase() as "eth" | "base" | "sol" | "xlm";
   const fallbackAddress = balances?.addresses?.[symbolKey] || balances?.address || "Fetching...";
@@ -42,32 +68,37 @@ const WalletSelectorCard: React.FC<WalletSelectorCardProps> = ({
       : activeToken.address;
 
   return (
-    <div className="wallet-selector">
-      <div className="wallet-selector-left">
-        <div
-          className="wallet-orb"
-          style={{
-            backgroundColor: selectedSymbol === "ETH" ? "#627EEA" : "#00EF8B",
-          }}
+    <div className="flex justify-between items-center py-3 px-4 bg-[#1f1f1f] rounded-[20px] transition-colors duration-150 ease-out hover:bg-[#252525]">
+      <div className="flex items-center gap-[6px]">
+        <img
+          className="w-10 h-10 rounded-full"
+          src={
+            activeToken.symbol.includes('SOL') ? solanaChain2 :
+            activeToken.symbol.includes('ETH') || activeToken.symbol.includes('BASE') ? baseChain :
+            activeToken.symbol.includes('XLM') ? stellarChain :
+            baseChain
+          }
+          alt={activeToken.symbol}
+          style={{ objectFit: 'contain', backgroundColor: 'transparent' }}
         />
-        <div className="wallet-info">
-          <span className="wallet-name">{activeToken.name} Wallet</span>
-          <div className="wallet-address-row">
-            <span className="wallet-address">{truncatedAddress}</span>
+        <div className="flex flex-col gap-[2px] flex-1">
+          <span className="text-sm font-semibold text-[#f3f3f5]">{activeToken.name}</span>
+          <div className="flex items-center gap-[6px]">
+            <span className="text-xs text-[#8b8b93]">{truncatedAddress}</span>
             <button
-              className="wallet-copy-btn"
+              className="bg-transparent border-none cursor-pointer p-[2px] flex items-center opacity-50 hover:opacity-80 transition-opacity"
               onClick={handleCopy}
               aria-label="Copy address"
               type="button"
             >
               <img src={copyIcon} alt="Copy" width="14" height="14" />
             </button>
-            {copied && <span className="copied-toast">Copied!</span>}
+            {copied && <span className="text-[10px] text-[#22c55e] font-medium animate-[fadeIn_0.15s_ease_forwards]">Copied!</span>}
           </div>
         </div>
       </div>
       <button
-        className="wallet-dropdown-btn"
+        className="bg-transparent border-none cursor-pointer p-2 flex items-center opacity-60"
         onClick={onDropdown}
         aria-label="Switch wallet"
         type="button"

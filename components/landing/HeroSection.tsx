@@ -5,7 +5,7 @@ export default function HeroSection() {
         <div className="border-2 rounded-full py-2.5 px-5 border-[#961BF04D] bg-white w-max text-2xl text-[#0C0C0C]">
           Trusted by 40+ Businesses globally
         </div>
-        <h1 className="hero text-[80px] leading-24 text-center relative">
+        <h1 className="font-black-han-sans text-[80px] leading-24 text-center relative">
           Cross border <span className="text-[#961BF0]">Payment</span>
           <br />
           <span className="absolute top-14.5 left-15 text-white text-[40px] flex justify-center items-center w-37 h-18.5 bg-[linear-gradient(90deg,#961BF0_0%,#E17DFF_100%)] rounded-full rotate-2">

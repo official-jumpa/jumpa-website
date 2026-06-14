@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import './Modals.css';
 import { useHomeLayout } from '@/components/layouts/HomeLayout';
 
-const closeIcon = '/assets/icons/actions/close.svg';
-const copyIcon = '/assets/icons/actions/copy.svg';
-const addIcon = '/assets/icons/actions/add.svg';
-
+import {
+  closeIcon,
+  copyIcon,
+  addIcon,
+  baseChain,
+  stellarChain,
+  stellarChain2,
+  solanaChain,
+  solanaChain2,
+} from '@/lib/constants/wallet-icons';
 
 interface WalletListModalProps {
   onClose: () => void;
@@ -29,19 +34,19 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="modal-sheet modal-wallet-list" onClick={(e) => e.stopPropagation()}>
-      <div className="modal-header">
-        <button className="modal-close" onClick={onClose} aria-label="Close" type="button">
-          <img src={closeIcon} alt="" width="11.72" height="11.72" />
+    <div className="absolute bottom-0 left-0 right-0 bg-[#0f0f10] rounded-t-[32px] pt-5 px-4 pb-8 z-[60] max-h-[85%] min-h-[400px] flex flex-col overflow-y-auto scrollbar-none animate-[slideUp_0.35s_cubic-bezier(0.4,0,0.2,1)_forwards]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex justify-between items-center mb-2">
+        <button className="w-8 h-8 rounded-full bg-[#252525] border-none flex items-center justify-center cursor-pointer transition-colors duration-150 ease-out hover:bg-[#2b2b2b]" onClick={onClose} aria-label="Close" type="button">
+          <img src={closeIcon} alt="" width="11.72" height="11.72" className="opacity-70" />
         </button>
-        <h3 className="modal-title">My Wallets</h3>
-        <button className="modal-close" aria-label="Add wallet" type="button">
-          <img src={addIcon} alt="" width="11.72" height="11.72" />
+        <h3 className="text-[17px] font-bold text-[#f3f3f5] flex-1 text-center">My Wallets</h3>
+        <button className="w-8 h-8 rounded-full bg-[#252525] border-none flex items-center justify-center cursor-pointer transition-colors duration-150 ease-out hover:bg-[#2b2b2b]" aria-label="Add wallet" type="button">
+          <img src={addIcon} alt="" width="11.72" height="11.72" className="opacity-70" />
         </button>
       </div>
-      <p className="modal-subtitle">Select a wallet to view its balance</p>
+      <p className="text-xs text-[#8b8b93] text-center mb-5">Select a wallet to view its balance</p>
 
-      <div className="wallet-list">
+      <div className="flex flex-col gap-3 mt-[25px] flex-1 overflow-y-auto scrollbar-none pb-8 px-0.5">
         {tokens.map((token) => {
           const balanceStr = token.balance;
           const decimalIndex = balanceStr.lastIndexOf('.');
@@ -53,7 +58,7 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
           return (
             <div
               key={token.symbol}
-              className={`wallet-row ${isActive ? 'active' : ''}`}
+              className={`flex items-center justify-between py-3 px-4 bg-[#1f1f1f] rounded-[14px] cursor-pointer transition-colors duration-150 ease-out w-full hover:bg-[#252525] ${isActive ? 'ring-1 ring-[#7c5cfc]' : ''}`}
               onClick={() => {
                 onSelectAsset(token.symbol);
                 onClose();
@@ -67,36 +72,37 @@ const WalletListModal: React.FC<WalletListModalProps> = ({ onClose }) => {
                 }
               }}
             >
-              <div className="wallet-row-left">
-                <div 
-                    className="wallet-row-orb" 
-                    style={{ 
-                      backgroundColor: 
-                        token.symbol.includes('ETH') ? '#627EEA' : 
-                        token.symbol.includes('SOL') ? '#A855F7' : 
-                        token.symbol.includes('XLM') ? '#3F3F46' : 
-                        '#2775CA' // Default/USDC Blue
-                    }}
+              <div className="flex items-center gap-2">
+                <img
+                  className="w-10 h-10 rounded-full shrink-0"
+                  src={
+                    token.symbol.includes('SOL') ? solanaChain2 :
+                    token.symbol.includes('ETH') || token.symbol.includes('BASE') ? baseChain :
+                    token.symbol.includes('XLM') ? stellarChain :
+                    baseChain
+                  }
+                  alt={token.symbol}
+                  style={{ objectFit: 'contain', backgroundColor: 'transparent' }}
                 />
-                <div className="wallet-row-info">
-                  <span className="wallet-row-name">{token.name} ({token.symbol})</span>
-                  <div className="wallet-row-addr">
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="text-sm font-semibold text-[#f3f3f5]">{token.name} ({token.symbol})</span>
+                  <div className="flex items-center gap-1 text-[11px] text-[#8b8b93]">
                     <span>{token.address.slice(0, 6)}...{token.address.slice(-4)}</span>
                     <button
-                      className="wallet-row-copy"
+                      className="bg-transparent p-0.5 flex items-center opacity-50 hover:opacity-80 cursor-pointer border-none"
                       onClick={(e) => handleCopy(e, token.address, token.symbol)}
                       aria-label="Copy address"
                       type="button"
                     >
                       <img src={copyIcon} alt="Copy" width="12" height="12" />
                     </button>
-                    {copiedSymbol === token.symbol && <span className="copied-toast">Copied!</span>}
+                    {copiedSymbol === token.symbol && <span className="text-[11px] text-[#22c55e] ml-2 animate-[fadeIn_0.15s_ease_forwards]">Copied!</span>}
                   </div>
                 </div>
               </div>
-              <span className="wallet-row-balance">
+              <span className="text-base font-bold text-[#f3f3f5] whitespace-nowrap">
                 {wholePart}
-                {hasDecimal && <span className="balance-decimal">{decimalPart}</span>}
+                {hasDecimal && <span className="text-[#777777]">{decimalPart}</span>}
               </span>
             </div>
           );

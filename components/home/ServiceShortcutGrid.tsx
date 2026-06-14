@@ -66,43 +66,43 @@ const ServiceShortcutGrid: React.FC<ServiceShortcutGridProps> = ({
 
   return (
     <>
-      <div className="service-grid">
+      <div className="w-full h-24 flex items-center justify-around bg-[#2d2d2d] rounded-2xl px-4">
         {homeServices.map((s) => (
           <button
             key={s.label}
-            className="service-item"
+            className="group flex flex-col items-center gap-1 bg-transparent border-none cursor-pointer p-1 font-sans"
             onClick={() => handleServiceClick(s)}
             type="button"
           >
-            <img src={s.icon} alt="" className="service-icon" />
-            <span className="service-label">{s.label}</span>
+            <img src={s.icon} alt="" className="w-12 h-12 transition-transform duration-150 group-hover:scale-[1.08]" />
+            <span className="text-[11px] text-[#b7b7be] font-medium">{s.label}</span>
           </button>
         ))}
       </div>
 
       {showAll && (
-        <div className="services-overlay" onClick={() => setShowAll(false)}>
-          <div className="services-screen" onClick={(e) => e.stopPropagation()}>
-            <div className="services-screen-header">
-              <h3>All Services</h3>
+        <div className="fixed inset-0 bg-black/45 z-100 flex items-center justify-center animate-[fadeIn_0.25s_ease_forwards]" onClick={() => setShowAll(false)}>
+          <div className="w-[90%] max-w-[340px] bg-[#1f1f1f] rounded-[24px] p-6 animate-[slideUp_0.35s_cubic-bezier(0.4,0,0.2,1)_forwards]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[17px] font-bold text-[#f3f3f5]">All Services</h3>
               <button
-                className="services-close"
+                className="w-8 h-8 rounded-full bg-[#252525] border-none text-[#b7b7be] text-base cursor-pointer flex items-center justify-center transition-colors duration-150 hover:bg-[#2b2b2b]"
                 onClick={() => setShowAll(false)}
                 type="button"
               >
                 ✕
               </button>
             </div>
-            <div className="services-screen-grid">
+            <div className="grid grid-cols-4 gap-5">
               {allServices.map((s) => (
                 <button
                   key={s.label}
-                  className="service-item"
+                  className="group flex flex-col items-center gap-1 bg-transparent border-none cursor-pointer p-1 font-sans"
                   type="button"
                   onClick={() => handleAllServiceClick(s)}
                 >
-                  <img src={s.icon} alt="" className="service-icon" />
-                  <span className="service-label">{s.label}</span>
+                  <img src={s.icon} alt="" className="w-12 h-12 transition-transform duration-150 group-hover:scale-[1.08]" />
+                  <span className="text-[11px] text-[#b7b7be] font-medium">{s.label}</span>
                 </button>
               ))}
             </div>

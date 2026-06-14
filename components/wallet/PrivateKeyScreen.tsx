@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './PrivateKey.css';
 import { type Wallet } from '../../data/wallets';
 const backIcon = '/assets/icons/actions/back.svg';
 const copyIcon = '/assets/icons/actions/copy.svg';
@@ -29,26 +28,26 @@ const PrivateKeyScreen: React.FC<PrivateKeyScreenProps> = ({ wallet, onDone }) =
   };
 
   return (
-    <div className="pk-screen">
-      <div className="pk-header">
-        <button className="pk-back" onClick={onDone} aria-label="Back" type="button">
-          <img src={backIcon} alt="" width="20" height="20" />
+    <div className="flex flex-col h-full bg-[#171717] pt-[60px] px-6 pb-0">
+      <div className="flex items-center justify-between py-4 px-0">
+        <button className="w-9 h-9 rounded-full bg-[#252525] border-none flex items-center justify-center cursor-pointer transition-colors duration-150 ease-out hover:bg-[#2b2b2b]" onClick={onDone} aria-label="Back" type="button">
+          <img src={backIcon} alt="" width="20" height="20" className="opacity-70" />
         </button>
-        <h2 className="pk-title">Send Money</h2>
+        <h2 className="text-[17px] font-bold text-[#f3f3f5]">Send Money</h2>
         <div style={{ width: 36 }} />
       </div>
 
-      <div className="pk-content">
-        <p className="pk-warning">
+      <div className="flex-1 flex flex-col gap-5 pt-5">
+        <p className="text-[13px] text-[#b7b7be] leading-[1.5]">
           Your private key can be used to access all of your funds. Do not share it with anyone
         </p>
 
-        <div className={`pk-key-box ${revealed ? 'revealed' : 'blurred'}`}>
-          <span className="pk-key-text">
+        <div className="flex items-start gap-2 bg-[#1f1f1f] rounded-[14px] p-4 relative transition-all duration-250 ease-in-out">
+          <span className={`flex-1 text-[13px] text-[#b7b7be] font-mono break-all leading-[1.5] transition-all duration-250 ${revealed ? 'blur-none' : 'blur-md select-none'}`}>
             {wallet.privateKey}
           </span>
           <button
-            className="pk-eye-btn"
+            className="bg-transparent border-none cursor-pointer p-1 flex items-center shrink-0"
             onClick={() => setRevealed(!revealed)}
             aria-label={revealed ? 'Hide key' : 'Reveal key'}
             type="button"
@@ -58,17 +57,18 @@ const PrivateKeyScreen: React.FC<PrivateKeyScreenProps> = ({ wallet, onDone }) =
               alt=""
               width="20"
               height="20"
+              className="opacity-60 hover:opacity-100 transition-opacity"
             />
           </button>
         </div>
 
-        <button className="pk-copy-btn" onClick={handleCopy} type="button">
-          <img src={copyIcon} alt="" width="16" height="16" />
+        <button className="flex items-center justify-center gap-2 bg-transparent border-none cursor-pointer font-sans text-[13px] text-[#b7b7be] py-2 px-0 transition-colors duration-150 hover:text-[#f3f3f5]" onClick={handleCopy} type="button">
+          <img src={copyIcon} alt="" width="16" height="16" className="opacity-60" />
           <span>{copied ? 'Copied!' : 'Copy to Clipboard'}</span>
         </button>
       </div>
 
-      <button className="pk-done-btn" onClick={onDone} type="button">
+      <button className="w-full p-4 bg-[#7c5cfc] border-none rounded-[14px] text-white text-[15px] font-semibold cursor-pointer font-sans mb-8 transition-all duration-150 hover:bg-[#9a84ff] active:scale-[0.98]" onClick={onDone} type="button">
         Done
       </button>
     </div>

@@ -20,23 +20,23 @@ export default function TransactionReviewCard({
   networkFee,
 }: TransactionReviewCardProps) {
   return (
-    <section className="borrow-card">
-      <p className="borrow-card-label">{title}</p>
-      <div className="borrow-card-row">
-        <span className="borrow-muted">{receiveLabel}</span>
-        <strong>{receiveValue}</strong>
+    <section className="rounded-[20px] bg-[#2d2d2d] p-[15px] flex flex-col gap-2.5">
+      <p className="m-0 text-[#d5d5d5] text-xs leading-[1.45]">{title}</p>
+      <div className="flex items-center justify-between gap-3 w-full">
+        <span className="text-[#8f8f8f] text-xs leading-[1.45]">{receiveLabel}</span>
+        <strong className="text-white text-xs leading-[1.45] font-bold">{receiveValue}</strong>
       </div>
-      <div className="borrow-card-row">
-        <span className="borrow-muted">{valueLabel}</span>
-        <strong>{valueAmount}</strong>
+      <div className="flex items-center justify-between gap-3 w-full">
+        <span className="text-[#8f8f8f] text-xs leading-[1.45]">{valueLabel}</span>
+        <strong className="text-white text-xs leading-[1.45] font-bold">{valueAmount}</strong>
       </div>
-      <div className="borrow-card-row">
-        <span className="borrow-muted">{toLabel}</span>
-        <strong>{toValue}</strong>
+      <div className="flex items-center justify-between gap-3 w-full">
+        <span className="text-[#8f8f8f] text-xs leading-[1.45]">{toLabel}</span>
+        <strong className="text-white text-xs leading-[1.45] font-bold">{toValue}</strong>
       </div>
-      <div className="borrow-card-row">
-        <span className="borrow-muted">Network fee</span>
-        <strong>{networkFee}</strong>
+      <div className="flex items-center justify-between gap-3 w-full">
+        <span className="text-[#8f8f8f] text-xs leading-[1.45]">Network fee</span>
+        <strong className="text-white text-xs leading-[1.45] font-bold">{networkFee}</strong>
       </div>
     </section>
   );

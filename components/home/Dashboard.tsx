@@ -1,6 +1,4 @@
 "use client";
-import "./HomePage.css";
-import "./home.css";
 import WalletSelectorCard from "./WalletSelectorCard";
 import WalletBalanceCard from "./WalletBalanceCard";
 import QuickActionRow from "./QuickActionRow";
@@ -28,7 +26,7 @@ export default function JumpaDashboard() {
   } = useHomeLayout();
 
   return (
-    <div className="home-page">
+    <div className="px-6 flex flex-col gap-[6px]">
       <WalletSelectorCard onDropdown={onWalletDropdown} />
       <WalletBalanceCard hidden={balanceHidden} onToggle={onToggleBalance} />
       <QuickActionRow
@@ -43,7 +41,7 @@ export default function JumpaDashboard() {
       <VirtualAccountBanner onClick={onVirtualAccount} />
       <TransactionListCard />
       {/* <HomeLoanCard onOpenLoanDetail={() => router.push("/home/loan")} /> */}
-      <div className="home-bottom-spacer" />
+      <div className="h-20" />
     </div>
   );
 }

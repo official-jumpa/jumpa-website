@@ -2,6 +2,18 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Token } from "../types";
 import SheetShell from "./sheet-shell";
+import {
+  baseChain,
+  stellarChain,
+  solanaChain2,
+  solIcon,
+  ethIcon,
+  btcIcon,
+  usdcIcon,
+  usdtIcon,
+  xlmIcon,
+} from "@/lib/constants/wallet-icons";
+import Image from "next/image";
 
 type TokenSearchSheetProps = {
   open: boolean;
@@ -11,20 +23,43 @@ type TokenSearchSheetProps = {
 };
 
 function TokenIcon({ token }: { token: Token }) {
+  const chainIcon = useMemo(() => {
+    const sym = token.symbol.toUpperCase();
+    if (sym.includes("SOL")) return solanaChain2;
+    if (sym.includes("ETH") || sym.includes("BASE")) return baseChain;
+    if (sym.includes("XLM")) return stellarChain;
+    return null;
+  }, [token.symbol]);
+
+  const tokenImg = useMemo(() => {
+    const sym = token.symbol.toUpperCase();
+    if (sym.includes("SOL")) return solIcon;
+    if (sym.includes("ETH")) return ethIcon;
+    if (sym.includes("BASE")) return baseChain;
+    if (sym.includes("BTC")) return btcIcon;
+    if (sym.includes("USDC")) return usdcIcon;
+    if (sym.includes("USDT")) return usdtIcon;
+    if (sym.includes("XLM")) return xlmIcon;
+    return null;
+  }, [token.symbol]);
+
   return (
     <div className="relative">
-      <div
-        className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${token.iconColor}`}
-      >
-        {token.iconLabel}
-      </div>
-      {token.chainBadge ? (
-        <span
-          className={`absolute -bottom-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-[2px] border border-white text-[9px] font-bold ${token.chainBadge.color} ${token.chainBadge.textColor ?? "text-white"}`}
+      {tokenImg ? (
+        <Image
+          height={40}
+          width={40}
+          src={tokenImg}
+          alt={token.symbol}
+          className="h-10 w-10 rounded-full object-contain"
+        />
+      ) : (
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${token.iconColor}`}
         >
-          {token.chainBadge.label}
-        </span>
-      ) : null}
+          {token.iconLabel}
+        </div>
+      )}
     </div>
   );
 }

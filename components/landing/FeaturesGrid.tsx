@@ -8,7 +8,7 @@ export default function FeaturesGrid() {
         <img src="/assets/images/features-bg.png" alt="" width={500} />
       </div>
       <div className="flex flex-col items-center text-center">
-        <h2 className="feature text-6xl leading-22.5">
+        <h2 className="font-black-han-sans text-6xl leading-22.5">
           Move yo<span className="text-[#5E3B78]">ur money w</span>ith ease
           across <br />
           bor<span className="text-[#5E3B78]">der to diff</span>erent part of

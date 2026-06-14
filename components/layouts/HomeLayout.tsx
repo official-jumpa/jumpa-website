@@ -8,7 +8,6 @@ import React, {
   useContext,
   ReactNode,
 } from "react";
-import "./HomeLayout.css";
 import { useRouter, usePathname } from "next/navigation";
 
 // Components
@@ -80,6 +79,13 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [balances, setBalances] = useState<BalancesResponse | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState<string>("ETH");
 
+  useEffect(() => {
+    const saved = localStorage.getItem("jumpa-selected-symbol");
+    if (saved) {
+      setSelectedSymbol(saved);
+    }
+  }, []);
+
   const fetchBalances = useCallback(async () => {
     const res = await getBalances();
     if (res.data) {
@@ -149,7 +155,10 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     onReceive: () => setDepositSheetOpen(true),
     balances,
     selectedSymbol,
-    onSelectAsset: (symbol: string) => setSelectedSymbol(symbol),
+    onSelectAsset: (symbol: string) => {
+      setSelectedSymbol(symbol);
+      localStorage.setItem("jumpa-selected-symbol", symbol);
+    },
     refreshBalances: fetchBalances,
   };
 
@@ -175,10 +184,10 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
 
   return (
     <HomeLayoutContext.Provider value={contextValue}>
-      <div className="jumpa-theme-wrapper">
-        <div className="phone-frame">
+      <div className="flex justify-center items-center min-h-screen bg-black font-sans text-[#f3f3f5]">
+        <div className="w-full max-w-[450px] h-screen h-[100dvh] bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]">
           <div
-            className={`app-content ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen ? "is-blurred" : ""}`}
+            className={`h-full overflow-y-auto overflow-x-hidden scrollbar-none transition-[filter] duration-250 ease-out ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen ? "blur-md" : ""}`}
           >
             {!shouldHideShell && (
               <TopBar onMenuClick={() => setDrawerOpen(true)} />
@@ -214,7 +223,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           )}
 
           {privateKeyOpen && (
-            <div className="fullscreen-overlay">
+            <div className="fixed inset-0 bg-black z-100">
               <PrivateKeyScreen
                 wallet={privateKeyData}
                 onDone={() => {
@@ -227,7 +236,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           )}
 
           {drawerOpen && (
-            <div className="overlay" onClick={() => setDrawerOpen(false)} />
+            <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setDrawerOpen(false)} />
           )}
 
           <SideDrawer
@@ -243,7 +252,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
             depositSheetOpen) &&
             !drawerOpen && (
               <div
-                className="overlay-blur"
+                className="absolute inset-0 bg-black/45 backdrop-blur-[10px] z-55"
                 onClick={() => {
                   setWalletListOpen(false);
                   setSelectedWallet(null);

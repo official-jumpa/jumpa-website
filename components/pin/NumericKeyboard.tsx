@@ -13,9 +13,9 @@ const NumericKeyboard: React.FC<NumericKeyboardProps> = ({ onKeyPress }) => {
   ];
 
   return (
-    <div className="num-keyboard">
+    <div className="flex flex-col gap-1 items-center">
       {rows.map((row, ri) => (
-        <div key={ri} className="num-row">
+        <div key={ri} className="flex justify-center gap-1">
           {row.map((key, ki) => {
             const isWide = key === '0';
             const isBackspace = key === 'backspace';
@@ -23,7 +23,9 @@ const NumericKeyboard: React.FC<NumericKeyboardProps> = ({ onKeyPress }) => {
             return (
               <button
                 key={ki}
-                className={`num-key ${isWide ? 'num-key-wide' : ''}`}
+                className={`w-[114px] h-[54px] rounded-lg border-none bg-[#3C3C3C] text-[#f3f3f5] text-lg font-semibold font-sans cursor-pointer flex items-center justify-center transition-all duration-100 select-none active:scale-[0.98] active:bg-[#2b2b2b] ${
+                  isWide ? 'w-[232px]' : ''
+                }`}
                 onClick={() => onKeyPress(key)}
                 aria-label={isBackspace ? 'Backspace' : key}
                 type="button"

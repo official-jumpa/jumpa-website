@@ -23,6 +23,15 @@ import type { Recipient, Token } from "./types";
 
 import { getBalances, getRecipients, postTransfer } from "@/lib/api";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
+import {
+  solIcon, solanaChain,
+  ethIcon,
+  btcIcon,
+  usdcIcon,
+  usdtIcon,
+  xlmIcon,
+  baseChain,
+} from "@/lib/constants/wallet-icons";
 
 const quickAmounts = ["0.01", "0.1", "0.5"];
 
@@ -53,40 +62,40 @@ export default function SendPage() {
   // Handle incoming AI state or load recipients/balances
   useEffect(() => {
     async function loadData() {
-        const [recipientsRes, balancesRes] = await Promise.all([
-            getRecipients(),
-            getBalances()
-        ]);
+      const [recipientsRes, balancesRes] = await Promise.all([
+        getRecipients(),
+        getBalances()
+      ]);
 
-        if (recipientsRes.data?.recipients) {
-            setRecipients(recipientsRes.data.recipients.map(r => ({
-                id: r.address,
-                name: r.address.slice(0, 8) + "...",
-                address: r.address,
-                bank: `${r.token} Destination`
-            })));
-        }
+      if (recipientsRes.data?.recipients) {
+        setRecipients(recipientsRes.data.recipients.map(r => ({
+          id: r.address,
+          name: r.address.slice(0, 8) + "...",
+          address: r.address,
+          bank: `${r.token} Destination`
+        })));
+      }
 
-        if (balancesRes.data?.tokens) {
-            const newTokens = balancesRes.data.tokens.map(t => ({
-                id: t.symbol.toLowerCase(),
-                symbol: t.symbol,
-                name: t.name,
-                balanceText: `${t.balance} ${t.symbol}`,
-                balanceRaw: t.balance, // Added for 'Max' button
-                iconLabel: t.symbol[0],
-                iconColor: t.symbol.includes("SOL") ? "bg-purple-500 text-white" : t.symbol.includes("BASE") ? "bg-blue-500 text-white" : t.symbol.includes("XLM") ? "bg-zinc-800 text-white" : "bg-indigo-500 text-white",
-            }));
-            setTokens(newTokens as any);
-            
-            // Set default token to the first one with balance or just the first one
-            if (newTokens.length > 0) {
-                const state = location.state as any;
-                const targetSymbol = state?.params?.token?.toUpperCase();
-                const found = newTokens.find(t => t.symbol === targetSymbol);
-                setToken((found || newTokens[0]) as any);
-            }
+      if (balancesRes.data?.tokens) {
+        const newTokens = balancesRes.data.tokens.map(t => ({
+          id: t.symbol.toLowerCase(),
+          symbol: t.symbol,
+          name: t.name,
+          balanceText: `${t.balance} ${t.symbol}`,
+          balanceRaw: t.balance, // Added for 'Max' button
+          iconLabel: t.symbol[0],
+          iconColor: t.symbol.includes("SOL") ? "bg-purple-500 text-white" : t.symbol.includes("BASE") ? "bg-blue-500 text-white" : t.symbol.includes("XLM") ? "bg-zinc-800 text-white" : "bg-indigo-500 text-white",
+        }));
+        setTokens(newTokens as any);
+
+        // Set default token to the first one with balance or just the first one
+        if (newTokens.length > 0) {
+          const state = location.state as any;
+          const targetSymbol = state?.params?.token?.toUpperCase();
+          const found = newTokens.find(t => t.symbol === targetSymbol);
+          setToken((found || newTokens[0]) as any);
         }
+      }
     }
     loadData();
 
@@ -119,42 +128,42 @@ export default function SendPage() {
 
   const verifyPinAndSend = async (inputPin: string) => {
     if (inputPin.length !== WALLET_PIN_LENGTH || processing || isSubmitting.current) return;
-    
+
     isSubmitting.current = true;
     setProcessing(true);
     setPinError("");
 
     try {
       const res = await postTransfer({
-          to: recipient.address,
-          amount: amount,
-          token: token.symbol,
-          pin: inputPin
+        to: recipient.address,
+        amount: amount,
+        token: token.symbol,
+        pin: inputPin
       });
 
       if (res.error) {
-          setPinError(res.error);
-          setPin(""); // Clear pin to retry
-          isSubmitting.current = false;
-          setProcessing(false);
+        setPinError(res.error);
+        setPin(""); // Clear pin to retry
+        isSubmitting.current = false;
+        setProcessing(false);
       } else if (res.data?.success) {
-          setLastHash(res.data.hash);
-          setPinError("");
-          setPin("");
-          setPinOpen(false);
-          setSuccessOpen(true);
-          // Keep processing true until closed to prevent re-submitting while modal is closing
-          
-          // Re-fetch recipients to update history
-          const updatedRecs = await getRecipients();
-          if (updatedRecs.data?.recipients) {
-            setRecipients(updatedRecs.data.recipients.map(r => ({
-              id: r.address,
-              name: r.address.slice(0, 8) + "...",
-              address: r.address,
-              bank: `${r.token} Destination`
-            })));
-          }
+        setLastHash(res.data.hash);
+        setPinError("");
+        setPin("");
+        setPinOpen(false);
+        setSuccessOpen(true);
+        // Keep processing true until closed to prevent re-submitting while modal is closing
+
+        // Re-fetch recipients to update history
+        const updatedRecs = await getRecipients();
+        if (updatedRecs.data?.recipients) {
+          setRecipients(updatedRecs.data.recipients.map(r => ({
+            id: r.address,
+            name: r.address.slice(0, 8) + "...",
+            address: r.address,
+            bank: `${r.token} Destination`
+          })));
+        }
       }
     } catch (err) {
       setPinError("An unexpected error occurred");
@@ -208,13 +217,25 @@ export default function SendPage() {
   };
 
   const isAddressValid = recipient.address ? (
-    token.symbol.includes("SOL") 
+    token.symbol.includes("SOL")
       ? /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient.address)
       : token.symbol.includes("XLM")
-      ? /^G[A-Z2-7]{55}$/.test(recipient.address)
-      : isAddress(recipient.address)
+        ? /^G[A-Z2-7]{55}$/.test(recipient.address)
+        : isAddress(recipient.address)
   ) : false;
   const isValid = amountValue > 0 && amountValue <= (token.balanceRaw || 0);
+
+  const tokenImg = (() => {
+    const sym = token.symbol?.toUpperCase() || "";
+    if (sym.includes("SOL")) return solanaChain;
+    if (sym.includes("ETH")) return ethIcon;
+    if (sym.includes("BASE")) return baseChain;
+    if (sym.includes("BTC")) return btcIcon;
+    if (sym.includes("USDC")) return usdcIcon;
+    if (sym.includes("USDT")) return usdtIcon;
+    if (sym.includes("XLM")) return xlmIcon;
+    return null;
+  })();
 
   return (
     <div className="min-h-screen bg-[#16171d] text-white">
@@ -264,7 +285,7 @@ export default function SendPage() {
                 className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 focus:outline-none"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <p className="text-xs text-zinc-500">
                 {showAddressError && !recipient.address ? (
@@ -293,30 +314,38 @@ export default function SendPage() {
               onClick={() => setTokenSearchOpen(true)}
               className="inline-flex items-center gap-2 rounded-full bg-black/40 px-4 py-2 text-sm border border-white/5"
             >
-              <div className="h-5 w-5 rounded-full bg-violet-600 flex items-center justify-center text-[10px] font-bold">
-                {token.symbol?.[0]}
-              </div>
+              {tokenImg ? (
+                <img
+                  src={tokenImg}
+                  alt={token.symbol}
+                  className="h-5 w-5 rounded-full object-contain"
+                />
+              ) : (
+                <div className="h-5 w-5 rounded-full bg-violet-600 flex items-center justify-center text-[10px] font-bold">
+                  {token.symbol?.[0]}
+                </div>
+              )}
               {token.symbol}
               <ChevronDown className="h-4 w-4 text-zinc-500" />
             </button>
-  
+
             <div className="text-center w-full">
               <div className="flex flex-col items-center">
                 <div className="flex items-baseline justify-center gap-2 w-full">
-                   <input
-                     type="text"
-                     inputMode="decimal"
-                     value={amount === "0" ? "" : amount}
-                     onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9.]/g, '');
-                        const parts = val.split('.');
-                        if (parts.length > 2) return;
-                        setAmount(val || "0");
-                     }}
-                     placeholder="0"
-                     className="w-full bg-transparent text-5xl font-bold text-center text-white placeholder:text-zinc-700 focus:outline-none"
-                   />
-                   <span className="text-xl font-medium text-zinc-400 shrink-0">{token.symbol}</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={amount === "0" ? "" : amount}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      const parts = val.split('.');
+                      if (parts.length > 2) return;
+                      setAmount(val || "0");
+                    }}
+                    placeholder="0"
+                    className="w-full bg-transparent text-5xl font-bold text-center text-white placeholder:text-zinc-700 focus:outline-none"
+                  />
+                  <span className="text-xl font-medium text-zinc-400 shrink-0">{token.symbol}</span>
                 </div>
                 <div className="mt-2 text-sm">
                   {amountValue > token.balanceRaw ? (
@@ -400,9 +429,8 @@ export default function SendPage() {
             setConfirmOpen(true);
           }}
           disabled={!isValid}
-          className={`h-14 w-full rounded-xl text-lg text-white transition-all ${
-            isValid ? "bg-violet-500 hover:bg-violet-400 opacity-100" : "bg-zinc-700 opacity-50 cursor-not-allowed"
-          }`}
+          className={`h-14 w-full rounded-xl text-lg text-white transition-all ${isValid ? "bg-violet-500 hover:bg-violet-400 opacity-100" : "bg-zinc-700 opacity-50 cursor-not-allowed"
+            }`}
         >
           Send
         </Button>
@@ -468,10 +496,10 @@ export default function SendPage() {
         onDone={() => verifyPinAndSend(pin)}
       />
 
-      <SuccessSheet 
-        open={successOpen} 
-        onOpenChange={setSuccessOpen} 
-        onDone={handleDoneFlow} 
+      <SuccessSheet
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        onDone={handleDoneFlow}
         amount={amount}
         tokenSymbol={token.symbol}
         hash={lastHash}

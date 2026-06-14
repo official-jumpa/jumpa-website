@@ -9,8 +9,6 @@ import {
 import { getAiHistory, postAiIntent, postTransfer, postSwap } from "@/lib/api";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
-import "@/components/home/home.css";
-
 import {
   type Screen,
   type VoiceFlow,
@@ -35,7 +33,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   if (!open) return null;
   return (
     <div
-      className="absolute inset-0 bg-black/50 z-[100] flex flex-col justify-end px-5 pb-10"
+      className="absolute inset-0 bg-black/50 z-100 flex flex-col justify-end px-5 pb-40"
       onClick={onClose}
     >
       <div
@@ -70,14 +68,14 @@ function ChatHomePanel({ onBack, onInviteClick }: { onBack: () => void; onInvite
         <IconBtn
           onClick={onBack}
           ariaLabel="Back"
-          className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0px))]"
+          className="ml-6 mt-[calc(90px+env(safe-area-inset-top,0))]"
         >
           <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
         </IconBtn>
         <IconBtn
           onClick={onInviteClick}
           ariaLabel="Invite"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))]"
+          className="mt-[calc(90px+env(safe-area-inset-top,0))]"
         >
           <img src={addUser} alt="" width={23} height={23} className="block object-contain" />
         </IconBtn>
@@ -121,18 +119,18 @@ function ChatScreen({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
-      <header className="flex-shrink-0 px-6 flex justify-between items-center">
+      <header className="shrink-0 px-6 flex justify-between items-center">
         <IconBtn
           onClick={onBack}
           ariaLabel="Back"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))] ml-0"
+          className="mt-[calc(90px+env(safe-area-inset-top,0))] ml-0"
         >
           <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
         </IconBtn>
         <IconBtn
           onClick={onInviteClick}
           ariaLabel="Invite"
-          className="mt-[calc(90px+env(safe-area-inset-top,0px))]"
+          className="mt-[calc(90px+env(safe-area-inset-top,0))]"
         >
           <img src={addUser} alt="" width={23} height={23} className="block object-contain" />
         </IconBtn>
@@ -497,8 +495,8 @@ export default function GroupAiChat() {
   };
 
   return (
-    <div className="jumpa-theme-wrapper">
-      <div className="phone-frame" ref={phoneFrameRef}>
+    <div className="flex justify-center items-center min-h-screen bg-black font-sans text-[#f3f3f5]">
+      <div className="w-full max-w-[450px] h-screen bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]" ref={phoneFrameRef}>
         <div className="app-content app-content--ai-chat flex flex-col min-h-0 h-full overflow-hidden">
           <div className="ai-chat-root relative flex flex-col flex-1 min-h-0 w-full h-full bg-black overflow-hidden">
             <div className="flex-1 min-h-0 flex flex-col h-full">

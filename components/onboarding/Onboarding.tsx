@@ -5,9 +5,6 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginDrawer from "@/components/auth/LoginDrawer";
 import CreateAccountDrawer from "@/components/home/CreateAccountDrawer";
-import "@/components/layouts/HomeLayout.css";
-import "./Onboarding.css";
-
 
 const onboardOne = '/assets/images/illustrations/onboard-one.svg';
 const nairaIcon = '/assets/images/illustrations/naira.svg';
@@ -56,7 +53,7 @@ export default function Onboarding() {
         if (diff > 50 && currentScreen < onboardingData.length) {
             setCurrentScreen((prev) => prev + 1);
         } else if (diff < -50 && currentScreen > 0) {
-            setCurrentScreen((prev) => prev - 1);
+            setCurrentScreen((prev) => prev + 1);
         }
 
         touchStartX.current = null;
@@ -102,30 +99,30 @@ export default function Onboarding() {
         switch (currentScreen) {
             case 0:
                 return (
-                    <div className="onboarding-illustration-container">
-                        <Image src={onboardOne} width={600} height={600} className="onboarding-img-one" alt="" priority />
-                        <Image src={nairaIcon} width={240} height={240} className="onboarding-naira-icon" alt="" priority />
+                    <div className="relative w-full h-[800px] mx-auto overflow-visible pointer-events-none">
+                        <Image src={onboardOne} width={600} height={600} className="absolute w-[600px] h-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[2.72deg] opacity-100 !max-w-none" alt="" priority />
+                        <Image src={nairaIcon} width={240} height={240} className="absolute w-[240px] h-[240px] top-[140.4px] left-[-62.3px] rotate-[3.5deg] opacity-100 object-contain" alt="" priority />
                     </div>
                 );
             case 1:
                 return (
-                    <div className="onboarding-illustration-container">
-                        <Image src={onboardTwo} width={600} height={600} className="onboarding-img-two" alt="" />
-                        <Image src={coinImg} width={280} height={280} className="onboarding-coin-left" alt="" />
-                        <Image src={dollarIcon} width={400} height={400} className="onboarding-coin-right" alt="" />
+                    <div className="relative w-full h-[800px] mx-auto overflow-visible pointer-events-none">
+                        <Image src={onboardTwo} width={600} height={600} className="absolute w-[600px] h-[600px] top-[45%] left-[55%] -translate-x-1/2 -translate-y-1/2 rotate-0 opacity-100 object-contain" alt="" />
+                        <Image src={coinImg} width={280} height={280} className="absolute w-[280px] h-[280px] top-[72%] left-[49%] -translate-x-1/2 -translate-y-1/2 rotate-0 opacity-100 object-contain z-2" alt="" />
+                        <Image src={dollarIcon} width={400} height={400} className="absolute w-[400px] h-[400px] top-[72%] left-[62%] -translate-x-1/2 -translate-y-1/2 -rotate-[5.18deg] opacity-100 object-contain z-1" alt="" />
                     </div>
                 );
             case 2:
                 return (
-                    <div className="onboarding-illustration-container onboarding-illustration--screen3">
-                        <Image src={chartRing} width={330} height={330} className="onboarding-chart-ring" alt="" />
-                        <Image src={listCards} width={420} height={420} className="onboarding-list-cards" alt="" />
-                        <Image src={goldCoinSecondary} width={496} height={496} className="onboarding-gold-coin-alt" alt="" />
+                    <div className="relative w-full h-[800px] mx-auto overflow-visible pointer-events-none">
+                        <Image src={chartRing} width={330} height={330} className="absolute w-[330px] h-[330px] top-[110px] right-[-60px] rotate-0 opacity-100 object-contain z-2 !max-w-none" alt="" />
+                        <Image src={listCards} width={420} height={420} className="absolute w-[420px] h-[420px] top-[55%] left-[45%] -translate-x-[45%] -translate-y-1/2 -rotate-4 opacity-100 object-contain z-1 !max-w-none" alt="" />
+                        <Image src={goldCoinSecondary} width={496} height={496} className="absolute w-[496px] h-[496px] top-[300px] left-[-85px] rotate-[-1.63deg] opacity-100 object-contain z-3 min-[600px]:left-[-98px]" alt="" />
                     </div>
                 );
             case 3:
                 return (
-                    <div className="onboarding-illustration-container">
+                    <div className="relative w-full h-[800px] mx-auto overflow-visible pointer-events-none">
                         <Image src={chartMockup} fill className="" alt="" />
                     </div>
                 );
@@ -144,9 +141,9 @@ export default function Onboarding() {
             <div className="w-full flex justify-end max-w-md z-50 px-4 sm:px-6" style={{ marginTop: "107px" }}>
                 <button
                     onClick={handleSkip}
-                    className="onboarding-skip-button"
+                    className="w-[43.04px] h-[35px] !bg-[#2d2d2d] rounded-[10px] p-[17px] flex items-center justify-center gap-[17px] opacity-100 border-none cursor-pointer z-50 transition-opacity duration-200 ease-out mr-2.25 hover:opacity-90"
                 >
-                    <span className="onboarding-skip-text">Skip</span>
+                    <span className="!font-sans font-normal text-[11.92px] leading-[145%] text-white text-center min-[600px]:text-[11px]">Skip</span>
                 </button>
             </div>
 
@@ -167,7 +164,7 @@ export default function Onboarding() {
             </div>
 
             {/* Bottom Content (Text & Buttons) - Added px-4 back here */}
-            <div className="onboarding-carousel-footer w-full max-w-md flex flex-col items-center pb-2 sm:pb-6 z-10 shrink-0 px-4 sm:px-6">
+            <div className="w-full max-w-md flex flex-col items-center pb-2 sm:pb-6 z-10 shrink-0 px-4 sm:px-6 min-[600px]:mt-9 min-[600px]:pt-6">
                 {/* Pagination Dots */}
                 <div className="flex gap-2 justify-center mb-4 sm:mb-6">
                     {onboardingData.map((_, index) => (
@@ -187,11 +184,11 @@ export default function Onboarding() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="onboarding-text-container"
+                        className="w-[380px] min-h-[90px] text-center mx-auto mb-8 flex flex-col items-center justify-center min-[600px]:w-[min(340px,100%)] min-[600px]:min-h-[80px] min-[600px]:mb-6.5"
                     >
                         <p className="inline-block px-4">
-                            <span className="onboarding-title">{screenData.title} </span>
-                            <span className="onboarding-description">{screenData.description}</span>
+                            <span className="!font-sans font-bold text-xl leading-[145%] tracking-[-0.02em] text-center text-white inline min-[600px]:text-[17px]">{screenData.title} </span>
+                            <span className="!font-sans font-semibold text-xl leading-[145%] tracking-[-0.02em] text-center text-[#777777] inline min-[600px]:text-[17px]">{screenData.description}</span>
                         </p>
                     </motion.div>
                 </AnimatePresence>
@@ -199,9 +196,9 @@ export default function Onboarding() {
                 {/* Get Started Button */}
                 <button
                     onClick={handleNext}
-                    className="onboarding-get-started-button"
+                    className="w-[345.69px] h-[50px] !bg-white rounded-md flex items-center justify-center gap-3.5 border-none cursor-pointer transition-colors duration-200 ease-out p-0 mb-8 min-[600px]:w-[min(304px,calc(100%-24px))] min-[600px]:h-11 min-[600px]:mb-6.5 active:opacity-90"
                 >
-                    <span className="onboarding-get-started-text">Get started</span>
+                    <span className="!font-sans font-normal text-[15.28px] leading-[40.88px] text-black text-center min-[600px]:text-sm min-[600px]:leading-[1.35]">Get started</span>
                 </button>
             </div>
         </div>

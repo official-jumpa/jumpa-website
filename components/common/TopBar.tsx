@@ -1,5 +1,4 @@
 import React from 'react';
-import './TopBar.css';
 const hamburgerIcon = '/assets/icons/actions/hamburger.svg';
 const settingsIcon = '/assets/icons/actions/settings.svg';
 const notificationIcon = '/assets/icons/actions/notification.svg';
@@ -11,21 +10,21 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   return (
-    <div className="top-bar">
-      <div className="top-bar-left">
-        <button className="icon-btn icon-btn--plain" onClick={onMenuClick} aria-label="Menu" type="button">
-          <img src={hamburgerIcon} alt="" className="icon-image icon-image--hamburger" />
+    <div className="flex justify-between items-center px-6 pb-3 pt-[60px] bg-[#171717]">
+      <div className="flex items-center gap-2">
+        <button className="w-8 h-8 p-0 border-none cursor-pointer flex items-center justify-center rounded-full transition-all duration-150 ease-out active:opacity-[0.78] bg-transparent" onClick={onMenuClick} aria-label="Menu" type="button">
+          <img src={hamburgerIcon} alt="" className="block w-[26px] h-[26px]" />
         </button>
-        <div className="user-avatar">
-          <img src={userAvatar} alt="User" />
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-[#252525] flex items-center justify-center">
+          <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
         </div>
       </div>
-      <div className="top-bar-right">
-        <button className="icon-btn icon-btn--surface" aria-label="Settings" type="button">
-          <img src={settingsIcon} alt="" className="icon-image icon-image--settings" />
+      <div className="flex items-center gap-2">
+        <button className="w-8 h-8 p-0 border-none cursor-pointer flex items-center justify-center rounded-full transition-all duration-150 ease-out active:opacity-[0.78] bg-[#252525] hover:bg-[#2b2b2b]" aria-label="Settings" type="button">
+          <img src={settingsIcon} alt="" className="block w-[22px] h-[22px]" />
         </button>
-        <button className="icon-btn icon-btn--surface" aria-label="Notifications" type="button">
-          <img src={notificationIcon} alt="" className="icon-image icon-image--notification" />
+        <button className="w-8 h-8 p-0 border-none cursor-pointer flex items-center justify-center rounded-full transition-all duration-150 ease-out active:opacity-[0.78] bg-[#252525] hover:bg-[#2b2b2b]" aria-label="Notifications" type="button">
+          <img src={notificationIcon} alt="" className="block w-5 h-5" />
         </button>
       </div>
     </div>

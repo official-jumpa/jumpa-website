@@ -26,11 +26,11 @@ export default function TransactionListCard() {
 
   if (loading) {
     return (
-      <div className="home-transaction-section">
-        <div className="home-transaction-head">
-          <h3>Transaction</h3>
+      <div className="w-full rounded-2xl py-4 mt-1">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h3 className="m-0 text-sm font-medium text-[#f3f3f5]">Transaction</h3>
         </div>
-        <div className="transaction-list-card flex items-center justify-center py-10">
+        <div className="w-full min-h-[120px] bg-[#2d2d2d] rounded-2xl p-4 flex items-center justify-center py-10">
           <div className="h-6 w-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
         </div>
       </div>
@@ -40,16 +40,16 @@ export default function TransactionListCard() {
   const hasTransactions = transactions.length > 0;
 
   return (
-    <div className="home-transaction-section">
-      <div className="home-transaction-head">
-        <h3>Transaction</h3>
-        <span>View all</span>
+    <div className="w-full rounded-2xl py-4 mt-1">
+      <div className="flex items-center justify-between mb-2 px-1">
+        <h3 className="m-0 text-sm font-medium text-[#f3f3f5]">Transaction</h3>
+        <span className="text-xs text-[#7c5cfc] cursor-pointer">View all</span>
       </div>
 
-      <div className="transaction-list-card">
+      <div className="w-full min-h-[120px] bg-[#2d2d2d] rounded-2xl p-4 flex flex-col gap-4">
         {!hasTransactions ? (
-          <div className="empty-transaction">
-            <div className="empty-transaction-icon">
+          <div className="flex-1 flex flex-col justify-center items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex justify-center items-center">
               <img
                 src="/assets/icons/actions/notification.svg"
                 alt="No transaction"
@@ -59,7 +59,7 @@ export default function TransactionListCard() {
                 }}
               />
             </div>
-            <p>No transaction yet</p>
+            <p className="text-[#f3f3f5] text-sm font-semibold m-0">No transaction yet</p>
           </div>
         ) : (
           <>
@@ -117,9 +117,9 @@ export default function TransactionListCard() {
               }
 
               return (
-                <div key={tx._id} className="transaction-item">
-                  <div className="transaction-item-left">
-                    <div className={`transaction-icon ${type}`}>
+                <div key={tx._id} className="flex justify-between items-center w-full">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-[38px] h-[38px] rounded-full flex justify-center items-center ${type === "receive" ? "bg-[#e6f6e9] text-[#25ad3e]" : "bg-[#fdf5ea] text-[#ee9c2e]"}`}>
                       <svg
                         width="16"
                         height="16"
@@ -144,11 +144,11 @@ export default function TransactionListCard() {
                       </svg>
                     </div>
                     <div className="transaction-details">
-                      <p>{title}</p>
-                      <span>{formattedDate}</span>
+                      <p className="m-0 text-sm text-[#f3f3f5]">{title}</p>
+                      <span className="text-xs text-[#8b8b93]">{formattedDate}</span>
                     </div>
                   </div>
-                  <div className="transaction-amount">{amountText}</div>
+                  <div className="text-xs p-1 rounded-[64px] border border-dashed border-[#aaaaaa] text-white px-1.5">{amountText}</div>
                 </div>
               );
             })}

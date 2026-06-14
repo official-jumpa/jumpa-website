@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useState } from 'react';
-import './DAppPage.css';
 const successIcon = '/assets/success.png';
 const closeIcon = '/assets/icons/actions/close.svg';
 const backIcon = '/assets/icons/actions/back.svg';
@@ -117,17 +116,17 @@ function DAppPage() {
   };
 
   return (
-    <div className="dapp-page">
+    <div className="p-6 pt-0 pb-6 flex flex-col h-[calc(100dvh-100px)] overflow-y-auto scrollbar-none">
       {showMarketHeader ? (
         <MarketTabs activeTab={activeTab} onTabChange={setActiveTab} />
       ) : null}
 
       {activeTab === 'market' ? (
         <>
-          <section className="market-panel">
-            <p className="market-all-assets-label">All Assets</p>
+          <section className="bg-[#1f1f1f] rounded-[32px] p-5 pb-6 flex flex-col gap-4 mb-4 border border-white/5 shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
+            <span className="bg-[#183324] text-[#4ade80] px-2 py-0.5 rounded-[4px] text-[10px] font-bold tracking-wider uppercase font-sans w-fit">All Assets</span>
 
-            <div className="market-asset-list">
+            <div className="flex flex-col gap-3 mt-1">
               {borrowAssets.map((asset) => (
                 <MarketAssetRow
                   key={asset.id}
@@ -141,24 +140,24 @@ function DAppPage() {
 
           <WatchlistPromptCard />
 
-          <section className="market-panel loan-market-card">
-            <p className="market-all-assets-label">Loan</p>
-            <button type="button" className="market-loan-entry" onClick={loanFlow.openLoan}>
-              <div className="market-loan-entry-main">
-                <span className="market-loan-token">U</span>
+          <section className="bg-[#1f1f1f] rounded-[32px] p-5 pb-6 flex flex-col gap-4 mb-4 border border-white/5 shadow-[0_8px_24px_rgba(0,0,0,0.28)] mt-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#8b8b93] font-sans">Loan</p>
+            <button type="button" className="flex items-center justify-between p-3.5 bg-[#252525] rounded-[16px] border border-white/5 cursor-pointer text-left transition-colors duration-150 ease-out hover:bg-[#2b2b2b]" onClick={loanFlow.openLoan}>
+              <div className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full bg-[#7c5cfc] flex items-center justify-center text-sm font-bold text-white shrink-0">U</span>
                 <div>
-                  <p>Loan created</p>
-                  <span>Feb 16th 2026</span>
+                  <p className="text-sm font-semibold text-[#f3f3f5] mb-0.5">Loan created</p>
+                  <span className="text-[11px] text-[#8b8b93]">Feb 16th 2026</span>
                 </div>
               </div>
-              <strong>0.05757 SOL</strong>
+              <strong className="text-sm font-bold text-white">0.05757 SOL</strong>
             </button>
           </section>
         </>
       ) : activeTab === 'borrow' ? (
         <>
           {borrowTabStep === 'landing' ? (
-            <section className="market-panel borrow-balance-panel">
+            <section className="bg-[#1f1f1f] rounded-[32px] p-6 pb-8 border border-white/5 shadow-[0_8px_24px_rgba(0,0,0,0.28)] flex flex-col gap-4 mb-4">
               <BorrowEntryScreen
                 onContinue={handleBorrowContinue}
                 onPasteAddress={handleBorrowPaste}
@@ -168,77 +167,77 @@ function DAppPage() {
               />
             </section>
           ) : (
-            <section className="borrow-send-screen">
-              <div className="borrow-send-top-row">
+            <section className="p-4 px-6 flex flex-col min-h-[calc(100dvh-100px)] bg-transparent animate-[fadeIn_0.4s_ease-out]">
+              <div className="flex justify-between items-center mb-6">
                 <button
                   type="button"
-                  className="borrow-send-back"
+                  className="w-9 h-9 rounded-full bg-[#1c1c1e] flex items-center justify-center cursor-pointer transition-colors duration-150 ease-out hover:bg-[#262626] border-none"
                   onClick={() => {
                     setBorrowTabStep('landing');
                     setBorrowReviewOpen(false);
                   }}
                   aria-label="Back"
                 >
-                  <img src={backIcon} alt="" className="borrow-send-back-icon" />
+                  <img src={backIcon} alt="" className="w-3.5 h-[11px] block" />
                 </button>
-                <h2>Send Money</h2>
-                <button type="button" className="borrow-send-network-btn">
+                <h2 className="text-lg font-bold text-[#f3f3f5]">Send Money</h2>
+                <button type="button" className="flex items-center gap-1 bg-[#1c1c1e] py-1.5 px-3 rounded-[12px] border border-white/5 cursor-pointer transition-colors duration-150 ease-out hover:bg-[#262626]">
                   <span>Sol</span>
-                  <img src={dropdownChevronIcon} alt="" className="borrow-send-chevron" />
+                  <img src={dropdownChevronIcon} alt="" className="w-3 h-2 shrink-0 object-contain ml-1" />
                 </button>
               </div>
 
-              <div className="borrow-send-to-card">
-                <p className="borrow-send-to-label">To:</p>
-                <div className="borrow-send-to-row">
-                  <div className="borrow-send-recipient-info">
-                    <img src={avatarImageIcon} alt="" className="borrow-send-avatar-img" />
-                    <div className="borrow-send-names">
-                      <p className="borrow-send-name">Oxbn...NYA</p>
-                      <span className="borrow-send-address">0xB7..BYGgnjdhjghshgdhhdhhdz9</span>
+              <div className="bg-[#1f1f1f] p-4 rounded-[20px] border border-white/5 mb-4">
+                <p className="text-[12px] font-semibold text-[#8b8b93] uppercase tracking-wider mb-2">To:</p>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <img src={avatarImageIcon} alt="" className="w-9 h-9 rounded-full object-cover" />
+                    <div className="flex flex-col gap-0.5">
+                      <p className="text-sm font-semibold text-[#f3f3f5]">Oxbn...NYA</p>
+                      <span className="text-[11px] text-[#8b8b93] font-mono break-all max-w-[200px]">0xB7..BYGgnjdhjghshgdhhdhhdz9</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="borrow-send-amount-card">
-                <button type="button" className="borrow-send-wallet-selector">
-                  <div className="borrow-send-wallet-main">
-                    <img src={walletIcon} alt="" className="borrow-send-wallet-icon" />
-                    <span className="borrow-send-wallet-addr">7tB7...BYz9</span>
+              <div className="bg-[#1f1f1f] p-[18px] rounded-[24px] border border-white/5 flex flex-col items-center mb-4">
+                <button type="button" className="flex items-center gap-2 bg-[#252525] py-2 px-3 rounded-[14px] border border-white/5 cursor-pointer transition-colors duration-200 hover:bg-[#2b2b2b]">
+                  <div className="flex items-center gap-2">
+                    <img src={walletIcon} alt="" className="w-[14px] h-[14px] opacity-70" />
+                    <span className="text-xs font-bold text-[#f3f3f5]">7tB7...BYz9</span>
                   </div>
-                  <img src={dropdownChevronIcon} alt="" className="borrow-send-chevron-small" />
+                  <img src={dropdownChevronIcon} alt="" className="w-2 h-1.5 ml-1 opacity-50" />
                 </button>
 
-                <p className="borrow-send-amount">
+                <p className="text-[48px] font-extrabold text-white text-center mt-5 mb-1 flex justify-center items-baseline">
                   <span>{amountWhole}.</span>
-                  <span className="borrow-send-amount-decimals">{amountDecimal}</span>
+                  <span className="text-[32px] text-[#8b8b93]">{amountDecimal}</span>
                 </p>
-                <p className="borrow-send-amount-value">$81.07</p>
+                <p className="text-xs text-[#8b8b93] text-center mb-5">$81.07</p>
                 
-                <div className="borrow-send-status-row">
-                  <p className="borrow-send-available-text">Available</p>
-                  <button type="button" className="borrow-send-edit-btn">
-                    <img src={correctIcon} alt="Edit" className="borrow-send-correct-icon" />
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-xs font-semibold text-[#22c55e] uppercase tracking-wider">Available</p>
+                  <button type="button" className="w-6 h-6 rounded-full bg-[#252525] flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-[#2b2b2b] border-none">
+                    <img src={correctIcon} alt="Edit" className="w-3 h-3 opacity-90" />
                   </button>
                 </div>
               </div>
 
-              <div className="borrow-send-keypad">
-                <div className="borrow-send-keypad-grid">
+              <div className="mt-auto w-full flex flex-col gap-4">
+                <div className="grid grid-cols-3 gap-y-2 gap-x-8 w-full">
                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'].map((key) => (
-                    <button key={key} type="button" className="borrow-send-key" onClick={() => handleBorrowKeypad(key)}>
+                    <button key={key} type="button" className="h-12 text-2xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-95 transition-all cursor-pointer" onClick={() => handleBorrowKeypad(key)}>
                       {key}
                     </button>
                   ))}
-                  <button type="button" className="borrow-send-key borrow-send-backspace" onClick={() => handleBorrowKeypad('backspace')} aria-label="Backspace">
-                    <img src={arrowIcon} alt="" className="borrow-send-arrow-icon" />
+                  <button type="button" className="h-12 text-2xl font-medium flex items-center justify-center hover:bg-white/5 rounded-full active:scale-95 transition-all cursor-pointer text-[#8b8b93]" onClick={() => handleBorrowKeypad('backspace')} aria-label="Backspace">
+                    <img src={arrowIcon} alt="" className="w-5 h-5 opacity-70" />
                   </button>
                 </div>
 
                 <button
                   type="button"
-                  className="borrow-send-review-btn"
+                  className="w-full py-4 bg-[#7c5cfc] text-white border-none rounded-2xl text-base font-bold cursor-pointer transition-all duration-200 ease-out hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-[0_8px_24px_rgba(124,92,252,0.35)] disabled:bg-[#252525] disabled:text-[#8b8b93] disabled:cursor-not-allowed"
                   onClick={() => setBorrowReviewOpen(true)}
                   disabled={!canReviewBorrowAmount}
                 >
@@ -250,12 +249,12 @@ function DAppPage() {
 
         </>
       ) : (
-        <section className="market-panel market-panel-placeholder">
+        <section className="flex flex-col items-center justify-center text-center py-12 px-6 bg-[#1f1f1f] rounded-[32px] border border-white/5 min-h-[300px] mb-4">
           <div>
-            <h2>RWA</h2>
-            <p>Real-world asset markets will be added here next. The tab is wired, but the flow is intentionally out of scope for this pass.</p>
+            <h2 className="text-xl font-bold text-white mb-2">RWA</h2>
+            <p className="text-sm text-[#b7b7be] leading-relaxed">Real-world asset markets will be added here next. The tab is wired, but the flow is intentionally out of scope for this pass.</p>
           </div>
-          <span className="market-placeholder-badge">Placeholder</span>
+          <span className="text-[10px] tracking-widest uppercase font-semibold text-[#8b8b93] bg-[#252525] py-1 px-2.5 rounded-full mt-4">Placeholder</span>
         </section>
       )}
 
@@ -277,42 +276,42 @@ function DAppPage() {
       />
 
       {depositSelectorOpen ? (
-        <div className="deposit-selector-overlay" onClick={closeDepositSelector}>
-          <div className="deposit-selector-modal" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="deposit-selector-close" onClick={closeDepositSelector} aria-label="Close">
-              <img src={closeIcon} alt="" width="11.72" height="11.72" />
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-[10px] z-55 flex items-end justify-center sm:items-center" onClick={closeDepositSelector}>
+          <div className="w-full sm:w-[342px] bg-[#0f0f10] rounded-t-[24px] sm:rounded-[32px] p-6 pt-5 px-4 pb-8 flex flex-col max-h-[75%] overflow-y-auto scrollbar-none animate-[slideUp_0.35s_cubic-bezier(0.4,0,0.2,1)_forwards] relative" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#252525] border-none flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-[#2b2b2b]" onClick={closeDepositSelector} aria-label="Close">
+              <img src={closeIcon} alt="" width="11.72" height="11.72" className="opacity-70" />
             </button>
 
-            <h3>Deposit</h3>
+            <h3 className="text-[17px] font-bold text-white text-center">Deposit</h3>
 
-            <div className="deposit-selector-options">
+            <div className="flex flex-col gap-3 mt-6">
               <button
                 type="button"
-                className="deposit-option"
+                className="flex items-center gap-3 p-4 bg-[#1f1f1f] rounded-[16px] border border-white/5 cursor-pointer text-left w-full transition-colors duration-150 hover:bg-[#252525]"
                 onClick={() => chooseDepositNetwork('sol')}
                 aria-pressed={depositNetwork === 'sol'}
               >
-                <div className="deposit-option-icon">
+                <div className="w-8 h-8 flex-shrink-0 bg-[#252525] rounded-full flex items-center justify-center">
                   <img src="/coins/usdc.svg" alt="USDC" width="32" height="32" />
                 </div>
                 <div>
-                  <p>Sol USDC Balance</p>
-                  <span>Available amount; 600 USDC</span>
+                  <p className="text-sm font-semibold text-[#f3f3f5]">Sol USDC Balance</p>
+                  <span className="text-[11px] text-[#8b8b93]">Available amount; 600 USDC</span>
                 </div>
               </button>
 
               <button
                 type="button"
-                className="deposit-option"
+                className="flex items-center gap-3 p-4 bg-[#1f1f1f] rounded-[16px] border border-white/5 cursor-pointer text-left w-full transition-colors duration-150 hover:bg-[#252525]"
                 onClick={() => chooseDepositNetwork('eth')}
                 aria-pressed={depositNetwork === 'eth'}
               >
-                <div className="deposit-option-icon">
+                <div className="w-8 h-8 flex-shrink-0 bg-[#252525] rounded-full flex items-center justify-center">
                   <img src="/coins/usdc.svg" alt="USDC" width="32" height="32" />
                 </div>
                 <div>
-                  <p>Eth USDC Balance</p>
-                  <span>Available amount; 600 USDC</span>
+                  <p className="text-sm font-semibold text-[#f3f3f5]">Eth USDC Balance</p>
+                  <span className="text-[11px] text-[#8b8b93]">Available amount; 600 USDC</span>
                 </div>
               </button>
             </div>
@@ -321,75 +320,75 @@ function DAppPage() {
       ) : null}
 
       {borrowReviewOpen ? (
-        <div className="borrow-review-overlay" onClick={() => !isBorrowProcessing && setBorrowReviewOpen(false)}>
-          <div className="borrow-review-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-[10px] z-55 flex items-end justify-center sm:items-center" onClick={() => !isBorrowProcessing && setBorrowReviewOpen(false)}>
+          <div className="w-full sm:w-[342px] bg-[#0f0f10] rounded-t-[24px] sm:rounded-[32px] p-6 pt-5 px-4 pb-8 flex flex-col max-h-[75%] overflow-y-auto scrollbar-none animate-[slideUp_0.35s_cubic-bezier(0.4,0,0.2,1)_forwards] relative" onClick={(event) => event.stopPropagation()}>
             <button 
               type="button" 
-              className="borrow-review-close" 
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#252525] border-none flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-[#2b2b2b] disabled:opacity-50 disabled:cursor-not-allowed" 
               onClick={() => !isBorrowProcessing && setBorrowReviewOpen(false)} 
               aria-label="Close"
               disabled={isBorrowProcessing}
             >
-              <img src={closeIcon} alt="" width="11.72" height="11.72" />
+              <img src={closeIcon} alt="" width="11.72" height="11.72" className="opacity-70" />
             </button>
 
-            <h3>Confirm transaction</h3>
+            <h3 className="text-[17px] font-bold text-white text-center">Confirm transaction</h3>
 
-            <div className="borrow-review-card-stack">
-              <section className="borrow-review-card borrow-review-receive-card">
-                <div className="borrow-review-receive-group">
-                  <div className="borrow-review-receive-left">
-                    <p className="borrow-review-label">You Receive</p>
-                    <p className="borrow-review-amount">
-                      <span className="borrow-review-amount-whole">{amountWhole}</span>
-                      <span className="borrow-review-amount-decimal">.{amountDecimal}</span>
+            <div className="flex flex-col gap-2 relative mt-6 mb-4">
+              <section className="bg-[#1f1f1f] p-4 rounded-[20px] border border-white/[0.05] pb-5">
+                <div className="flex justify-between items-end">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[12px] font-semibold text-[#8b8b93] uppercase tracking-wider">You Receive</p>
+                    <p className="text-2xl font-bold text-white">
+                      <span>{amountWhole}</span>
+                      <span className="text-lg">.{amountDecimal}</span>
                     </p>
                   </div>
-                  <div className="borrow-review-token-side">
-                    <div className="borrow-review-token-surface">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="bg-[#252525] py-1 px-3 rounded-full text-xs font-bold text-white border border-white/5">
                       <span>Sol</span>
                     </div>
-                    <p className="borrow-review-alt-value">1 Eth</p>
+                    <p className="text-[11px] text-[#8b8b93]">1 Eth</p>
                   </div>
                 </div>
               </section>
 
-              <div className="borrow-review-swap-icon-container">
-                <img src={arrowUpDownIcon} alt="" className="borrow-review-swap-icon-img" />
+              <div className="absolute left-1/2 -translate-x-1/2 top-[55px] z-10 w-9 h-9 bg-[#101010] border-[3px] border-[#0f0f10] rounded-xl flex items-center justify-center">
+                <img src={arrowUpDownIcon} alt="" className="w-4 h-4 text-[#7c5cfc]" />
               </div>
 
-              <section className="borrow-review-card borrow-review-to-card">
-                <div className="borrow-review-to-group">
-                  <p className="borrow-review-label">To:</p>
-                  <div className="borrow-review-recipient-row">
-                    <div className="borrow-review-recipient">
-                      <img src={avatarImageIcon} alt="Recipient" width="36" height="36" />
+              <section className="bg-[#1f1f1f] p-4 rounded-[20px] border border-white/[0.05] pt-5">
+                <div className="flex flex-col gap-2">
+                  <p className="text-[12px] font-semibold text-[#8b8b93] uppercase tracking-wider">To:</p>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <img src={avatarImageIcon} alt="Recipient" width="36" height="36" className="w-9 h-9 rounded-full object-cover" />
                       <div>
-                        <p>0X...FHS</p>
-                        <span>0x71C....C7ab88</span>
+                        <p className="text-sm font-semibold text-[#f3f3f5]">0X...FHS</p>
+                        <span className="text-[11px] text-[#8b8b93]">0x71C....C7ab88</span>
                       </div>
                     </div>
-                    <img src={markIcon} alt="Confirmed" className="borrow-review-mark-icon" />
+                    <img src={markIcon} alt="Confirmed" className="w-4 h-4 opacity-90" />
                   </div>
                 </div>
               </section>
             </div>
 
-            <div className="borrow-review-meta-lines">
-              <div>
-                <span>Network</span>
-                <strong>Solana</strong>
+            <div className="flex flex-col gap-2 mb-6 text-sm px-1">
+              <div className="flex justify-between items-center">
+                <span className="text-[#8b8b93]">Network</span>
+                <strong className="text-white font-semibold">Solana</strong>
               </div>
-              <div>
-                <span>Network fee</span>
-                <strong>$0.023</strong>
+              <div className="flex justify-between items-center">
+                <span className="text-[#8b8b93]">Network fee</span>
+                <strong className="text-white font-semibold">$0.023</strong>
               </div>
             </div>
 
             {!isBorrowProcessing ? (
               <button
                 type="button"
-                className="borrow-review-borrow-btn"
+                className="w-full py-4 bg-[#7c5cfc] text-white border-none rounded-2xl text-base font-bold cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(124,92,252,0.35)]"
                 onClick={() => {
                   setBorrowReviewOpen(false);
                   setBorrowPinOpen(true);
@@ -398,7 +397,7 @@ function DAppPage() {
                 Borrow
               </button>
             ) : (
-              <button type="button" className="borrow-review-processing-btn" disabled>
+              <button type="button" className="w-full py-4 bg-[#252525] text-[#8b8b93] border-none rounded-2xl text-base font-bold cursor-not-allowed" disabled>
                 Processing...
               </button>
             )}
@@ -426,11 +425,11 @@ function DAppPage() {
       ) : null}
 
       {borrowSuccessOpen ? (
-        <div className="borrow-success-screen" onClick={resetBorrowJourney}>
-          <div className="borrow-success-content">
-            <img src={successIcon} alt="Success" className="borrow-success-badge" />
-            <p className="borrow-success-title">Sent !</p>
-            <p className="borrow-success-message">
+        <div className="fixed inset-0 bg-black z-100 flex flex-col justify-center items-center p-6" onClick={resetBorrowJourney}>
+          <div className="flex flex-col items-center text-center animate-[fadeIn_0.3s_ease_forwards]">
+            <img src={successIcon} alt="Success" className="w-[120px] h-[120px] object-contain mb-8" />
+            <p className="text-2xl font-bold text-white mb-2">Sent !</p>
+            <p className="text-[#b7b7be] text-base leading-relaxed">
               <span>$</span>10,000 is sent to
               <br />
               your Wallet.

@@ -5,7 +5,7 @@ export default function PersonasGrid() {
       id="use-cases"
     >
       <div className="flex flex-col items-center text-center">
-        <h2 className="persona text-6xl leading-22.5">
+        <h2 className="font-black-han-sans text-6xl leading-22.5">
           How Jumpa fit into Everyday Life
         </h2>
         <p className="text-[28px]">Move money anywhere in minutes.</p>
