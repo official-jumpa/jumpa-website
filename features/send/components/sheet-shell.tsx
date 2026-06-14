@@ -29,7 +29,7 @@ export default function SheetShell({
   return (
     <Drawer open={open} onOpenChange={onOpenChange} modal dismissible={true}>
       <DrawerContent className={cn("border-none bg-[#06070b] text-white", className)}>
-        <div className="relative mx-auto flex max-h-[78vh] w-full max-w-md flex-col px-5 pb-8 pt-5">
+        <div className="relative mx-auto flex max-h-[78vh] w-full max-w-md flex-col px-3 pb-8 pt-5">
           {showHandle ? (
             <div className="mx-auto mb-5 h-1.5 w-14 rounded-full bg-white/50" />
           ) : null}

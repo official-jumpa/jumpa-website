@@ -249,7 +249,7 @@ export default function SendPage() {
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex items-center gap-3 rounded-2xl bg-black/20 p-3">
               <div className="h-10 w-10 shrink-0 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 text-xs font-bold">
-                {recipient.address ? "0x" : "?"}
+                {recipient.address ? "0x" : " "}
               </div>
               <input
                 type="text"

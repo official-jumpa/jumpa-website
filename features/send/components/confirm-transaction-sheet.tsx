@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+// import { Check } from "lucide-react";
 import type { Recipient } from "../types";
 import SheetShell from "./sheet-shell";
 
@@ -39,20 +39,17 @@ export default function ConfirmTransactionSheet({
         </div>
 
         <div className="rounded-3xl bg-zinc-800 p-5">
-          <p className="text-base text-zinc-400">To Address:</p>
+          <p className="text-base text-zinc-400">To:</p>
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-bold text-zinc-800">
-                {recipient.address?.slice(-2).toUpperCase() || "??"}
-              </div>
               <div>
-                <p className="text-md text-white break-all">{recipient.address}</p>
+                <p className="text-[14px] md:text-sm text-white break-all">{recipient.address}</p>
                 <p className="text-sm text-zinc-500">{recipient.name}</p>
               </div>
             </div>
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            {/* <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <Check className="h-5 w-5" />
-            </span>
+            </span> */}
           </div>
         </div>
 

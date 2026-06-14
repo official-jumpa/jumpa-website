@@ -28,7 +28,7 @@ export default function RecipientSelectSheet({
   onSelectRecipient,
 }: RecipientSelectSheetProps) {
   return (
-    <SheetShell open={open} onOpenChange={onOpenChange} title="Suggested recipient">
+    <SheetShell open={open} onOpenChange={onOpenChange} title="Suggested recipient" className="min-h-[200px]">
       <div className="max-h-[50vh] space-y-2 overflow-y-auto pb-3">
         {recipients.map((recipient) => {
           const selected = recipient.id === selectedRecipientId;
@@ -37,11 +37,11 @@ export default function RecipientSelectSheet({
               type="button"
               key={recipient.id}
               onClick={() => onSelectRecipient(recipient)}
-              className="flex w-full items-center gap-3 rounded-2xl bg-zinc-800 px-4 py-3 text-left transition hover:bg-zinc-700"
+              className="flex w-full items-center gap-3 rounded-2xl bg-zinc-800 px-3 py-3 text-left transition hover:bg-zinc-700"
             >
               <Avatar recipient={recipient} />
               <div className="flex-1">
-                <p className="text-lg font-medium text-white">{recipient.name}</p>
+                <p className="text-base font-medium text-white">{recipient.name}</p>
                 <p className="text-sm text-zinc-500">{recipient.address}</p>
               </div>
               <span
