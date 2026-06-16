@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import SheetShell from "@/features/send/components/sheet-shell";
 import PinSheet from "@/features/send/components/pin-sheet";
-import { ArrowLeft, ArrowRight, Loader2, Landmark, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Landmark, CheckCircle2, AlertCircle } from "lucide-react";
 import { supportedBanks } from "@/lib/constants/banks";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
@@ -36,6 +36,8 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
   const [initiating, setInitiating] = useState(false);
   const [initError, setInitError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [txReference, setTxReference] = useState("");
+  const [pollingStatus, setPollingStatus] = useState("PROCESSING");
 
   useEffect(() => {
     if (!open) {
@@ -48,6 +50,8 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
       setShowSuccess(false);
       setShowPin(false);
       setPin("");
+      setTxReference("");
+      setPollingStatus("PROCESSING");
     } else if (defaultAmount) {
       setAmount(defaultAmount);
     }
@@ -124,6 +128,7 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
       });
       const data = await res.json();
       if (data.success) {
+        setTxReference(data.reference);
         setShowSuccess(true);
       } else {
         setInitError(data.error || "Failed to initiate transfer");
@@ -134,6 +139,33 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
       setInitiating(false);
     }
   };
+
+  useEffect(() => {
+    if (!showSuccess || !txReference) return;
+
+    console.log(`[OfframpSheet] Starting status polling for reference: ${txReference}`);
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/onramp/status?reference=${txReference}`);
+        const data = await res.json();
+        if (data.success) {
+          console.log(`[OfframpSheet] Polled status: ${data.status}`);
+          setPollingStatus(data.status);
+          if (data.status === "COMPLETED" || data.status === "SENT") {
+            clearInterval(interval);
+            console.log("[OfframpSheet] Bridge fiat payment complete.");
+          } else if (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "REFUNDED") {
+            clearInterval(interval);
+            console.warn(`[OfframpSheet] Bridge transaction failed: ${data.status}`);
+          }
+        }
+      } catch (err) {
+        console.warn("[OfframpSheet] Status polling request error:", err);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [showSuccess, txReference]);
 
   return (
     <>
@@ -239,11 +271,23 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10 animate-in zoom-in-95 duration-300">
               <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                {pollingStatus === "COMPLETED" || pollingStatus === "SENT" ? (
+                  <CheckCircle2 className="w-10 h-10 text-violet-400" />
+                ) : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" ? (
+                  <AlertCircle className="w-10 h-10 text-red-500" />
+                ) : (
+                  <Loader2 className="w-10 h-10 text-violet-400 animate-spin" />
+                )}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Withdrawal Initiated</h3>
+              <h3 className="text-2xl font-bold text-white mb-3">
+                {pollingStatus === "COMPLETED" || pollingStatus === "SENT" ? "Withdrawal Success" : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" ? "Withdrawal Failed" : "Withdrawal Processing"}
+              </h3>
               <p className="text-zinc-400 leading-relaxed max-w-[280px]">
-                Your {amount} asset is being sent securely. You will receive the Naira in your bank account shortly
+                {pollingStatus === "COMPLETED" || pollingStatus === "SENT" 
+                  ? "Your withdrawal has been processed and bank transfer completed." 
+                  : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" 
+                    ? "Bridge settlement failed. Please contact support." 
+                    : `Your ${amount} asset is being sent securely. You will receive the Naira in your bank account shortly.`}
               </p>
               <button
                 onClick={() => onOpenChange(false)}

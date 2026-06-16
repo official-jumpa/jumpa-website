@@ -88,7 +88,7 @@ export class SwitchService {
         asset: asset,
         beneficiary: {
           holder_type: "INDIVIDUAL",
-          holder_name: "Jumpa User",
+          holder_name: "Jumpa",
           wallet_address: walletAddress
         },
         exact_output: isExactOut,
@@ -253,6 +253,70 @@ export class SwitchService {
       return {
         success: false,
         status: 500,
+        message: "Internal server error",
+        error: error.message
+      };
+    }
+  }
+
+  static async getTransactionStatus(reference: string): Promise<any> {
+    try {
+      console.log(`[SwitchService] Fetching status for reference: ${reference}`);
+      const response = await fetch(`${this.BASE_URL}/status?reference=${reference}`, {
+        method: "GET",
+        headers: this.getHeaders(),
+      });
+
+      const responseData = await response.json();
+      console.log(`[SwitchService] Status response for reference ${reference}:`, JSON.stringify(responseData, null, 2));
+
+      if (!response.ok || !responseData.success) {
+        return {
+          success: false,
+          message: responseData.message || "Failed to fetch transaction status",
+          error: JSON.stringify(responseData)
+        };
+      }
+
+      return responseData;
+    } catch (error: any) {
+      console.error(`[SwitchService] Error fetching status for reference ${reference}:`, error);
+      return {
+        success: false,
+        message: "Internal server error",
+        error: error.message
+      };
+    }
+  }
+
+  static async confirmPayment(reference: string, hash?: string): Promise<any> {
+    try {
+      console.log(`[SwitchService] Confirming payment for reference: ${reference}, hash: ${hash}`);
+      const payload: Record<string, string> = { reference };
+      if (hash) payload.hash = hash;
+
+      const response = await fetch(`${this.BASE_URL}/confirm`, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await response.json();
+      console.log(`[SwitchService] Confirm response for reference ${reference}:`, JSON.stringify(responseData, null, 2));
+
+      if (!response.ok || !responseData.success) {
+        return {
+          success: false,
+          message: responseData.message || "Failed to confirm payment",
+          error: JSON.stringify(responseData)
+        };
+      }
+
+      return responseData;
+    } catch (error: any) {
+      console.error(`[SwitchService] Error confirming payment for reference ${reference}:`, error);
+      return {
+        success: false,
         message: "Internal server error",
         error: error.message
       };

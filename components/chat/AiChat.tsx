@@ -85,12 +85,14 @@ function ChatScreen({
   composer,
   onBack,
   onTransactionClick,
+  onOnrampInitiated,
 }: {
   messages: Message[];
   showTyping: boolean;
   composer: React.ReactNode;
   onBack: () => void;
   onTransactionClick: (msg: Message) => void;
+  onOnrampInitiated?: (msgId: string, reference: string, deposit: any) => void;
 }) {
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
@@ -108,6 +110,7 @@ function ChatScreen({
         messages={messages}
         showTyping={showTyping}
         onTransactionClick={onTransactionClick}
+        onOnrampInitiated={onOnrampInitiated}
       />
 
       {composer}
@@ -258,6 +261,21 @@ export default function AiChat() {
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
+  // Persist reference + deposit data back into the message after onramp initiation
+  // so that on page reload the card restores to the transfer step
+  const handleOnrampInitiated = useCallback(async (msgId: string, reference: string, deposit: any) => {
+    setMessages((prev) => {
+      const updated = prev.map((m) =>
+        m.id === msgId
+          ? { ...m, transactionParams: { ...m.transactionParams, reference, depositData: deposit } }
+          : m
+      );
+      // Fire-and-forget persist to backend
+      putAiHistory(updated).catch((e) => console.error("[AiChat] Failed to persist onramp initiation:", e));
+      return updated;
+    });
+  }, []);
+
   useEffect(() => {
     if (voiceFlow !== "recording") return;
     const id = window.setInterval(() => setRecordingTick((t) => t + 1), 110);
@@ -316,13 +334,16 @@ export default function AiChat() {
           setPendingTransaction(aiMsg.transactionParams);
         } else if (res.data.intent === "ONRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
-          aiMsg.text = "Got it I've parsed your transfer required - here's the summary. Please review and confirm before sending";
-          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
-          aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${res.data.params.token}`, result: "Tap to review or change the amount" };
+          const fallbackToken = t.toLowerCase().includes("base") ? "base:usdc" : "solana:usdc";
+          const targetToken = String(res.data.params.token || fallbackToken);
+          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: targetToken, currency: String(res.data.params.currency || "NGN") };
+          aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${targetToken}`, result: "Tap to review or change the amount" };
         } else if (res.data.intent === "OFFRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
-          aiMsg.transactionParams = { type: "offramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc") };
-          aiMsg.transactionDetails = { label: "Sell Crypto Request", title: "Offramp Transaction", sent: `Selling: ${res.data.params.amount} ${res.data.params.token.toUpperCase()}`, to: "Receive: Naira (Bank)", result: "Tap to enter bank details and withdraw" };
+          const fallbackToken = t.toLowerCase().includes("base") ? "base:usdc" : "solana:usdc";
+          const targetToken = String(res.data.params.token || fallbackToken);
+          aiMsg.transactionParams = { type: "offramp", amount: String(res.data.params.amount || ""), token: targetToken };
+          aiMsg.transactionDetails = { label: "Sell Crypto Request", title: "Offramp Transaction", sent: `Selling: ${res.data.params.amount} ${targetToken.toUpperCase()}`, to: "Receive: Naira (Bank)", result: "Tap to enter bank details and withdraw" };
         }
 
         setMessages((prev) => [...prev, aiMsg]);
@@ -447,6 +468,7 @@ export default function AiChat() {
           showTyping={showTyping}
           composer={(!onrampOpen && !offrampOpen && !confirmOpen) ? composerEl : <div className="h-4" />}
           onBack={() => navigate("/home")}
+          onOnrampInitiated={handleOnrampInitiated}
           onTransactionClick={(msg) => {
             if (msg.transactionParams) {
               if (msg.transactionParams.type === "onramp") {

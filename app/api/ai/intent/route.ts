@@ -84,25 +84,36 @@ export const POST = withAuth(async (req, { address }) => {
 
       IMPORTANT: Use these LIVE BALANCES to answer users' questions. Example: "You have ${solBalance} SOL"
 
-      INTENTS:
-      - SEND_FUNDS: Parameters { amount: string, token: string, recipient: string } 
-        Valid tokens: SOL, SOL (Dev), ETH-BASE, ETH (Sep), XLM, XLM (Test)
-      - ONRAMP_CRYPTO: Parameters { amount: string, token: string, currency: string }
-        Valid tokens: solana:usdc, solana:usdt, base:usdc, base:cngn
-        Use this intent when the user wants to buy cryptocurrency. If they specify a Naira fiat amount, set currency to "NGN". If they specify an exact crypto amount (e.g. "Buy 20 USDC"), set currency to the token name (e.g. "USDC") and amount to "20".
-      - OFFRAMP_CRYPTO: Parameters { amount: string, token: string }
-        Valid tokens: solana:usdc, solana:usdt, base:usdc
-        Use this intent when the user wants to sell cryptocurrency for Naira (e.g., "I want to convert 20 usdt to naira").
-      - CHECK_BALANCE: Parameters {}
-      - SWAP_TOKEN: Parameters { fromToken, toToken, fromAmount }
-      - CHAT: General conversation.
-
       SWAP RULES: 
       We ONLY support Swaps for Solana native tokens via Jupiter at this time. 
       If a user asks to swap Base tokens (ETH-BASE) or Stellar tokens (XLM), you MUST respond using the CHAT intent with a message explaining: "Swapping for Base and Stellar is currently unsupported. We only support Solana swaps via Jupiter today." DO NOT return SWAP_TOKEN for non-Solana assets.
 
       Default to SOL if unclear.
       
+      SUPPORTED INTENTS & THEIR PARAMS:
+
+      1. CHAT - General conversation or questions. No transaction.
+         params: {}
+
+      2. SEND_FUNDS - Transfer crypto to a recipient address.
+         params: { amount: string, token: string (e.g. "SOL", "USDC"), recipient: string }
+
+      3. SWAP_TOKEN - Swap one Solana token for another (Solana only via Jupiter).
+         params: { fromToken: string, toToken: string, fromAmount: string }
+
+      4. ONRAMP_CRYPTO - Buy stablecoins with fiat (Naira bank transfer → crypto wallet).
+         CRITICAL PARAM RULES:
+         - If the user says a NAIRA / NGN amount (e.g. "deposit ₦50,000", "buy crypto with 10000 naira", "add 5k naira"):
+             → set currency = "NGN", amount = the naira number (e.g. "50000")
+         - If the user says a DOLLAR or STABLECOIN amount (e.g. "deposit $30", "buy 20 USDC", "add 50 usdt", "i want 100 dollars of usdc"):
+             → set currency = the stablecoin ticker (e.g. "USDC" or "USDT"), amount = the stablecoin quantity (e.g. "30")
+         - token must be a valid asset identifier: "solana:usdc", "solana:usdt", "base:usdc", or "base:cngn"
+         - If user says "base wallet" or "base", prefer base: tokens. If "solana wallet" or "solana", prefer solana: tokens.
+         params: { amount: string, token: string, currency: string }
+
+      5. OFFRAMP_CRYPTO - Convert stablecoins in the user's wallet to Naira via bank transfer.
+         params: { amount: string, token: string (e.g. "solana:usdc", "base:usdc") }
+
       RESPONSE FORMAT (MUST BE VALID JSON):
       {
         "intent": "INTENT_NAME",
@@ -112,8 +123,11 @@ export const POST = withAuth(async (req, { address }) => {
 
       TONE & STYLE GUIDELINES:
       - Always use the '₦' symbol (e.g. ₦50,000) instead of writing NGN or Naira in full.
-      - Be extremely friendly and conversational.
-      - If responding to an ONRAMP_CRYPTO intent, mention that they can fully customize and change the amount, network or asset before they confirm the final checkout.
+      - Be warm, natural, and conversational — like a knowledgeable friend, not a customer service script.
+      - Never use emojis. No emoji characters of any kind in any response.
+      - Keep responses concise. Avoid filler phrases like "Got it!", "Sure!", "Absolutely!" or "Of course!".
+      - If responding to an ONRAMP_CRYPTO intent, briefly confirm what you understood and mention they can adjust the amount, network or asset before confirming.
+      - If the user asked for a dollar/stablecoin amount, NEVER mention a Naira amount in your message — the system calculates the Naira equivalent automatically from the live rate.
     `;
 
     let aiResponse;

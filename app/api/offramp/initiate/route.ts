@@ -18,6 +18,7 @@ import {
 import { 
   getOrCreateAssociatedTokenAccount, 
   createTransferInstruction,
+  getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import * as bip39 from "bip39";
@@ -66,6 +67,86 @@ export const POST = withAuth(async (req, { address }) => {
     const isPinValid = await bcrypt.compare(pin, wallet.pinHash);
     if (!isPinValid) return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
 
+    // 1.5. Pre-flight Balance & Gas Checks
+    const config = ASSET_CONFIG[asset];
+    if (!config) {
+      return NextResponse.json({ error: "Unsupported asset for offramp transaction" }, { status: 400 });
+    }
+
+    try {
+      if (config.chain === "solana") {
+        if (!wallet.addresses.sol) {
+          return NextResponse.json({ error: "Solana wallet address not configured" }, { status: 400 });
+        }
+        const solPubkey = new PublicKey(wallet.addresses.sol);
+        const connection = config.connection;
+
+        // Check SOL (native gas) balance
+        const lamports = await connection.getBalance(solPubkey);
+        const solBalance = lamports / 1e9;
+        console.log(`[Offramp Pre-flight] Solana address: ${wallet.addresses.sol}, SOL balance: ${solBalance}`);
+        if (solBalance < 0.002) {
+          return NextResponse.json({ error: "Insufficient SOL balance for transaction fees (minimum 0.002 SOL required)" }, { status: 400 });
+        }
+
+        // Check token (USDC/USDT) balance
+        const mintPubkey = new PublicKey(config.mint);
+        const ataAddress = await getAssociatedTokenAddress(mintPubkey, solPubkey);
+        let tokenBalance = 0;
+        try {
+          const tokenBalanceRes = await connection.getTokenAccountBalance(ataAddress);
+          tokenBalance = tokenBalanceRes.value.uiAmount || 0;
+        } catch (err) {
+          console.log("[Offramp Pre-flight] No token account or token balance error:", err);
+        }
+        console.log(`[Offramp Pre-flight] Asset: ${asset}, Token Balance: ${tokenBalance}, Required: ${amount}`);
+        if (tokenBalance < Number(amount)) {
+          return NextResponse.json({ error: `Insufficient ${asset.split(":")[1].toUpperCase()} balance (available: ${tokenBalance}, required: ${amount})` }, { status: 400 });
+        }
+
+      } else if (config.chain === "base") {
+        if (!wallet.addresses.base) {
+          return NextResponse.json({ error: "Base wallet address not configured" }, { status: 400 });
+        }
+        const baseAddr = wallet.addresses.base;
+        const publicClient = config.publicClient;
+
+        // Check ETH (native gas) balance
+        const wei = await publicClient.getBalance({ address: baseAddr as `0x${string}` });
+        const ethBalance = Number(wei) / 1e18;
+        console.log(`[Offramp Pre-flight] Base address: ${baseAddr}, ETH balance: ${ethBalance}`);
+        if (ethBalance < 0.0005) {
+          return NextResponse.json({ error: "Insufficient ETH balance on Base for gas fees (minimum 0.0005 ETH required)" }, { status: 400 });
+        }
+
+        // Check token (USDC) balance
+        const USDC_ABI_BAL = [
+          {
+            name: "balanceOf",
+            type: "function",
+            inputs: [{ name: "owner", type: "address" }],
+            outputs: [{ name: "", type: "uint256" }]
+          }
+        ] as const;
+
+        const tokenWei = await publicClient.readContract({
+          address: config.address as `0x${string}`,
+          abi: USDC_ABI_BAL,
+          functionName: "balanceOf",
+          args: [baseAddr as `0x${string}`],
+        });
+
+        const tokenBalance = Number(tokenWei) / Math.pow(10, config.decimals);
+        console.log(`[Offramp Pre-flight] Asset: ${asset}, Token Balance: ${tokenBalance}, Required: ${amount}`);
+        if (tokenBalance < Number(amount)) {
+          return NextResponse.json({ error: `Insufficient USDC balance on Base (available: ${tokenBalance}, required: ${amount})` }, { status: 400 });
+        }
+      }
+    } catch (checkError: any) {
+      console.error("[Offramp Pre-flight Error]", checkError);
+      return NextResponse.json({ error: `Pre-flight balance check failed: ${checkError.message}` }, { status: 400 });
+    }
+
     // 2. Initiate Offramp with Switch
     const initiateRes = await SwitchService.initiateOfframp(Number(amount), asset, beneficiary);
     if (!initiateRes.success || !initiateRes.data) {
@@ -100,7 +181,6 @@ export const POST = withAuth(async (req, { address }) => {
 
     // 5. Execute Blockchain Transfer
     let txHash = "";
-    const config = ASSET_CONFIG[asset];
     if (!config) throw new Error("Unsupported asset for auto-transfer");
 
     try {
@@ -191,9 +271,24 @@ export const POST = withAuth(async (req, { address }) => {
       }, { status: 400 });
     }
 
+    // 5.5 Confirm Payment with Switch
+    try {
+      console.log(`[Offramp] Confirming payment with Switch: reference ${switchData.reference}, txHash ${txHash}`);
+      const confirmRes = await SwitchService.confirmPayment(switchData.reference, txHash);
+      if (confirmRes.success && confirmRes.data) {
+        console.log(`[Offramp] Switch confirmed successfully, new status: ${confirmRes.data.status}`);
+        rampTx.status = confirmRes.data.status || "PROCESSING";
+      } else {
+        console.warn("[Offramp] Switch confirm returned unsuccessful status:", confirmRes.message);
+        rampTx.status = "PROCESSING";
+      }
+    } catch (confirmErr: any) {
+      console.error("[Offramp] Error calling Switch confirmPayment:", confirmErr);
+      rampTx.status = "PROCESSING";
+    }
+
     // 6. Update DB with Hash
     rampTx.tx_hash = txHash;
-    rampTx.status = "PROCESSING";
     await rampTx.save();
 
     return NextResponse.json({

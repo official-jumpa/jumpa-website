@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import SheetShell from "@/features/send/components/sheet-shell";
-import { Copy, Wallet, ArrowRight, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Copy, Wallet, ArrowRight, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 
 type QuoteData = {
   rate: number;
@@ -43,6 +43,8 @@ export default function OnrampSheet({ open, onOpenChange, defaultAmount, default
   const [depositData, setDepositData] = useState<DepositData | null>(null);
   const [initError, setInitError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [txReference, setTxReference] = useState("");
+  const [pollingStatus, setPollingStatus] = useState("AWAITING_DEPOSIT");
 
   const fetchQuote = async (amount: string, selectedAsset: string, isExactOut: boolean) => {
     if (!amount || isNaN(Number(amount))) return;
@@ -90,6 +92,8 @@ export default function OnrampSheet({ open, onOpenChange, defaultAmount, default
       setQuoteError("");
       setInitError("");
       setShowSuccess(false);
+      setTxReference("");
+      setPollingStatus("AWAITING_DEPOSIT");
     } else {
       if (defaultAmount) {
         if (defaultCurrency && defaultCurrency !== "NGN") {
@@ -131,6 +135,7 @@ export default function OnrampSheet({ open, onOpenChange, defaultAmount, default
       const data = await res.json();
       if (data.success && data.data?.deposit) {
         setDepositData(data.data.deposit);
+        setTxReference(data.data.reference);
       } else {
         setInitError(data.error || "Failed to initiate transaction");
       }
@@ -140,6 +145,33 @@ export default function OnrampSheet({ open, onOpenChange, defaultAmount, default
       setInitiating(false);
     }
   };
+
+  useEffect(() => {
+    if (!showSuccess || !txReference) return;
+
+    console.log(`[OnrampSheet] Starting status polling for reference: ${txReference}`);
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/onramp/status?reference=${txReference}`);
+        const data = await res.json();
+        if (data.success) {
+          console.log(`[OnrampSheet] Polled status: ${data.status}`);
+          setPollingStatus(data.status);
+          if (data.status === "COMPLETED" || data.status === "PROCESSING" || data.status === "SENT") {
+            clearInterval(interval);
+            console.log("[OnrampSheet] Bridge payout detected, transaction completed successfully.");
+          } else if (data.status === "FAILED" || data.status === "CANCELLED" || data.status === "REFUNDED") {
+            clearInterval(interval);
+            console.warn(`[OnrampSheet] Bridge transaction failed: ${data.status}`);
+          }
+        }
+      } catch (err) {
+        console.warn("[OnrampSheet] Error querying transaction status:", err);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [showSuccess, txReference]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -296,11 +328,23 @@ export default function OnrampSheet({ open, onOpenChange, defaultAmount, default
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10 animate-in zoom-in-95 duration-300">
             <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-              <CheckCircle2 className="w-10 h-10 text-violet-400" />
+              {pollingStatus === "COMPLETED" || pollingStatus === "PROCESSING" || pollingStatus === "SENT" ? (
+                <CheckCircle2 className="w-10 h-10 text-violet-400" />
+              ) : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" ? (
+                <AlertCircle className="w-10 h-10 text-red-500" />
+              ) : (
+                <Loader2 className="w-10 h-10 text-violet-400 animate-spin" />
+              )}
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Transfer Pending</h3>
+            <h3 className="text-2xl font-bold text-white mb-3">
+              {pollingStatus === "COMPLETED" || pollingStatus === "PROCESSING" || pollingStatus === "SENT" ? "Transfer Complete!" : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" ? "Transfer Failed" : "Transfer Pending"}
+            </h3>
             <p className="text-zinc-400 leading-relaxed max-w-[280px]">
-              We are checking the status of your transaction. Your balance will be updated within a few seconds once the transaction is confirmed
+              {pollingStatus === "COMPLETED" || pollingStatus === "PROCESSING" || pollingStatus === "SENT" 
+                ? "Your asset has been successfully delivered to your wallet." 
+                : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" 
+                  ? "Something went wrong during bridge settlement. Please contact support." 
+                  : "We are checking the status of your bank transfer. Your balance will update once confirmed."}
             </p>
             <button
               onClick={() => onOpenChange(false)}

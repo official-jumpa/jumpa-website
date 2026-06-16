@@ -96,6 +96,7 @@ function ChatScreen({
   onBack,
   onInviteClick,
   onTransactionClick,
+  onOnrampInitiated,
 }: {
   messages: Message[];
   showTyping: boolean;
@@ -103,6 +104,7 @@ function ChatScreen({
   onBack: () => void;
   onInviteClick: () => void;
   onTransactionClick: (msg: Message) => void;
+  onOnrampInitiated?: (msgId: string, reference: string, deposit: any) => void;
 }) {
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
@@ -127,6 +129,7 @@ function ChatScreen({
         messages={messages}
         showTyping={showTyping}
         onTransactionClick={onTransactionClick}
+        onOnrampInitiated={onOnrampInitiated}
         isGroupChat={true}
       />
 
@@ -276,6 +279,19 @@ export default function GroupAiChat() {
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
+  // Persist reference + deposit data back into the message after onramp initiation
+  const handleOnrampInitiated = useCallback(async (msgId: string, reference: string, deposit: any) => {
+    setMessages((prev) => {
+      const updated = prev.map((m) =>
+        m.id === msgId
+          ? { ...m, transactionParams: { ...m.transactionParams, reference, depositData: deposit } }
+          : m
+      );
+      putAiHistory(updated).catch((e) => console.error("[GroupAiChat] Failed to persist onramp initiation:", e));
+      return updated;
+    });
+  }, []);
+
   useEffect(() => {
     if (voiceFlow !== "recording") return;
     const id = window.setInterval(() => setRecordingTick((t) => t + 1), 110);
@@ -326,7 +342,6 @@ export default function GroupAiChat() {
           setPendingTransaction(aiMsg.transactionParams);
         } else if (res.data.intent === "ONRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
-          aiMsg.text = "Got it I've parsed your transfer required - here's the summary. Please review and confirm before sending";
           aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
           aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${res.data.params.token}`, result: "Tap to review or change the amount" };
         } else if (res.data.intent === "OFFRAMP_CRYPTO") {
@@ -448,6 +463,7 @@ export default function GroupAiChat() {
         composer={(!onrampOpen && !offrampOpen && !confirmOpen) ? composerEl : <div className="h-4" />}
         onBack={() => navigate("/home")}
         onInviteClick={() => setInviteOpen(true)}
+        onOnrampInitiated={handleOnrampInitiated}
         onTransactionClick={(msg) => {
           if (msg.transactionParams) {
             if (msg.transactionParams.type === "onramp") {

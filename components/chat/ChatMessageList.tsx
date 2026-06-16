@@ -9,6 +9,7 @@ interface ChatMessageListProps {
   messages: Message[];
   showTyping: boolean;
   onTransactionClick: (msg: Message) => void;
+  onOnrampInitiated?: (msgId: string, reference: string, deposit: any) => void;
   isGroupChat?: boolean;
 }
 
@@ -16,6 +17,7 @@ export default function ChatMessageList({
   messages,
   showTyping,
   onTransactionClick,
+  onOnrampInitiated,
   isGroupChat = false,
 }: ChatMessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
@@ -30,6 +32,11 @@ export default function ChatMessageList({
   const lastTransactionMsgId = [...messages]
     .reverse()
     .find((m) => m.isTransaction && m.transactionParams?.type !== "onramp")?.id;
+
+  // Only the most recent onramp card is interactive; older ones collapse to text
+  const lastOnrampMsgId = [...messages]
+    .reverse()
+    .find((m) => m.isTransaction && m.transactionParams?.type === "onramp")?.id;
 
   return (
     <div className="ai-chat-messages flex-1 min-h-0 overflow-y-auto px-6 pt-3">
@@ -65,7 +72,14 @@ export default function ChatMessageList({
               )
             ) : m.isTransaction ? (
               m.transactionParams?.type === "onramp" ? (
-                <BuyCryptoBlock msg={m} />
+                <BuyCryptoBlock
+                  msg={m}
+                  disabled={m.id !== lastOnrampMsgId}
+                  onInitiated={onOnrampInitiated
+                    ? (ref, dep) => onOnrampInitiated(m.id, ref, dep)
+                    : undefined
+                  }
+                />
               ) : (
                 <TransactionBlock
                   msg={m}

@@ -46,7 +46,7 @@ export function AiTextBlock({ text }: { text: string }) {
   const trimmed = text.trim();
   return (
     <div className="max-w-[324px] w-full ml-0 mr-auto flex flex-col gap-[6px] self-start">
-      <div className="m-0 font-[Geist,sans-serif] font-normal text-sm leading-[145%] text-[#d5d5d5] overflow-anywhere wrap-break-word">
+      <div className="m-0 font-inter font-normal text-base leading-[145%] text-[#d5d5d5] overflow-anywhere wrap-break-word">
         {renderMarkdownBlock(trimmed)}
       </div>
     </div>

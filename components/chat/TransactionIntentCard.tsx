@@ -45,7 +45,7 @@ export function TransactionBlock({
     return (
       <div className="flex flex-col gap-3 w-full max-w-[324px]">
         <div className="w-full ml-0 mr-auto flex flex-col gap-[6px] self-start mt-1">
-          <div className="m-0 font-[Geist,sans-serif] font-normal text-sm leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
+          <div className="m-0 font-inter font-normal text-base leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
             <TextWithLinks text={msg.text} />
           </div>
         </div>
@@ -57,7 +57,7 @@ export function TransactionBlock({
     <div className="flex flex-col gap-3 w-full max-w-[324px]">
       {msg.text && (
         <div className="w-full ml-0 mr-auto flex flex-col gap-[6px] self-start mt-1">
-          <div className="m-0 font-[Geist,sans-serif] font-normal text-sm leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
+          <div className="m-0 font-inter font-normal text-base leading-[145%] text-[#d5d5d5] whitespace-pre-wrap overflow-anywhere wrap-break-word">
             <TextWithLinks text={msg.text} />
           </div>
         </div>
