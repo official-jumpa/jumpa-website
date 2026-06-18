@@ -298,6 +298,7 @@ export default function AiChat() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
   const handleOfframpBeneficiaryChange = useCallback((bankCode: string, accountNumber: string, accountName: string) => {
@@ -509,34 +510,65 @@ export default function AiChat() {
     }, 1600);
   }, [enterThreadIfNeeded, resetVoice]);
 
+  const getExplorerUrl = (token: string, hash: string) => {
+    const t = token.toUpperCase();
+    if (t.includes("SOL-DEV")) return `https://solscan.io/tx/${hash}?cluster=devnet`;
+    if (t.includes("SOL")) return `https://solscan.io/tx/${hash}`;
+    if (t.includes("SEP") || t.includes("ETH-SEP") || t.includes("USDC-SEP") || t.includes("USDT-SEP")) return `https://sepolia.basescan.org/tx/${hash}`;
+    if (t.includes("BASE") || t.includes("ETH-BASE") || t.includes("USDC-BASE") || t.includes("USDT-BASE")) return `https://basescan.org/tx/${hash}`;
+    if (t.includes("TEST") || t.includes("XLM-TEST")) return `https://stellar.expert/explorer/testnet/tx/${hash}`;
+    if (t.includes("XLM")) return `https://stellar.expert/explorer/public/tx/${hash}`;
+    return `https://solscan.io/tx/${hash}`;
+  };
+
+  const getExplorerLabel = (token: string) => {
+    const t = token.toUpperCase();
+    if (t.includes("SOL")) return "Solscan";
+    if (t.includes("SEP") || t.includes("BASE") || t.includes("ETH")) return "BaseScan";
+    if (t.includes("XLM")) return "Stellar Expert";
+    return "Explorer";
+  };
+
   const handleConfirmTransaction = async (pin: string) => {
     if (!pendingTransaction) return;
     setConfirmProcessing(true);
+    setConfirmError(null);
     try {
       if (pendingTransaction.type === "swap") {
         const res = await postSwap({ fromToken: pendingTransaction.fromToken, toToken: pendingTransaction.toToken, fromAmount: pendingTransaction.fromAmount, pin });
         setConfirmProcessing(false);
-        setConfirmOpen(false);
         const swapData = res.data;
         if (swapData && swapData.success) {
+          setConfirmOpen(false);
           const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && msg.transactionDetails?.label === "Swap Intent" ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Swap Complete! 🔄" } } : msg);
-          const finalMsgs: Message[] = [...updated, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! Your assets have been exchanged on Jupiter. [View on Solscan](https://solscan.io/tx/${swapData.hash})` }];
+          const explorerUrl = getExplorerUrl(pendingTransaction.fromToken, swapData.hash);
+          const explorerLabel = getExplorerLabel(pendingTransaction.fromToken);
+          const finalMsgs: Message[] = [...updated, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! Your assets have been exchanged on Jupiter. [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
           await putAiHistory(finalMsgs);
-        } else { alert(res.error || "Swap failed"); }
+        } else {
+          setConfirmError(res.error || "Swap failed");
+        }
       } else if (pendingTransaction.type === "transfer") {
         const res = await postTransfer({ to: pendingTransaction.recipient, amount: pendingTransaction.amount, token: pendingTransaction.token, pin });
         setConfirmProcessing(false);
-        setConfirmOpen(false);
         const transferData = res.data;
         if (transferData && transferData.success) {
+          setConfirmOpen(false);
           const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && (msg.transactionDetails?.label === "Transfer Intent" || msg.transactionDetails?.label === "Schedule Intent") ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Transaction Sent! ✅" } } : msg);
-          const finalMsgs: Message[] = [...updated, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! Your transaction has been recorded on the blockchain. [View on Solscan](https://solscan.io/tx/${transferData.hash})` }];
+          const explorerUrl = getExplorerUrl(pendingTransaction.token, transferData.hash);
+          const explorerLabel = getExplorerLabel(pendingTransaction.token);
+          const finalMsgs: Message[] = [...updated, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Transaction successful! [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
           await putAiHistory(finalMsgs);
-        } else { alert(res.error || "Transfer failed"); }
+        } else {
+          setConfirmError(res.error || "Transfer failed");
+        }
       }
-    } catch { setConfirmProcessing(false); alert("Network error while processing transaction"); }
+    } catch {
+      setConfirmProcessing(false);
+      setConfirmError("Network error while processing transaction");
+    }
   };
 
   const composerEl = (
@@ -609,6 +641,7 @@ export default function AiChat() {
           onOnrampInitiated={handleOnrampInitiated}
           onTransactionClick={(msg) => {
             if (msg.transactionParams) {
+              setConfirmError(null);
               if (msg.transactionParams.type === "onramp") {
                 setOnrampDraft({ amount: msg.transactionParams.amount, token: msg.transactionParams.token, currency: msg.transactionParams.currency });
                 setOnrampOpen(true);
@@ -647,7 +680,17 @@ export default function AiChat() {
             <div className="flex-1 min-h-0 flex flex-col h-full">
               {renderMain()}
             </div>
-            <TransactionConfirmDrawer open={confirmOpen} onOpenChange={setConfirmOpen} details={pendingTransaction} onConfirm={handleConfirmTransaction} processing={confirmProcessing} />
+            <TransactionConfirmDrawer
+              open={confirmOpen}
+              onOpenChange={(open) => {
+                setConfirmOpen(open);
+                if (!open) setConfirmError(null);
+              }}
+              details={pendingTransaction}
+              onConfirm={handleConfirmTransaction}
+              processing={confirmProcessing}
+              error={confirmError || undefined}
+            />
             <OnrampSheet open={onrampOpen} onOpenChange={setOnrampOpen} defaultAmount={onrampDraft?.amount} defaultToken={onrampDraft?.token} defaultCurrency={onrampDraft?.currency} />
             <OfframpSheet 
               open={offrampOpen} 

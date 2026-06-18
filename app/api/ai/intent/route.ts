@@ -91,13 +91,22 @@ export const POST = withAuth(async (req, { address }) => {
 
       Default to SOL if unclear.
       
+      TESTNETS & SUPPORTED TOKEN SYMBOLS:
+      We support Mainnet and Testnet environments. Select the appropriate network-specific token symbol based on the user's prompt (e.g. if they mention "devnet", "sepolia", or "testnet"):
+      - Solana Mainnet: "SOL", "USDC-SOL", "USDT-SOL"
+      - Solana Devnet: "SOL-DEV", "USDC-SOL-DEV"
+      - Base Mainnet: "ETH-BASE", "USDC-BASE", "USDT-BASE"
+      - Base Sepolia: "ETH-SEP", "USDC-SEP", "USDT-SEP"
+      - Stellar Mainnet: "XLM", "USDC-XLM"
+      - Stellar Testnet: "XLM-TEST", "USDC-XLM-TEST"
+
       SUPPORTED INTENTS & THEIR PARAMS:
 
       1. CHAT - General conversation or questions. No transaction.
          params: {}
 
       2. SEND_FUNDS - Transfer crypto to a recipient address.
-         params: { amount: string, token: string (e.g. "SOL", "USDC"), recipient: string }
+         params: { amount: string, token: string (use the exact supported symbol from the list above), recipient: string }
 
       3. SWAP_TOKEN - Swap one Solana token for another (Solana only via Jupiter).
          params: { fromToken: string, toToken: string, fromAmount: string }

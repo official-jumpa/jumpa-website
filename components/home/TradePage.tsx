@@ -83,7 +83,7 @@ export default function TradePage() {
     if (!balances) return "0.00";
     if (symbol === "SOL") return balances.balances.sol;
     if (symbol === "USDC") {
-       const usdc = balances.tokens.find(t => t.symbol === "USDC");
+       const usdc = balances.tokens.find(t => t.symbol === "USDC-SOL");
        return usdc ? usdc.balance : "0.00";
     }
     return "0.00";

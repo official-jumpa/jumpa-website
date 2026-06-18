@@ -25,24 +25,62 @@ const solDevnetConnection = new Connection("https://api.devnet.solana.com", "con
 const stellarPublic = new StellarSdk.Horizon.Server("https://horizon.stellar.org");
 const stellarTestnet = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
 
+const erc20Abi = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "balance", type: "uint256" }],
+  },
+] as const;
+
+// Token configurations
+const TOKENS_CONFIG = {
+  base: {
+    usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    usdt: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+  },
+  baseSepolia: {
+    usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    usdt: "0x323e78f944A9a1FcF3a10efcC5319DBb0bB6e673",
+  },
+  solana: {
+    usdc: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    usdt: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  },
+  solDevnet: {
+    usdc: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    usdt: "", // no standard faucet USDT
+  },
+  stellar: {
+    usdcCode: "USDC",
+    usdcIssuer: "GBBD7DY23W7RLSTQ27ADK33C34tMs6rrss2vtxf44RpBwMsA543c7B6c",
+  },
+  stellarTestnet: {
+    usdcCode: "USDC",
+    usdcIssuer: "GBFDCVPTQCACGEGKY65TT47MM2O2CGCWKIZVNZRA62Q7H66E264TNMIK",
+  },
+};
+
 const balanceCache: Record<string, { timestamp: number, data: any }> = {};
-const CACHE_TTL = 35 * 1000;
+const CACHE_TTL = 40 * 1000; //cache balances for 40 seconds
 
 /**
  * Executes a balance fetch promise generator with a timeout.
  * Catches all synchronous and asynchronous errors and returns the fallback.
  */
-async function safeFetchBalance(
-  fetchFn: () => Promise<string>,
+async function safeFetchBalance<T>(
+  fetchFn: () => Promise<T>,
   label: string,
-  fallback: string = "0.00"
-): Promise<string> {
+  fallback: T
+): Promise<T> {
   const timeoutMs = 4000;
   try {
     const promise = fetchFn();
     return await Promise.race([
       promise,
-      new Promise<string>((_, reject) =>
+      new Promise<T>((_, reject) =>
         setTimeout(() => reject(new Error(`Timeout on ${label}`)), timeoutMs)
       ),
     ]);
@@ -63,57 +101,207 @@ async function fetchWalletBalances(addresses: { base: string; sol: string; xlm: 
   const { base: baseAddr, sol: solAddr, xlm: xlmAddr } = addresses;
   console.log(`[Balance API] Querying on-chain balances. Base: ${baseAddr}, Solana: ${solAddr}, Stellar: ${xlmAddr}`);
 
-  // --- Base Balances ---
+  // --- Base Balances (Native) ---
   const baseBalancePromise = safeFetchBalance(
     () => baseClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
-    "Base Mainnet"
+    "Base Mainnet",
+    "0.00"
   );
   const baseSepoliaPromise = safeFetchBalance(
     () => baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
-    "Base Sepolia"
+    "Base Sepolia",
+    "0.00"
   );
     
-  // --- Solana Balances ---
+  // --- Base Balances (Tokens: USDC & USDT) ---
+  const baseUsdcPromise = safeFetchBalance(
+    () => baseClient.readContract({
+      address: TOKENS_CONFIG.base.usdc as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [baseAddr as `0x${string}`],
+    }).then(b => (Number(b) / 10 ** 6).toFixed(2)),
+    "Base USDC",
+    "0.00"
+  );
+  const baseUsdtPromise = safeFetchBalance(
+    () => baseClient.readContract({
+      address: TOKENS_CONFIG.base.usdt as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [baseAddr as `0x${string}`],
+    }).then(b => (Number(b) / 10 ** 6).toFixed(2)),
+    "Base USDT",
+    "0.00"
+  );
+  const baseSepoliaUsdcPromise = safeFetchBalance(
+    () => baseSepoliaClient.readContract({
+      address: TOKENS_CONFIG.baseSepolia.usdc as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [baseAddr as `0x${string}`],
+    }).then(b => (Number(b) / 10 ** 6).toFixed(2)),
+    "Base Sepolia USDC",
+    "0.00"
+  );
+  const baseSepoliaUsdtPromise = safeFetchBalance(
+    () => baseSepoliaClient.readContract({
+      address: TOKENS_CONFIG.baseSepolia.usdt as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [baseAddr as `0x${string}`],
+    }).then(b => (Number(b) / 10 ** 6).toFixed(2)),
+    "Base Sepolia USDT",
+    "0.00"
+  );
+
+  // --- Solana Balances (Native) ---
   const solPromise = solAddr
     ? safeFetchBalance(
         () => solMainnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
-        "Solana Mainnet"
+        "Solana Mainnet",
+        "0.00"
       )
     : Promise.resolve("0.00");
   const solDevPromise = solAddr
     ? safeFetchBalance(
         () => solDevnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
-        "Solana Devnet"
+        "Solana Devnet",
+        "0.00"
       )
     : Promise.resolve("0.00");
 
-  // --- Stellar Balances ---
-  const xlmPromise = xlmAddr
+  // --- Solana Balances (Tokens: USDC & USDT) ---
+  const solUsdcPromise = solAddr
     ? safeFetchBalance(
-        () => stellarPublic.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
-        "Stellar Mainnet"
+        () => solMainnetConnection.getParsedTokenAccountsByOwner(
+          new PublicKey(solAddr),
+          { mint: new PublicKey(TOKENS_CONFIG.solana.usdc) }
+        ).then(res => res.value[0]?.account.data.parsed.info.tokenAmount.uiAmountString || "0.00"),
+        "Solana USDC",
+        "0.00"
       )
     : Promise.resolve("0.00");
-  const xlmTestPromise = xlmAddr
+  const solUsdtPromise = solAddr
     ? safeFetchBalance(
-        () => stellarTestnet.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
-        "Stellar Testnet"
+        () => solMainnetConnection.getParsedTokenAccountsByOwner(
+          new PublicKey(solAddr),
+          { mint: new PublicKey(TOKENS_CONFIG.solana.usdt) }
+        ).then(res => res.value[0]?.account.data.parsed.info.tokenAmount.uiAmountString || "0.00"),
+        "Solana USDT",
+        "0.00"
+      )
+    : Promise.resolve("0.00");
+  const solDevUsdcPromise = solAddr
+    ? safeFetchBalance(
+        () => solDevnetConnection.getParsedTokenAccountsByOwner(
+          new PublicKey(solAddr),
+          { mint: new PublicKey(TOKENS_CONFIG.solDevnet.usdc) }
+        ).then(res => res.value[0]?.account.data.parsed.info.tokenAmount.uiAmountString || "0.00"),
+        "Solana Devnet USDC",
+        "0.00"
       )
     : Promise.resolve("0.00");
 
-  const [baseBal, baseSepBal, solBal, solDevBal, xlmBal, xlmTestBal] = await Promise.all([
-    baseBalancePromise, baseSepoliaPromise, solPromise, solDevPromise, xlmPromise, xlmTestPromise
+  // --- Stellar Balances (Native + USDC) ---
+  const stellarAccountPromise = xlmAddr
+    ? safeFetchBalance(
+        () => stellarPublic.loadAccount(xlmAddr).then(acc => {
+          const native = acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00";
+          const usdc = acc.balances.find((b: any) => b.asset_code === TOKENS_CONFIG.stellar.usdcCode && b.asset_issuer === TOKENS_CONFIG.stellar.usdcIssuer)?.balance || "0.00";
+          return { native, usdc };
+        }).catch(err => {
+          if (err?.response?.status === 404 || err?.message?.includes("Not Found")) {
+            return { native: "0.00", usdc: "0.00" };
+          }
+          throw err;
+        }),
+        "Stellar Mainnet Info",
+        { native: "0.00", usdc: "0.00" }
+      )
+    : Promise.resolve({ native: "0.00", usdc: "0.00" });
+
+  const stellarTestnetAccountPromise = xlmAddr
+    ? safeFetchBalance(
+        () => stellarTestnet.loadAccount(xlmAddr).then(acc => {
+          const native = acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00";
+          const usdc = acc.balances.find((b: any) => b.asset_code === TOKENS_CONFIG.stellarTestnet.usdcCode && b.asset_issuer === TOKENS_CONFIG.stellarTestnet.usdcIssuer)?.balance || "0.00";
+          return { native, usdc };
+        }).catch(err => {
+          if (err?.response?.status === 404 || err?.message?.includes("Not Found")) {
+            return { native: "0.00", usdc: "0.00" };
+          }
+          throw err;
+        }),
+        "Stellar Testnet Info",
+        { native: "0.00", usdc: "0.00" }
+      )
+    : Promise.resolve({ native: "0.00", usdc: "0.00" });
+
+  // --- Wait for all queries to finish ---
+  const [
+    baseBal,
+    baseSepBal,
+    baseUsdc,
+    baseUsdt,
+    baseSepUsdc,
+    baseSepUsdt,
+    solBal,
+    solDevBal,
+    solUsdc,
+    solUsdt,
+    solDevUsdc,
+    xlmInfo,
+    xlmTestInfo
+  ] = await Promise.all([
+    baseBalancePromise,
+    baseSepoliaPromise,
+    baseUsdcPromise,
+    baseUsdtPromise,
+    baseSepoliaUsdcPromise,
+    baseSepoliaUsdtPromise,
+    solPromise,
+    solDevPromise,
+    solUsdcPromise,
+    solUsdtPromise,
+    solDevUsdcPromise,
+    stellarAccountPromise,
+    stellarTestnetAccountPromise
   ]);
 
-  console.log(`[Balance API] On-chain query finished. Results: Base: ${baseBal}, Sepolia: ${baseSepBal}, Solana: ${solBal}, Devnet: ${solDevBal}, Stellar: ${xlmBal}, Testnet: ${xlmTestBal}`);
+  const xlmBal = xlmInfo.native;
+  const xlmUsdc = xlmInfo.usdc;
+  const xlmTestBal = xlmTestInfo.native;
+  const xlmTestUsdc = xlmTestInfo.usdc;
+
+  console.log(
+    `[Balance API] On-chain query finished. Results:\n` +
+    `  - Base (Address: ${baseAddr}): ETH: ${baseBal} | USDC: ${baseUsdc} | USDT: ${baseUsdt}\n` +
+    `  - Base Sepolia (Address: ${baseAddr}): ETH: ${baseSepBal} | USDC: ${baseSepUsdc} | USDT: ${baseSepUsdt}\n` +
+    `  - Solana (Address: ${solAddr}): SOL: ${solBal} | USDC: ${solUsdc} | USDT: ${solUsdt}\n` +
+    `  - Solana Devnet (Address: ${solAddr}): SOL: ${solDevBal} | USDC: ${solDevUsdc}\n` +
+    `  - Stellar (Address: ${xlmAddr}): XLM: ${xlmBal} | USDC: ${xlmUsdc}\n` +
+    `  - Stellar Testnet (Address: ${xlmAddr}): XLM: ${xlmTestBal} | USDC: ${xlmTestUsdc}`
+  );
 
   const tokens = [
     { symbol: "SOL", name: "Solana Mainnet", address: solAddr, balance: solBal, priceUsd: "150.00" },
-    { symbol: "SOL (Dev)", name: "Solana Devnet", address: solAddr, balance: solDevBal, priceUsd: "150.00" },
-    { symbol: "BASE", name: "Base Mainnet", address: baseAddr, balance: baseBal, priceUsd: "3540.21" },
-    { symbol: "ETH (Sep)", name: "Base Sepolia", address: baseAddr, balance: baseSepBal, priceUsd: "3540.21" },
+    { symbol: "SOL-DEV", name: "Solana Devnet", address: solAddr, balance: solDevBal, priceUsd: "150.00" },
+    { symbol: "ETH-BASE", name: "Base Mainnet", address: baseAddr, balance: baseBal, priceUsd: "3540.21" },
+    { symbol: "ETH-SEP", name: "Base Sepolia", address: baseAddr, balance: baseSepBal, priceUsd: "3540.21" },
     { symbol: "XLM", name: "Stellar", address: xlmAddr, balance: xlmBal, priceUsd: "0.12" },
-    { symbol: "XLM (Test)", name: "Stellar Testnet", address: xlmAddr, balance: xlmTestBal, priceUsd: "0.12" }
+    { symbol: "XLM-TEST", name: "Stellar Testnet", address: xlmAddr, balance: xlmTestBal, priceUsd: "0.12" },
+    
+    // Stablecoin Balances
+    { symbol: "USDC-SOL", name: "Solana USDC", address: solAddr, balance: solUsdc, priceUsd: "1.00" },
+    { symbol: "USDC-SOL-DEV", name: "Solana Devnet USDC", address: solAddr, balance: solDevUsdc, priceUsd: "1.00" },
+    { symbol: "USDT-SOL", name: "Solana USDT", address: solAddr, balance: solUsdt, priceUsd: "1.00" },
+    { symbol: "USDC-BASE", name: "Base USDC", address: baseAddr, balance: baseUsdc, priceUsd: "1.00" },
+    { symbol: "USDC-SEP", name: "Base Sepolia USDC", address: baseAddr, balance: baseSepUsdc, priceUsd: "1.00" },
+    { symbol: "USDT-BASE", name: "Base USDT", address: baseAddr, balance: baseUsdt, priceUsd: "1.00" },
+    { symbol: "USDT-SEP", name: "Base Sepolia USDT", address: baseAddr, balance: baseSepUsdt, priceUsd: "1.00" },
+    { symbol: "USDC-XLM", name: "Stellar USDC", address: xlmAddr, balance: xlmUsdc, priceUsd: "1.00" },
+    { symbol: "USDC-XLM-TEST", name: "Stellar Testnet USDC", address: xlmAddr, balance: xlmTestUsdc, priceUsd: "1.00" },
   ];
 
   return {
@@ -126,6 +314,16 @@ async function fetchWalletBalances(addresses: { base: string; sol: string; xlm: 
       solDevnet: solDevBal,
       xlm: xlmBal,
       xlmTestnet: xlmTestBal,
+      
+      baseUsdc,
+      baseUsdt,
+      baseSepoliaUsdc: baseSepUsdc,
+      baseSepoliaUsdt: baseSepUsdt,
+      solUsdc,
+      solUsdt,
+      solDevnetUsdc: solDevUsdc,
+      xlmUsdc,
+      xlmTestnetUsdc: xlmTestUsdc,
     },
     tokens,
   };

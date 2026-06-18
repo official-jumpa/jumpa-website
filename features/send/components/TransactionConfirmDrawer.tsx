@@ -3,6 +3,7 @@ import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 import SheetShell from "./sheet-shell";
 import { User, ArrowRight, ShieldCheck, Send } from "lucide-react";
 import PinSheet from "./pin-sheet";
+import { useHomeLayout } from "@/components/layouts/HomeLayout";
 
 export type TransactionDetails = 
   | {
@@ -24,6 +25,7 @@ type TransactionConfirmDrawerProps = {
   details: TransactionDetails | null;
   onConfirm: (pin: string) => void;
   processing?: boolean;
+  error?: string;
 };
 
 export default function TransactionConfirmDrawer({
@@ -32,10 +34,19 @@ export default function TransactionConfirmDrawer({
   details,
   onConfirm,
   processing = false,
+  error,
 }: TransactionConfirmDrawerProps) {
   const [showPin, setShowPin] = useState(false);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState("");
+
+  let activeWallet = null;
+  try {
+    const layout = useHomeLayout();
+    activeWallet = layout.activeWallet;
+  } catch {
+    // Fail-safe if loaded outside HomeLayout context
+  }
 
   if (!details) return null;
 
@@ -61,15 +72,33 @@ export default function TransactionConfirmDrawer({
   };
 
   const tokenSymbol = (details.type === 'transfer' ? details.token : details.fromToken).toUpperCase();
-  const networkLabel = tokenSymbol.includes('SOL') 
-    ? 'Solana' 
-    : tokenSymbol.includes('XLM') 
-    ? 'Stellar' 
+  const networkLabel = tokenSymbol.includes('SOL-DEV')
+    ? 'Solana Devnet'
+    : tokenSymbol.includes('SOL')
+    ? 'Solana Mainnet'
+    : tokenSymbol.includes('ETH-SEP') || tokenSymbol.includes('USDC-SEP') || tokenSymbol.includes('USDT-SEP')
+    ? 'Base Sepolia'
     : tokenSymbol.includes('BASE') || tokenSymbol.includes('ETH')
-    ? 'Base Chain' 
+    ? 'Base Mainnet'
+    : tokenSymbol.includes('XLM-TEST') || tokenSymbol.includes('USDC-XLM-TEST')
+    ? 'Stellar Testnet'
+    : tokenSymbol.includes('XLM') || tokenSymbol.includes('USDC-XLM')
+    ? 'Stellar Mainnet'
     : 'Multi-Chain';
 
   const isSwap = details.type === 'swap';
+
+  const getFromAddress = () => {
+    if (!activeWallet) return "Loading...";
+    const tSymbol = tokenSymbol.toUpperCase();
+    if (tSymbol.includes("SOL")) return activeWallet.addresses?.sol || activeWallet.address;
+    if (tSymbol.includes("XLM")) return activeWallet.addresses?.xlm || activeWallet.address;
+    return activeWallet.addresses?.base || activeWallet.addresses?.eth || activeWallet.address;
+  };
+  const fromAddress = getFromAddress();
+  const truncatedFrom = fromAddress && fromAddress !== "Loading..."
+    ? `${fromAddress.slice(0, 6)}...${fromAddress.slice(-4)}`
+    : fromAddress;
 
   return (
     <>
@@ -129,7 +158,21 @@ export default function TransactionConfirmDrawer({
 
             {/* Details List */}
             <div className="bg-[#121216]/60 border border-white/5 rounded-2xl p-4 space-y-4">
+              {/* From Row */}
               <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-800/80 flex items-center justify-center border border-white/5 text-zinc-400">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm text-zinc-400">From</span>
+                </div>
+                <span className="font-mono text-[11px] text-zinc-300 bg-black/40 border border-white/5 px-2.5 py-1.5 rounded-lg select-all text-right leading-tight max-w-[190px]">
+                  {truncatedFrom}
+                </span>
+              </div>
+
+              {/* Recipient Row */}
+              <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-4">
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="w-8 h-8 rounded-xl bg-zinc-800/80 flex items-center justify-center border border-white/5 text-zinc-400">
                     <User className="w-4 h-4" />
@@ -157,18 +200,25 @@ export default function TransactionConfirmDrawer({
                   <span className="text-sm text-zinc-400">Network</span>
                 </div>
                 <span className={`text-[10px] font-bold tracking-wide uppercase px-2.5 py-1 rounded-md border ${
-                  networkLabel === 'Solana' 
-                    ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
-                    : networkLabel === 'Stellar'
-                    ? 'bg-sky-500/10 text-sky-300 border-sky-500/20'
-                    : networkLabel === 'Base Chain'
-                    ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
-                    : 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20'
-                }`}>
+                networkLabel.includes('Solana') 
+                  ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
+                  : networkLabel.includes('Stellar')
+                  ? 'bg-sky-500/10 text-sky-300 border-sky-500/20'
+                  : networkLabel.includes('Base')
+                  ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+                  : 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20'
+              }`}>
                   {networkLabel}
                 </span>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-[#ef4444] text-center font-medium animate-[fadeIn_0.15s_ease_forwards] wrap-break-word">
+                {error}
+              </div>
+            )}
           </div>
 
           {/* Action Footer (Sticky at bottom of drawer) */}

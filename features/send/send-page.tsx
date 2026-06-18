@@ -84,7 +84,7 @@ export default function SendPage() {
         if (newTokens.length > 0) {
           const state = location.state as any;
           const targetSymbol = state?.params?.token?.toUpperCase();
-          const found = newTokens.find(t => t.symbol === targetSymbol);
+          const found = targetSymbol ? newTokens.find(t => t.symbol.toUpperCase() === targetSymbol || t.symbol.toUpperCase().startsWith(targetSymbol + "-")) : null;
           setToken((found || newTokens[0]) as any);
         }
       }
