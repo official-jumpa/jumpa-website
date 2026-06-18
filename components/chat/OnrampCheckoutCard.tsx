@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { type Message } from "./chat-types";
 import { TextWithLinks } from "./TransactionIntentCard";
 import { Copy, Loader2, Wallet, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { useHomeLayout } from "@/components/layouts/HomeLayout";
 
 type CheckState = "idle" | "checking" | "confirmed" | "pending" | "failed";
 
@@ -14,6 +15,8 @@ export function BuyCryptoBlock({
   disabled?: boolean;
   onInitiated?: (reference: string, deposit: any) => void;
 }) {
+  const { balances } = useHomeLayout();
+
   // Restore from persisted transactionParams if already initiated before reload
   const persistedReference: string = msg.transactionParams?.reference || "";
   const persistedDeposit: any = msg.transactionParams?.depositData || null;
@@ -37,6 +40,11 @@ export function BuyCryptoBlock({
   const amount = msg.transactionParams?.amount || "0";
   const rawToken = msg.transactionParams?.token || "solana:usdc";
   const rawCurrency = msg.transactionParams?.currency || "NGN";
+
+  const chain = rawToken.split(":")[0];
+  const symbolKey = chain === "solana" ? "sol" : chain === "stellar" ? "xlm" : "base";
+  const userAddress = balances?.addresses?.[symbolKey as keyof typeof balances.addresses] || "";
+
 
   // If currency is not NGN, the user specified a stablecoin/dollar amount → exact output mode
   const exactOutput = rawCurrency !== "NGN";
@@ -277,6 +285,16 @@ export function BuyCryptoBlock({
             </div>
           </div>
 
+          {/* User Address */}
+          {userAddress && (
+            <div className="flex flex-col gap-1 border-t border-white/5 pt-3">
+              <span className="text-[#909090] text-[10px] uppercase tracking-wider font-semibold">Receiving Wallet Address</span>
+              <div className="break-all font-mono text-[10px] bg-black/40 border border-white/5 p-2.5 rounded-lg text-[#d4d4d8] leading-[1.4] select-text">
+                {userAddress}
+              </div>
+            </div>
+          )}
+
           {/* Status feedback */}
           {checkState === "pending" && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2">
@@ -338,7 +356,7 @@ export function BuyCryptoBlock({
 
       <div className="w-full self-start max-w-[324px] bg-[#161616] rounded-2xl p-5 box-border mt-2 flex flex-col gap-4 border border-white/5 shadow-2xl">
         <div className="flex items-center justify-between">
-          <span className="text-[#d5d5d5] text-xs font-semibold uppercase tracking-wider">Buy Crypto</span>
+          <span className="text-[#d5d5d5] text-xs font-semibold uppercase tracking-wider">Buy Asset</span>
           <div className="flex items-center gap-1 bg-[#222] px-3 py-1 rounded-full border border-white/5">
             <span className="text-[#d5d5d5] text-[10px] font-bold">{tokenLabel}</span>
           </div>
@@ -387,6 +405,14 @@ export function BuyCryptoBlock({
                 <span className="text-[#909090] text-xs font-medium">Settlement</span>
                 <span className="text-emerald-400 text-xs font-bold">Instant Payout</span>
               </div>
+              {userAddress && (
+                <div className="flex flex-col gap-1 mt-2 border-t border-white/5 pt-2">
+                  <span className="text-[#909090] text-[10px] uppercase tracking-wider font-semibold">Receiving Wallet Address</span>
+                  <div className="break-all font-mono text-[10px] bg-black/40 border border-white/5 p-2.5 rounded-lg text-[#d4d4d8] leading-[1.4] select-text">
+                    {userAddress}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : null}

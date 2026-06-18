@@ -53,7 +53,7 @@ const ASSET_CONFIG: Record<string, any> = {
 
 export const POST = withAuth(async (req, { address }) => {
   try {
-    const { amount, asset, beneficiary, pin } = await req.json();
+    const { amount, asset, beneficiary, pin, exact_output = false } = await req.json();
 
     if (!amount || !asset || !beneficiary || !pin) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -148,7 +148,7 @@ export const POST = withAuth(async (req, { address }) => {
     }
 
     // 2. Initiate Offramp with Switch
-    const initiateRes = await SwitchService.initiateOfframp(Number(amount), asset, beneficiary);
+    const initiateRes = await SwitchService.initiateOfframp(Number(amount), asset, beneficiary, exact_output);
     if (!initiateRes.success || !initiateRes.data) {
       return NextResponse.json({ error: initiateRes.message || "Switch initiation failed" }, { status: 400 });
     }

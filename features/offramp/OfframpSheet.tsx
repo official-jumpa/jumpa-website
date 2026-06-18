@@ -16,14 +16,33 @@ type OfframpSheetProps = {
   onOpenChange: (open: boolean) => void;
   defaultAmount?: string;
   defaultToken?: string;
+  defaultCurrency?: string;
+  defaultBankCode?: string;
+  defaultAccountNumber?: string;
+  defaultAccountName?: string;
+  onBeneficiaryChange?: (bankCode: string, accountNumber: string, accountName: string) => void;
 };
 
-export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaultToken }: OfframpSheetProps) {
-  const [amount, setAmount] = useState(defaultAmount || "");
-  const [asset, setAsset] = useState(defaultToken || "solana:usdc");
+export default function OfframpSheet({ 
+  open, 
+  onOpenChange, 
+  defaultAmount, 
+  defaultToken,
+  defaultCurrency,
+  defaultBankCode,
+  defaultAccountNumber,
+  defaultAccountName,
+  onBeneficiaryChange
+}: OfframpSheetProps) {
+  const [amount, setAmount] = useState("");
+  const [asset, setAsset] = useState("solana:usdc");
   
   const [bankCode, setBankCode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+
+  const [resolvedAccountName, setResolvedAccountName] = useState("");
+  const [resolvingAccount, setResolvingAccount] = useState(false);
+  const [resolveError, setResolveError] = useState("");
 
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [fetchingQuote, setFetchingQuote] = useState(false);
@@ -39,11 +58,16 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
   const [txReference, setTxReference] = useState("");
   const [pollingStatus, setPollingStatus] = useState("PROCESSING");
 
+  const isExactOutput = defaultCurrency === "NGN";
+
   useEffect(() => {
     if (!open) {
       setAmount("");
       setBankCode("");
       setAccountNumber("");
+      setResolvedAccountName("");
+      setResolvingAccount(false);
+      setResolveError("");
       setQuote(null);
       setQuoteError("");
       setInitError("");
@@ -52,10 +76,67 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
       setPin("");
       setTxReference("");
       setPollingStatus("PROCESSING");
-    } else if (defaultAmount) {
-      setAmount(defaultAmount);
+    } else {
+      setAmount(defaultAmount || "");
+      setAsset(defaultToken || "solana:usdc");
+      setBankCode(defaultBankCode || "");
+      setAccountNumber(defaultAccountNumber || "");
+      setResolvedAccountName(defaultAccountName || "");
+      setResolvingAccount(false);
+      setResolveError("");
     }
-  }, [open, defaultAmount]);
+  }, [open, defaultAmount, defaultToken, defaultBankCode, defaultAccountNumber, defaultAccountName]);
+
+  useEffect(() => {
+    if (bankCode && accountNumber.length === 10) {
+      if (bankCode === defaultBankCode && accountNumber === defaultAccountNumber && defaultAccountName) {
+        setResolvedAccountName(defaultAccountName);
+        setResolveError("");
+        return;
+      }
+
+      let active = true;
+      const resolve = async () => {
+        setResolvingAccount(true);
+        setResolveError("");
+        setResolvedAccountName("");
+        try {
+          const res = await fetch("/api/offramp/resolve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bankCode, accountNumber }),
+          });
+          const data = await res.json();
+          if (!active) return;
+          if (data.success && data.accountName) {
+            setResolvedAccountName(data.accountName);
+            onBeneficiaryChange?.(bankCode, accountNumber, data.accountName);
+          } else {
+            setResolveError(data.error || "Could not resolve account name");
+            onBeneficiaryChange?.(bankCode, accountNumber, "");
+          }
+        } catch (err) {
+          if (!active) return;
+          setResolveError("Verification failed");
+          onBeneficiaryChange?.(bankCode, accountNumber, "");
+        } finally {
+          if (active) setResolvingAccount(false);
+        }
+      };
+
+      const timer = setTimeout(() => {
+        resolve();
+      }, 500);
+
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
+    } else {
+      setResolvedAccountName("");
+      setResolveError("");
+    }
+  }, [bankCode, accountNumber, defaultBankCode, defaultAccountNumber, defaultAccountName]);
 
   const fetchQuote = async (val: string) => {
     if (!val || isNaN(Number(val))) return;
@@ -65,7 +146,7 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
       const res = await fetch("/api/offramp/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Number(val), asset, exact_output: false }),
+        body: JSON.stringify({ amount: Number(val), asset, exact_output: isExactOutput }),
       });
       const data = await res.json();
       if (data.success) {
@@ -118,12 +199,13 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
           asset,
           beneficiary: {
             holder_type: "INDIVIDUAL",
-            holder_name: "Jumpa User", // We will refine this later if needed
+            holder_name: resolvedAccountName || defaultAccountName || "Jumpa",
             account_number: accountNumber,
             bank_code: bankCode,
             bank_name: selectedBank?.name || ""
           },
-          pin
+          pin,
+          exact_output: isExactOutput
         }),
       });
       const data = await res.json();
@@ -167,6 +249,8 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
     return () => clearInterval(interval);
   }, [showSuccess, txReference]);
 
+  const selectedBankName = supportedBanks.find(b => b.code === bankCode)?.name || "";
+
   return (
     <>
       <SheetShell open={open} onOpenChange={onOpenChange} title="Sell Asset">
@@ -177,19 +261,24 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
                 <div className="space-y-4">
                   {/* Amount Input */}
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                    <label className="text-zinc-500 text-xs font-medium mb-2 block">You Sell</label>
+                    <label className="text-zinc-500 text-xs font-medium mb-2 block">
+                      {isExactOutput ? "Amount to send to beneficiary" : "You Sell"}
+                    </label>
                     <div className="flex items-center justify-between">
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="bg-transparent text-3xl font-bold text-white outline-none w-[60%]"
-                      />
+                      <div className="flex items-center gap-1">
+                        {isExactOutput && <span className="text-white text-3xl font-bold font-mono">₦</span>}
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          className="bg-transparent text-3xl font-bold text-white outline-none w-full"
+                        />
+                      </div>
                       <select
                         value={asset}
                         onChange={(e) => setAsset(e.target.value)}
-                        className="bg-zinc-800 text-white text-sm rounded-xl px-3 py-2 outline-none border border-zinc-700"
+                        className="bg-zinc-800 text-white text-sm rounded-xl px-3 py-2 outline-none border border-zinc-700 shrink-0"
                       >
                         <option value="solana:usdc">USDC (Solana)</option>
                         <option value="solana:usdt">USDT (Solana)</option>
@@ -210,10 +299,19 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
                           <span className="text-zinc-400">Exchange Rate</span>
                           <span className="text-white">1 USD ≈ ₦{quote.rate.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-400">You Receive</span>
-                          <span className="text-emerald-400 font-bold text-lg">₦{quote.destination.amount.toLocaleString()}</span>
-                        </div>
+                        {isExactOutput ? (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-zinc-400">Total cost</span>
+                            <span className="text-violet-400 font-bold text-lg">
+                              {quote.source?.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.split(":")[1]?.toUpperCase()}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-zinc-400">You Receive</span>
+                            <span className="text-emerald-400 font-bold text-lg">₦{quote.destination.amount.toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-zinc-500 text-sm text-center">Enter amount to see quote</div>
@@ -226,7 +324,11 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
                       <label className="text-zinc-500 text-xs font-medium mb-2 block">Bank Name</label>
                       <select
                         value={bankCode}
-                        onChange={(e) => setBankCode(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setBankCode(val);
+                          onBeneficiaryChange?.(val, accountNumber, val === defaultBankCode && accountNumber === defaultAccountNumber ? (defaultAccountName || "") : "");
+                        }}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white outline-none"
                       >
                         <option value="">Select a Bank...</option>
@@ -242,10 +344,37 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
                         maxLength={10}
                         placeholder="0123456789"
                         value={accountNumber}
-                        onChange={(e) => setAccountNumber(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setAccountNumber(val);
+                          onBeneficiaryChange?.(bankCode, val, bankCode === defaultBankCode && val === defaultAccountNumber ? (defaultAccountName || "") : "");
+                        }}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white outline-none font-medium tracking-widest placeholder:tracking-normal"
                       />
                     </div>
+                    {resolvingAccount && (
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 text-zinc-400 animate-spin shrink-0" />
+                        <span className="text-zinc-400 text-xs font-medium">Resolving account name...</span>
+                      </div>
+                    )}
+                    {resolveError && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-red-400 text-xs font-medium m-0">{resolveError}</p>
+                        </div>
+                      </div>
+                    )}
+                    {resolvedAccountName && (
+                      <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 flex items-start gap-2 animate-in fade-in duration-200">
+                        <CheckCircle2 className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider m-0">Account Holder Name</p>
+                          <p className="text-white font-bold text-sm m-0 mt-0.5">{resolvedAccountName}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {initError && (
@@ -259,7 +388,7 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
               {/* Action Footer */}
               <div className="sticky bottom-0 pt-4 pb-4 bg-[#16171d]/50 backdrop-blur-sm px-1 border-t border-white/5 mt-auto shrink-0">
                 <button
-                  disabled={!quote || !bankCode || accountNumber.length < 10 || initiating || fetchingQuote}
+                  disabled={!quote || !bankCode || accountNumber.length < 10 || initiating || fetchingQuote || resolvingAccount || !!resolveError}
                   onClick={() => setShowPin(true)}
                   className="w-full h-[60px] rounded-2xl bg-violet-500 text-white font-bold flex items-center justify-center gap-2 hover:bg-violet-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(16,185,129,0.3)]"
                 >
@@ -287,7 +416,9 @@ export default function OfframpSheet({ open, onOpenChange, defaultAmount, defaul
                   ? "Your withdrawal has been processed and bank transfer completed." 
                   : pollingStatus === "FAILED" || pollingStatus === "CANCELLED" || pollingStatus === "REFUNDED" 
                     ? "Bridge settlement failed. Please contact support." 
-                    : `Your ${amount} asset is being sent securely. You will receive the Naira in your bank account shortly.`}
+                    : isExactOutput
+                      ? `Your withdrawal of ₦${Number(amount).toLocaleString()} is being processed. You will receive the Naira in your bank account shortly.`
+                      : `Your ${amount} asset is being sent securely. You will receive the Naira in your bank account shortly.`}
               </p>
               <button
                 onClick={() => onOpenChange(false)}

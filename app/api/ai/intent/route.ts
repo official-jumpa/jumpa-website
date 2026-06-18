@@ -9,6 +9,7 @@ import { createPublicClient, http, formatEther } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import * as StellarSdk from "@stellar/stellar-sdk";
+import { findPaystackBank, validateAccountNumber } from "@/lib/paystack";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
@@ -111,8 +112,16 @@ export const POST = withAuth(async (req, { address }) => {
          - If user says "base wallet" or "base", prefer base: tokens. If "solana wallet" or "solana", prefer solana: tokens.
          params: { amount: string, token: string, currency: string }
 
-      5. OFFRAMP_CRYPTO - Convert stablecoins in the user's wallet to Naira via bank transfer.
-         params: { amount: string, token: string (e.g. "solana:usdc", "base:usdc") }
+      5. OFFRAMP_CRYPTO - Convert stablecoins in the user's wallet to Naira via bank transfer (offramp/withdrawal).
+         CRITICAL PARAM RULES:
+         - If the user specifies a NAIRA / NGN amount (e.g. "send 2000naira to bank", "withdraw 5k naira"):
+             → set currency = "NGN", amount = the naira number (e.g. "2000")
+         - If the user specifies a DOLLAR or STABLECOIN amount (e.g. "convert $20 to naira", "offramp 50 USDC"):
+             → set currency = the stablecoin ticker (e.g. "USDC" or "USDT"), amount = the stablecoin quantity (e.g. "20")
+         - token: must be a valid asset identifier, e.g., "solana:usdc" or "base:usdc". Choose based on user's live balances (if they have base-eth and base balances, base:usdc, otherwise solana:usdc).
+         - bankName: extract the destination Nigerian bank name if mentioned (e.g. "opay", "gtbank", "zenith", "kuda")
+         - accountNumber: extract the 10-digit destination bank account number if mentioned (e.g. "80808080")
+         params: { amount: string, token: string, currency: string, bankName?: string, accountNumber?: string }
 
       RESPONSE FORMAT (MUST BE VALID JSON):
       {
@@ -126,7 +135,8 @@ export const POST = withAuth(async (req, { address }) => {
       - Be warm, natural, and conversational — like a knowledgeable friend, not a customer service script.
       - Never use emojis. No emoji characters of any kind in any response.
       - Keep responses concise. Avoid filler phrases like "Got it!", "Sure!", "Absolutely!" or "Of course!".
-      - If responding to an ONRAMP_CRYPTO intent, briefly confirm what you understood and mention they can adjust the amount, network or asset before confirming.
+      - If responding to an ONRAMP_CRYPTO or OFFRAMP_CRYPTO intent, briefly confirm what you understood.
+      - Advise the user in the assistant's message that they can switch networks or assets directly inside the transaction box. Keep it friendly and concise.
       - If the user asked for a dollar/stablecoin amount, NEVER mention a Naira amount in your message — the system calculates the Naira equivalent automatically from the live rate.
     `;
 
@@ -214,7 +224,7 @@ export const POST = withAuth(async (req, { address }) => {
         currency: String(aiResponse.params.currency || "NGN")
       };
       transactionDetails = {
-        label: "Buy Crypto Request",
+        label: "Buy Asset",
         title: "Onramp Transaction",
         sent: aiResponse.params.currency && aiResponse.params.currency !== "NGN"
           ? `Crypto: ${aiResponse.params.amount} ${aiResponse.params.currency}`
@@ -223,19 +233,70 @@ export const POST = withAuth(async (req, { address }) => {
         result: "Tap to review or change the amount"
       };
     } else if (aiResponse.intent === "OFFRAMP_CRYPTO") {
+      const bankNameInput = aiResponse.params.bankName;
+      const accountNumInput = aiResponse.params.accountNumber;
+      let resolvedBank = null;
+      let resolvedName = "";
+
+      if (bankNameInput && accountNumInput) {
+        if (!process.env.PAYSTACK_BEARER_KEY) {
+          throw new Error("PAYSTACK_BEARER_KEY environment variable is missing in the configuration");
+        }
+
+        resolvedBank = findPaystackBank(bankNameInput);
+        if (resolvedBank) {
+          const validation = await validateAccountNumber(accountNumInput, resolvedBank.code);
+          if (validation && validation.status && validation.data) {
+            resolvedName = validation.data.account_name;
+          } else {
+            return NextResponse.json({ 
+              error: `Bank account validation failed: Could not resolve account name for number ${accountNumInput} at ${resolvedBank.name}.` 
+            }, { status: 400 });
+          }
+        } else {
+          return NextResponse.json({ 
+            error: `Bank verification failed: Could not recognize bank "${bankNameInput}". Please check the spelling.` 
+          }, { status: 400 });
+        }
+      }
+
       isTransaction = true;
+      const fallbackToken = prompt.toLowerCase().includes("base") ? "base:usdc" : "solana:usdc";
+      const targetToken = String(aiResponse.params.token || fallbackToken);
+      const currency = String(aiResponse.params.currency || "USD");
+
       transactionParams = {
         type: "offramp",
         amount: String(aiResponse.params.amount || ""),
-        token: String(aiResponse.params.token || "solana:usdc")
+        token: targetToken,
+        currency,
+        bankName: resolvedBank ? resolvedBank.name : "",
+        bankCode: resolvedBank ? resolvedBank.code : "",
+        accountNumber: accountNumInput || "",
+        accountName: resolvedName
       };
+
+      const isNgn = currency === "NGN";
+      const displaySent = isNgn
+        ? `Amount: ₦${Number(aiResponse.params.amount).toLocaleString()}`
+        : `Selling: ${aiResponse.params.amount} ${targetToken.split(":")[1]?.toUpperCase()}`;
+      
+      const bankNameDisplay = resolvedBank ? (resolvedBank as any).name : (bankNameInput || "Bank");
+      const displayTo = accountNumInput
+        ? `To: ${resolvedName ? resolvedName + " (" + bankNameDisplay + ")" : bankNameDisplay} - ${accountNumInput}`
+        : "To: Naira (Bank)";
+
       transactionDetails = {
-        label: "Sell Crypto Request",
+        label: "Sell Asset",
         title: "Offramp Transaction",
-        sent: `Selling: ${aiResponse.params.amount} ${aiResponse.params.token.toUpperCase()}`,
-        to: "Receive: Naira (Bank)",
-        result: "Tap to enter bank details and withdraw"
+        sent: displaySent,
+        to: displayTo,
+        result: accountNumInput ? "Tap to confirm withdrawal" : "Tap to enter bank details and withdraw"
       };
+
+      if (resolvedName && resolvedBank) {
+        aiResponse.message = `I have validated your bank details. I can help you withdraw ${isNgn ? "₦" + Number(aiResponse.params.amount).toLocaleString() : aiResponse.params.amount + " USDC"} to ${resolvedName} (${(resolvedBank as any).name} - ${accountNumInput}). Please note that you can switch networks or assets directly inside the transaction box.`;
+      }
     }
 
     const assistantMsg = {

@@ -7,10 +7,12 @@ import {
   useCallback,
 } from "react";
 import { getAiHistory, postAiIntent, postTransfer, postSwap, putAiHistory } from "@/lib/api";
+import { useHomeLayout } from "@/components/layouts/HomeLayout";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
 import OnrampSheet from "@/features/onramp/OnrampSheet";
 import OfframpSheet from "@/features/offramp/OfframpSheet";
+import { supportedBanks } from "@/lib/constants/banks";
 import {
   type Screen,
   type VoiceFlow,
@@ -147,9 +149,46 @@ export default function GroupAiChat() {
   const [onrampOpen, setOnrampOpen] = useState(false);
   const [onrampDraft, setOnrampDraft] = useState<{ amount: string; token: string; currency: string } | null>(null);
   const [offrampOpen, setOfframpOpen] = useState(false);
-  const [offrampDraft, setOfframpDraft] = useState<{ amount: string; token: string } | null>(null);
+  const [offrampDraft, setOfframpDraft] = useState<{ 
+    amount: string; 
+    token: string; 
+    currency?: string;
+    bankName?: string;
+    bankCode?: string;
+    accountNumber?: string;
+    accountName?: string;
+  } | null>(null);
+  const [activeOfframpMsgId, setActiveOfframpMsgId] = useState<string | null>(null);
+
+  const { balances } = useHomeLayout();
+  const walletAddresses = balances?.addresses || null;
 
   const [messages, setMessages] = useState<Message[]>([]);
+
+  const pendingHistoryUpdateRef = useRef<NodeJS.Timeout | null>(null);
+  const latestMessagesRef = useRef<Message[]>([]);
+
+  useEffect(() => {
+    latestMessagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingHistoryUpdateRef.current) {
+        clearTimeout(pendingHistoryUpdateRef.current);
+      }
+    };
+  }, []);
+
+  const debouncedPutHistory = useCallback(() => {
+    if (pendingHistoryUpdateRef.current) {
+      clearTimeout(pendingHistoryUpdateRef.current);
+    }
+    pendingHistoryUpdateRef.current = setTimeout(() => {
+      putAiHistory(latestMessagesRef.current).catch((e) => console.error("[GroupAiChat] Failed to persist updates:", e));
+      pendingHistoryUpdateRef.current = null;
+    }, 1000);
+  }, []);
   const [showTyping, setShowTyping] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [voiceFlow, setVoiceFlow] = useState<VoiceFlow>("none");
@@ -279,6 +318,59 @@ export default function GroupAiChat() {
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
+  const handleOfframpBeneficiaryChange = useCallback((bankCode: string, accountNumber: string, accountName: string) => {
+    const selectedBank = supportedBanks.find(b => b.code === bankCode);
+    const bankName = selectedBank ? selectedBank.name : "";
+
+    setOfframpDraft((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        bankCode,
+        bankName,
+        accountNumber,
+        accountName,
+      };
+    });
+
+    if (activeOfframpMsgId) {
+      setMessages((prev) => {
+        const updated = prev.map((m) => {
+          if (m.id !== activeOfframpMsgId) return m;
+          const params = {
+            ...m.transactionParams,
+            bankCode,
+            bankName,
+            accountNumber,
+            accountName,
+          };
+          const isNgn = params.currency === "NGN";
+          const displaySent = isNgn
+            ? `Amount: ₦${Number(params.amount).toLocaleString()}`
+            : `Selling: ${params.amount} ${params.token.split(":")[1]?.toUpperCase()}`;
+          const displayTo = accountNumber
+            ? `To: ${accountName ? accountName + " (" + bankName + ")" : bankName} - ${accountNumber}`
+            : "To: Naira (Bank)";
+
+          return {
+            ...m,
+            transactionParams: params,
+            transactionDetails: {
+              ...m.transactionDetails,
+              sent: displaySent,
+              to: displayTo,
+              result: accountNumber ? "Tap to confirm withdrawal" : "Tap to enter bank details and withdraw",
+            },
+          } as Message;
+        });
+
+        // Debounced persist to backend
+        debouncedPutHistory();
+        return updated;
+      });
+    }
+  }, [activeOfframpMsgId, debouncedPutHistory]);
+
   // Persist reference + deposit data back into the message after onramp initiation
   const handleOnrampInitiated = useCallback(async (msgId: string, reference: string, deposit: any) => {
     setMessages((prev) => {
@@ -342,15 +434,63 @@ export default function GroupAiChat() {
           setPendingTransaction(aiMsg.transactionParams);
         } else if (res.data.intent === "ONRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
-          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc"), currency: String(res.data.params.currency || "NGN") };
-          aiMsg.transactionDetails = { label: "Buy Crypto Request", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${res.data.params.token}`, result: "Tap to review or change the amount" };
+          const targetToken = String(res.data.params.token || "solana:usdc");
+          aiMsg.transactionParams = { type: "onramp", amount: String(res.data.params.amount || ""), token: targetToken, currency: String(res.data.params.currency || "NGN") };
+          aiMsg.transactionDetails = { label: "Buy Asset", title: "Onramp Transaction", sent: res.data.params.currency && res.data.params.currency !== "NGN" ? `Crypto: ${res.data.params.amount} ${res.data.params.currency}` : `Spend: ${res.data.params.amount ? "₦" + res.data.params.amount : "₦0"}`, to: `Receive: ${targetToken}`, result: "Tap to review or change the amount" };
+
+          const chain = targetToken.split(":")[0];
+          const symbolKey = chain === "solana" ? "sol" : chain === "stellar" ? "xlm" : "base";
+          const userAddress = walletAddresses?.[symbolKey as keyof typeof walletAddresses] || "";
+          if (userAddress) {
+            aiMsg.text = aiMsg.text + `\n\nReceiving Wallet Address: ${userAddress}`;
+          }
         } else if (res.data.intent === "OFFRAMP_CRYPTO") {
           aiMsg.isTransaction = true;
-          aiMsg.transactionParams = { type: "offramp", amount: String(res.data.params.amount || ""), token: String(res.data.params.token || "solana:usdc") };
-          aiMsg.transactionDetails = { label: "Sell Crypto Request", title: "Offramp Transaction", sent: `Selling: ${res.data.params.amount} ${res.data.params.token.toUpperCase()}`, to: "Receive: Naira (Bank)", result: "Tap to enter bank details and withdraw" };
+          const fallbackToken = t.toLowerCase().includes("base") ? "base:usdc" : "solana:usdc";
+          const targetToken = String(res.data.params.token || fallbackToken);
+          
+          const bankName = res.data.params.bankName || "";
+          const bankCode = res.data.params.bankCode || "";
+          const accountNumber = res.data.params.accountNumber || "";
+          const accountName = res.data.params.accountName || "";
+          const currency = res.data.params.currency || "USD";
+
+          aiMsg.transactionParams = { 
+            type: "offramp", 
+            amount: String(res.data.params.amount || ""), 
+            token: targetToken,
+            currency,
+            bankName,
+            bankCode,
+            accountNumber,
+            accountName
+          };
+
+          const isNgn = currency === "NGN";
+          const displaySent = isNgn
+            ? `Amount: ₦${Number(res.data.params.amount).toLocaleString()}`
+            : `Selling: ${res.data.params.amount} ${targetToken.split(":")[1]?.toUpperCase()}`;
+          const displayTo = accountNumber
+            ? `To: ${accountName ? accountName + " (" + bankName + ")" : bankName} - ${accountNumber}`
+            : "To: Naira (Bank)";
+
+          aiMsg.transactionDetails = { 
+            label: "Sell Asset", 
+            title: "Offramp Transaction", 
+            sent: displaySent, 
+            to: displayTo, 
+            result: accountNumber ? "Tap to confirm withdrawal" : "Tap to enter bank details and withdraw" 
+          };
+          const chain = targetToken.split(":")[0];
+          const symbolKey = chain === "solana" ? "sol" : chain === "stellar" ? "xlm" : "base";
+          const userAddress = walletAddresses?.[symbolKey as keyof typeof walletAddresses] || "";
+          if (userAddress) {
+            aiMsg.text = aiMsg.text + `\n\nSource Wallet Address: ${userAddress}`;
+          }
         }
 
         setMessages((prev) => [...prev, aiMsg]);
+        debouncedPutHistory();
       } else {
         setMessages((prev) => [...prev, { id: `err-${Date.now()}`, role: "ai", text: res.error || "Sorry, I encountered an error. Please try again." }]);
       }
@@ -358,12 +498,7 @@ export default function GroupAiChat() {
       setShowTyping(false);
       setMessages((prev) => [...prev, { id: `err-${Date.now()}`, role: "ai", text: "Network error. Please check your connection." }]);
     }
-
-    // Fake other-user reply
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `other-${Date.now()}`, role: "ai", text: "Yes Jumpa", isOtherUser: true }]);
-    }, 3000);
-  }, [inputValue, pendingAttachments, enterThreadIfNeeded, resetVoice]);
+  }, [inputValue, pendingAttachments, enterThreadIfNeeded, resetVoice, debouncedPutHistory, walletAddresses]);
 
   const handleVoiceSendFinal = useCallback(() => {
     setVoiceFlow("sending");
@@ -470,7 +605,16 @@ export default function GroupAiChat() {
               setOnrampDraft({ amount: msg.transactionParams.amount, token: msg.transactionParams.token, currency: msg.transactionParams.currency });
               setOnrampOpen(true);
             } else if (msg.transactionParams.type === "offramp") {
-              setOfframpDraft({ amount: msg.transactionParams.amount, token: msg.transactionParams.token });
+              setActiveOfframpMsgId(msg.id);
+              setOfframpDraft({ 
+                amount: msg.transactionParams.amount, 
+                token: msg.transactionParams.token,
+                currency: msg.transactionParams.currency,
+                bankName: msg.transactionParams.bankName,
+                bankCode: msg.transactionParams.bankCode,
+                accountNumber: msg.transactionParams.accountNumber,
+                accountName: msg.transactionParams.accountName
+              });
               setOfframpOpen(true);
             } else {
               setPendingTransaction(msg.transactionParams);
@@ -492,7 +636,20 @@ export default function GroupAiChat() {
             </div>
             <TransactionConfirmDrawer open={confirmOpen} onOpenChange={setConfirmOpen} details={pendingTransaction} onConfirm={handleConfirmTransaction} processing={confirmProcessing} />
             <OnrampSheet open={onrampOpen} onOpenChange={setOnrampOpen} defaultAmount={onrampDraft?.amount} defaultToken={onrampDraft?.token} defaultCurrency={onrampDraft?.currency} />
-            <OfframpSheet open={offrampOpen} onOpenChange={setOfframpOpen} defaultAmount={offrampDraft?.amount} defaultToken={offrampDraft?.token} />
+            <OfframpSheet 
+              open={offrampOpen} 
+              onOpenChange={(open) => {
+                setOfframpOpen(open);
+                if (!open) setActiveOfframpMsgId(null);
+              }} 
+              defaultAmount={offrampDraft?.amount} 
+              defaultToken={offrampDraft?.token}
+              defaultCurrency={offrampDraft?.currency}
+              defaultBankCode={offrampDraft?.bankCode}
+              defaultAccountNumber={offrampDraft?.accountNumber}
+              defaultAccountName={offrampDraft?.accountName}
+              onBeneficiaryChange={handleOfframpBeneficiaryChange}
+            />
             <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
           </div>
         </div>

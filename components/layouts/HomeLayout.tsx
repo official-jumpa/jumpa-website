@@ -295,6 +295,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     "/home/savings",
     "/setup-pin",
     "/group/chat",
+    "/chat",
   ];
   const shouldHideShell = hideShellPaths.some(
     (p) => pathname === p || pathname?.startsWith(p + "/"),

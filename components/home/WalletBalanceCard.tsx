@@ -108,7 +108,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
       {/* Label row: "Wallet Balance" + chain badge dropdown trigger */}
       <div className="text-xs text-[#8b8b93] flex gap-2 items-center">
         Wallet Balance
-        <div className="relative" ref={dropdownRef}>
+        <div ref={dropdownRef}>
           <button
             className="flex items-center gap-1 bg-[#2c2c2c] hover:bg-[#353535] border border-[#3a3a3a] rounded-full px-2.5 py-[3px] cursor-pointer transition-colors duration-150"
             onClick={() => setChainDropdownOpen((prev) => !prev)}
@@ -135,11 +135,11 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
               className={`opacity-60 transition-transform duration-200 ${chainDropdownOpen ? "rotate-180" : ""}`}
             />
           </button>
-
+ 
           {/* Chain Selector Dropdown Popover */}
           {chainDropdownOpen && (
             <div
-              className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-[#1a1a1b] border border-[#2a2a2d] rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden"
+              className="absolute top-[48px] left-4 right-4 sm:left-4 sm:right-auto sm:w-[280px] bg-[#1a1a1b] border border-[#2a2a2d] rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden"
               style={{
                 animation: "fadeSlideDown 0.2s cubic-bezier(0.16,1,0.3,1) forwards",
               }}
