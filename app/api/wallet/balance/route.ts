@@ -29,18 +29,30 @@ const balanceCache: Record<string, { timestamp: number, data: any }> = {};
 const CACHE_TTL = 35 * 1000;
 
 /**
- * Wrap a promise with a timeout. If it takes longer than `ms`,
- * it rejects, which is caught and returns the `fallback` value.
- * Logs detail on failures or timeouts.
+ * Executes a balance fetch promise generator with a timeout.
+ * Catches all synchronous and asynchronous errors and returns the fallback.
  */
-async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timeout on ${label}`)), ms)),
-  ]).catch((err) => {
-    console.error(`[Balance API] Connection error / timeout [${label}]:`, err instanceof Error ? err.message : err);
+async function safeFetchBalance(
+  fetchFn: () => Promise<string>,
+  label: string,
+  fallback: string = "0.00"
+): Promise<string> {
+  const timeoutMs = 4000;
+  try {
+    const promise = fetchFn();
+    return await Promise.race([
+      promise,
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout on ${label}`)), timeoutMs)
+      ),
+    ]);
+  } catch (err) {
+    console.error(
+      `[Balance API] Connection error / timeout [${label}]:`,
+      err instanceof Error ? err.message : err
+    );
     return fallback;
-  });
+  }
 }
 
 /**
@@ -52,51 +64,39 @@ async function fetchWalletBalances(addresses: { base: string; sol: string; xlm: 
   console.log(`[Balance API] Querying on-chain balances. Base: ${baseAddr}, Solana: ${solAddr}, Stellar: ${xlmAddr}`);
 
   // --- Base Balances ---
-  const baseBalancePromise = withTimeout(
-    baseClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
-    4000,
-    "0.00",
+  const baseBalancePromise = safeFetchBalance(
+    () => baseClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
     "Base Mainnet"
   );
-  const baseSepoliaPromise = withTimeout(
-    baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
-    4000,
-    "0.00",
+  const baseSepoliaPromise = safeFetchBalance(
+    () => baseSepoliaClient.getBalance({ address: baseAddr as `0x${string}` }).then(b => formatEther(b)),
     "Base Sepolia"
   );
     
   // --- Solana Balances ---
   const solPromise = solAddr
-    ? withTimeout(
-        solMainnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
-        4000,
-        "0.00",
+    ? safeFetchBalance(
+        () => solMainnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
         "Solana Mainnet"
       )
     : Promise.resolve("0.00");
   const solDevPromise = solAddr
-    ? withTimeout(
-        solDevnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
-        4000,
-        "0.00",
+    ? safeFetchBalance(
+        () => solDevnetConnection.getBalance(new PublicKey(solAddr)).then(b => (b / LAMPORTS_PER_SOL).toFixed(4)),
         "Solana Devnet"
       )
     : Promise.resolve("0.00");
 
   // --- Stellar Balances ---
   const xlmPromise = xlmAddr
-    ? withTimeout(
-        stellarPublic.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
-        4000,
-        "0.00",
+    ? safeFetchBalance(
+        () => stellarPublic.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
         "Stellar Mainnet"
       )
     : Promise.resolve("0.00");
   const xlmTestPromise = xlmAddr
-    ? withTimeout(
-        stellarTestnet.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
-        4000,
-        "0.00",
+    ? safeFetchBalance(
+        () => stellarTestnet.loadAccount(xlmAddr).then(acc => acc.balances.find((b: any) => b.asset_type === "native")?.balance || "0.00"),
         "Stellar Testnet"
       )
     : Promise.resolve("0.00");
@@ -160,25 +160,34 @@ export const GET = withAuth(async (req, { address, userId }) => {
       console.log(`[Balance API] Query=all: Found ${wallets.length} wallets for user ${userId}`);
 
       const results = await Promise.all(wallets.map(async (w) => {
-        // Check per-wallet cache
-        const now = Date.now();
-        const cached = balanceCache[w.address];
-        if (cached && (now - cached.timestamp < CACHE_TTL)) {
-          console.log(`[Balance API] Cache hit (q=all) for address: ${w.address}`);
+        try {
+          // Check per-wallet cache
+          const now = Date.now();
+          const cached = balanceCache[w.address];
+          if (cached && (now - cached.timestamp < CACHE_TTL)) {
+            console.log(`[Balance API] Cache hit (q=all) for address: ${w.address}`);
+            return {
+              address: w.address,
+              totalUsd: computeTotalUsd(cached.data.tokens),
+            };
+          }
+
+          console.log(`[Balance API] Cache miss (q=all) for address: ${w.address}. Querying on-chain...`);
+          const data = await fetchWalletBalances(w.addresses);
+          balanceCache[w.address] = { timestamp: now, data };
+
           return {
             address: w.address,
-            totalUsd: computeTotalUsd(cached.data.tokens),
+            totalUsd: computeTotalUsd(data.tokens),
+          };
+        } catch (walletErr) {
+          console.error(`[Balance API] Failed to fetch balances for wallet ${w.address}:`, walletErr);
+          const cached = balanceCache[w.address];
+          return {
+            address: w.address,
+            totalUsd: cached ? computeTotalUsd(cached.data.tokens) : "0.00",
           };
         }
-
-        console.log(`[Balance API] Cache miss (q=all) for address: ${w.address}. Querying on-chain...`);
-        const data = await fetchWalletBalances(w.addresses);
-        balanceCache[w.address] = { timestamp: now, data };
-
-        return {
-          address: w.address,
-          totalUsd: computeTotalUsd(data.tokens),
-        };
       }));
 
       return NextResponse.json(results);
