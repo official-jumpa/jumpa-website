@@ -6,8 +6,8 @@ import { Connection, PublicKey, SystemProgram, Transaction as SolTransaction, Ke
 import * as StellarSdk from "@stellar/stellar-sdk";
 import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
-import { 
-  getOrCreateAssociatedTokenAccount, 
+import {
+  getOrCreateAssociatedTokenAccount,
   createTransferInstruction,
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
@@ -118,12 +118,12 @@ export const POST = withAuth(async (req, { address }) => {
         chainName = tokenConfig.isTestnet ? "baseSepolia" : "base";
         const account = mnemonicToAccount(mnemonic as `0x${string}`);
         fromAddr = account.address;
-        
+
         const pClient = tokenConfig.isTestnet ? baseSepoliaPublicClient : basePublicClient;
         const wClient = tokenConfig.isTestnet ? baseSepoliaWalletClient : baseWalletClient;
-        
+
         const amountUnits = parseUnits(amount, tokenConfig.decimals);
-        
+
         const ethBalance = await pClient.getBalance({ address: account.address });
         if (ethBalance < parseEther("0.0005")) {
           return NextResponse.json({ error: "Insufficient ETH balance on Base for gas fees (minimum 0.0005 ETH required)." }, { status: 400 });
@@ -152,7 +152,7 @@ export const POST = withAuth(async (req, { address }) => {
       } else if (tokenConfig.chain === "solana") {
         chainName = tokenConfig.isTestnet ? "solDevnet" : "solana";
         const connection = tokenConfig.isTestnet ? solDevnetConnection : solMainnetConnection;
-        
+
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const solDerived = derivePath("m/44'/501'/0'/0'", seed.toString('hex')).key;
         const solKeypair = SolKeypair.fromSeed(solDerived);
@@ -199,7 +199,7 @@ export const POST = withAuth(async (req, { address }) => {
         chainName = tokenConfig.isTestnet ? "stellarTestnet" : "stellar";
         const server = tokenConfig.isTestnet ? stellarTestnet : stellarPublic;
         const networkPassphrase = tokenConfig.isTestnet ? StellarSdk.Networks.TESTNET : StellarSdk.Networks.PUBLIC;
-        
+
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const stellarDerived = derivePath("m/44'/148'/0'", seed.toString('hex')).key;
         const stellarKeypair = StellarSdk.Keypair.fromRawEd25519Seed(Buffer.from(stellarDerived));
@@ -212,13 +212,13 @@ export const POST = withAuth(async (req, { address }) => {
           fee: StellarSdk.BASE_FEE,
           networkPassphrase,
         })
-        .addOperation(StellarSdk.Operation.payment({
-          destination: to,
-          asset: stellarAsset,
-          amount: amount,
-        }))
-        .setTimeout(30)
-        .build();
+          .addOperation(StellarSdk.Operation.payment({
+            destination: to,
+            asset: stellarAsset,
+            amount: amount,
+          }))
+          .setTimeout(30)
+          .build();
 
         transaction.sign(stellarKeypair);
         const response = await server.submitTransaction(transaction);
@@ -233,9 +233,9 @@ export const POST = withAuth(async (req, { address }) => {
         chainName = isTestnet ? "baseSepolia" : "base";
         const account = mnemonicToAccount(mnemonic as `0x${string}`);
         fromAddr = account.address;
-        
+
         const pClient = isTestnet ? baseSepoliaPublicClient : basePublicClient;
-        
+
         const amountWei = parseEther(amount);
         const balance = await pClient.getBalance({ address: account.address });
         if (balance < amountWei) return NextResponse.json({ error: "Insufficient balance." }, { status: 400 });
@@ -260,7 +260,7 @@ export const POST = withAuth(async (req, { address }) => {
         const isTestnet = t.includes("DEV");
         chainName = isTestnet ? "solDevnet" : "solana";
         const connection = isTestnet ? solDevnetConnection : solMainnetConnection;
-        
+
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const solDerived = derivePath("m/44'/501'/0'/0'", seed.toString('hex')).key;
         const solKeypair = SolKeypair.fromSeed(solDerived);
@@ -283,7 +283,7 @@ export const POST = withAuth(async (req, { address }) => {
         chainName = isTestnet ? "stellarTestnet" : "stellar";
         const server = isTestnet ? stellarTestnet : stellarPublic;
         const networkPassphrase = isTestnet ? StellarSdk.Networks.TESTNET : StellarSdk.Networks.PUBLIC;
-        
+
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const stellarDerived = derivePath("m/44'/148'/0'", seed.toString('hex')).key;
         const stellarKeypair = StellarSdk.Keypair.fromRawEd25519Seed(Buffer.from(stellarDerived));
@@ -294,13 +294,13 @@ export const POST = withAuth(async (req, { address }) => {
           fee: StellarSdk.BASE_FEE,
           networkPassphrase,
         })
-        .addOperation(StellarSdk.Operation.payment({
-          destination: to,
-          asset: StellarSdk.Asset.native(),
-          amount: amount,
-        }))
-        .setTimeout(30)
-        .build();
+          .addOperation(StellarSdk.Operation.payment({
+            destination: to,
+            asset: StellarSdk.Asset.native(),
+            amount: amount,
+          }))
+          .setTimeout(30)
+          .build();
 
         transaction.sign(stellarKeypair);
         const response = await server.submitTransaction(transaction);
@@ -322,7 +322,13 @@ export const POST = withAuth(async (req, { address }) => {
         chain: chainName as any,
         status: "pending",
       });
-    } catch (e: any) {}
+
+      /**
+       * sync the transaction status of all pending transactions on the platform
+       * Its a fire and forget call, so it doesnt slow down any user's query
+       */
+      fetch(`${req.nextUrl.origin}/api/wallet/transactions/status`).catch(() => { });
+    } catch (e: any) { }
 
     return NextResponse.json({ success: true, hash, message: "Transaction sent successfully" });
 

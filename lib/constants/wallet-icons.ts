@@ -28,6 +28,17 @@ export function getChainIcon(symbol: string): string {
     return WALLET_ICONS.baseChain;
 }
 
+export function getTokenIcon(symbol: string): string {
+    const sym = symbol.toUpperCase();
+    if (sym.includes('USDC')) return WALLET_ICONS.usdcIcon;
+    if (sym.includes('USDT')) return WALLET_ICONS.usdtIcon;
+    if (sym.includes('SOL')) return WALLET_ICONS.solIcon;
+    if (sym.includes('ETH')) return WALLET_ICONS.ethIcon;
+    if (sym.includes('BTC')) return WALLET_ICONS.btcIcon;
+    if (sym.includes('XLM')) return WALLET_ICONS.xlmIcon;
+    return WALLET_ICONS.usdcIcon; // default fallback
+}
+
 export function getCoinIcon(symbol: string): string | null {
     const sym = symbol.toUpperCase();
     if (sym.includes('SOL')) return WALLET_ICONS.solIcon;

@@ -4,6 +4,7 @@ import SheetShell from "./sheet-shell";
 import { User, ArrowRight, ShieldCheck, Send } from "lucide-react";
 import PinSheet from "./pin-sheet";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
+import { formatDisplayToken } from "@/lib/utils";
 
 export type TransactionDetails = 
   | {
@@ -120,7 +121,7 @@ export default function TransactionConfirmDrawer({
                   <div className="flex flex-col text-left">
                     <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Pay</span>
                     <span className="text-2xl font-bold text-white">
-                      {details.fromAmount} <span className="text-purple-400 text-lg font-bold">{details.fromToken}</span>
+                      {details.fromAmount} <span className="text-purple-400 text-lg font-bold">{formatDisplayToken(details.fromToken)}</span>
                     </span>
                   </div>
                   
@@ -131,7 +132,7 @@ export default function TransactionConfirmDrawer({
                   <div className="flex flex-col text-right">
                     <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Receive</span>
                     <span className="text-2xl font-bold text-white">
-                      {details.toToken}
+                      {formatDisplayToken(details.toToken)}
                     </span>
                   </div>
                 </div>
@@ -148,7 +149,7 @@ export default function TransactionConfirmDrawer({
                 <p className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider mb-1">Amount to Send</p>
                 <p className="text-3xl font-extrabold text-white mb-2 tracking-tight">
                   {details.amount}{" "}
-                  <span className="text-purple-400 font-bold">{details.token}</span>
+                  <span className="text-purple-400 font-bold">{formatDisplayToken(details.token)}</span>
                 </p>
                 <div className="px-2.5 py-0.5 rounded-full bg-zinc-900/60 border border-white/5 text-zinc-500 text-[10px] font-semibold">
                   Immediate Transfer
@@ -187,7 +188,7 @@ export default function TransactionConfirmDrawer({
                   </span>
                 ) : (
                   <span className="text-sm font-semibold text-white">
-                    {details.toToken}
+                    {formatDisplayToken(details.toToken)}
                   </span>
                 )}
               </div>
@@ -215,7 +216,7 @@ export default function TransactionConfirmDrawer({
 
             {/* Error Message */}
             {error && (
-              <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-[#ef4444] text-center font-medium animate-[fadeIn_0.15s_ease_forwards] wrap-break-word">
+              <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-[#ef4444] text-center font-medium animate-[fadeIn_0.15s_ease_forwards] break-words break-all">
                 {error}
               </div>
             )}

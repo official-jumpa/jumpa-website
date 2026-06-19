@@ -105,7 +105,7 @@ export class SwitchService {
 
       const responseData = await response.json();
 
-      console.log("[SwitchService] Onramp response:", JSON.stringify(responseData, null, 2));
+      console.log(`[SwitchService] Onramp response: ${responseData.success ? "Success" : "Failed"}`);
 
       if (!response.ok || !responseData.success) {
         return {
@@ -235,7 +235,7 @@ export class SwitchService {
       });
 
       const responseData = await response.json();
-      console.log("[SwitchService] Offramp response:", JSON.stringify(responseData, null, 2));
+      console.log(`[SwitchService] Offramp: ${responseData.success ? "Success" : "Failed"}`);
 
       if (!response.ok || !responseData.success) {
         return {
@@ -268,7 +268,8 @@ export class SwitchService {
       });
 
       const responseData = await response.json();
-      console.log(`[SwitchService] Status response for reference ${reference}:`, JSON.stringify(responseData, null, 2));
+      const statusStr = responseData.success ? responseData.data?.status || "Unknown" : "Failed";
+      console.log(`[SwitchService] Status for reference ${reference}: ${statusStr}`);
 
       if (!response.ok || !responseData.success) {
         return {
@@ -302,7 +303,7 @@ export class SwitchService {
       });
 
       const responseData = await response.json();
-      console.log(`[SwitchService] Confirm response for reference ${reference}:`, JSON.stringify(responseData, null, 2));
+      console.log(`[SwitchService] response for reference ${reference}: ${responseData.success ? "Success" : "Failed"}`);
 
       if (!response.ok || !responseData.success) {
         return {

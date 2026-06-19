@@ -36,7 +36,7 @@ export const POST = withAuth(async (req, { address }) => {
     const onRampRes = await SwitchService.initiateOnRamp(Number(amount), asset, targetAddress, exact_output);
 
     if (onRampRes.success && onRampRes.data) {
-      console.log(`[Onramp Initiate API] Switch call succeeded. Reference: ${onRampRes.data.reference}. Creating RampTransaction record.`);
+      console.log(`[Initiate Onramp] Creating RampTransaction. Reference: ${onRampRes.data.reference}. `);
 
       // Determine the actual Naira fiat amount to log in the ledger.
       // - exact_output=false: user specified fiat in NGN, so `amount` IS the fiat value.
@@ -75,7 +75,15 @@ export const POST = withAuth(async (req, { address }) => {
         deposit_address: targetAddress
       });
 
-      console.log(`[Onramp Initiate API] RampTransaction created for reference: ${onRampRes.data.reference} | fiat_amount: ${fiatAmountToLog} NGN | crypto: ${onRampRes.data.destination.amount} ${onRampRes.data.destination.currency}`);
+      console.log(`[Initiate Onramp] reference: ${onRampRes.data.reference} | fiat_amount: ${fiatAmountToLog} NGN | crypto: ${onRampRes.data.destination.amount} ${onRampRes.data.destination.currency}`);
+
+
+      /**
+       * sync the transaction status of all pending transactions on the platform
+       * Its a fire and forget call, so it doesnt slow down any user's query
+       */
+      fetch(`${req.nextUrl.origin}/api/wallet/transactions/status`).catch(() => { });
+
       return NextResponse.json(onRampRes);
     } else {
       console.error("[Onramp Initiate API] Switch call failed:", onRampRes.message);

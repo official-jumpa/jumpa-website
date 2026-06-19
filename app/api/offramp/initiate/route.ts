@@ -8,15 +8,15 @@ import bcrypt from "bcryptjs";
 import { decryptMnemonic } from "@/lib/crypto";
 
 // Solana
-import { 
-  Connection, 
-  PublicKey, 
-  Keypair as SolKeypair, 
+import {
+  Connection,
+  PublicKey,
+  Keypair as SolKeypair,
   Transaction as SolTransaction,
   sendAndConfirmTransaction
 } from "@solana/web3.js";
-import { 
-  getOrCreateAssociatedTokenAccount, 
+import {
+  getOrCreateAssociatedTokenAccount,
   createTransferInstruction,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID
@@ -188,7 +188,7 @@ export const POST = withAuth(async (req, { address }) => {
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const solDerived = derivePath("m/44'/501'/0'/0'", seed.toString('hex')).key;
         const solKeypair = SolKeypair.fromSeed(solDerived);
-        
+
         const connection = config.connection;
         const mintPubkey = new PublicKey(config.mint);
         const recipientPubkey = new PublicKey(depositAddress);
@@ -253,11 +253,11 @@ export const POST = withAuth(async (req, { address }) => {
       let errorMsg = "Blockchain execution failed.";
       const errorName = bcError.name || "";
       const errMsg = (bcError.message || "").toLowerCase();
-      
+
       if (
-        errorName.includes("TokenAccountNotFoundError") || 
-        errMsg.includes("insufficient lamports") || 
-        errMsg.includes("funds") || 
+        errorName.includes("TokenAccountNotFoundError") ||
+        errMsg.includes("insufficient lamports") ||
+        errMsg.includes("funds") ||
         errMsg.includes("not found")
       ) {
         errorMsg = "Insufficient funds. You need SOL to pay for transaction fees and the asset to sell.";
@@ -265,9 +265,9 @@ export const POST = withAuth(async (req, { address }) => {
         errorMsg = "Transaction was rejected.";
       }
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: errorMsg,
-        switchReference: switchData.reference 
+        switchReference: switchData.reference
       }, { status: 400 });
     }
 
@@ -290,6 +290,12 @@ export const POST = withAuth(async (req, { address }) => {
     // 6. Update DB with Hash
     rampTx.tx_hash = txHash;
     await rampTx.save();
+
+    /**
+     * sync the transaction status of all pending transactions on the platform
+     * Its a fire and forget call, so it doesnt slow down any user's query
+     */
+    fetch(`${req.nextUrl.origin}/api/wallet/transactions/status`).catch(() => { });
 
     return NextResponse.json({
       success: true,

@@ -282,14 +282,20 @@ export async function postSwap(data: {
 
 export interface TransactionRecord {
   _id: string;
-  fromAddress: string;
-  toAddress: string;
-  amount: string;
-  token: string;
-  hash: string;
-  status: "pending" | "confirmed" | "failed";
-  chain: string;
+  recordType: "transfer" | "onramp" | "offramp";
+  fromAddress?: string;
+  toAddress?: string;
+  amount: string | number;
+  token?: string;
+  hash?: string;
+  status: "pending" | "confirmed" | "failed" | string;
+  chain?: string;
   createdAt: string;
+  fiatAmount?: number;
+  fiatCurrency?: string;
+  bankDetails?: any;
+  reference?: string;
+  txHash?: string;
 }
 
 /** GET /api/wallet/transactions — fetch dynamic user transactions */

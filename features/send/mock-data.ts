@@ -56,7 +56,7 @@ export const mockTokens: Token[] = [
   },
   {
     id: "sol-devnet",
-    symbol: "SOL (Dev)",
+    symbol: "SOL",
     name: "Solana Devnet",
     balanceText: "0.00 SOL",
     balanceRaw: 0,
@@ -65,7 +65,7 @@ export const mockTokens: Token[] = [
   },
   {
     id: "base-mainnet",
-    symbol: "ETH-BASE",
+    symbol: "ETH",
     name: "Base Mainnet",
     balanceText: "0.00 ETH",
     balanceRaw: 0,
@@ -74,7 +74,7 @@ export const mockTokens: Token[] = [
   },
   {
     id: "base-sepolia",
-    symbol: "ETH (Sep)",
+    symbol: "ETH",
     name: "Base Sepolia",
     balanceText: "0.00 ETH",
     balanceRaw: 0,
@@ -92,7 +92,7 @@ export const mockTokens: Token[] = [
   },
   {
     id: "xlm-testnet",
-    symbol: "XLM (Test)",
+    symbol: "XLM",
     name: "Stellar Testnet",
     balanceText: "0.00 XLM",
     balanceRaw: 0,

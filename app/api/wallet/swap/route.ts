@@ -26,24 +26,24 @@ export const GET = withAuth(async (req, { address }) => {
 
   // ‼️ Currently enforcing SOL <-> USDC swaps
   if (!["SOL", "USDC"].includes(from) || !["SOL", "USDC"].includes(to) || from === to) {
-     return NextResponse.json({ error: "Unsupported pair. Only SOL/USDC on Solana Mainnet is supported." }, { status: 400 });
+    return NextResponse.json({ error: "Unsupported pair. Only SOL/USDC on Solana Mainnet is supported." }, { status: 400 });
   }
 
   try {
     const fromMint = from === "SOL" ? SOL_MINT : USDC_MINT;
     const toMint = to === "SOL" ? SOL_MINT : USDC_MINT;
-    
+
     // Amount in raw integer. SOL=9 dec, USDC=6 dec
     const decimals = from === "SOL" ? 9 : 6;
     const amountIn = Math.floor(parseFloat(amount) * (10 ** decimals));
 
     const quoteUrl = `https://api.jup.ag/swap/v1/quote?inputMint=${fromMint}&outputMint=${toMint}&amount=${amountIn}&slippageBps=50`;
     const quoteRes = await fetch(quoteUrl);
-    
+
     if (!quoteRes.ok) {
-       return NextResponse.json({ error: "No liquidity found on Jupiter." }, { status: 404 });
+      return NextResponse.json({ error: "No liquidity found on Jupiter." }, { status: 404 });
     }
-    
+
     const quoteData = await quoteRes.json();
     const outDecimals = to === "SOL" ? 9 : 6;
     const formattedAmountOut = (parseInt(quoteData.outAmount) / (10 ** outDecimals)).toFixed(6);
@@ -53,7 +53,7 @@ export const GET = withAuth(async (req, { address }) => {
       workingToken: toMint,
       tokenName: to,
       decimals: outDecimals,
-      rawQuote: quoteData 
+      rawQuote: quoteData
     });
   } catch (err: any) {
     console.error("[Swap Quote Error]", err);
@@ -80,7 +80,7 @@ export const POST = withAuth(async (req, { address }) => {
     } catch (err) {
       return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
     }
-    
+
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const solDerived = derivePath("m/44'/501'/0'/0'", seed.toString('hex')).key;
     const solKeypair = Keypair.fromSeed(solDerived);
@@ -96,10 +96,10 @@ export const POST = withAuth(async (req, { address }) => {
         wrapAndUnwrapSol: true,
       })
     });
-    
+
     const { swapTransaction, error } = await swapReq.json();
     if (error) {
-       return NextResponse.json({ error: `Jupiter Error: ${error}` }, { status: 400 });
+      return NextResponse.json({ error: `Jupiter Error: ${error}` }, { status: 400 });
     }
 
     // 2. Deserialize and Sign
@@ -116,7 +116,7 @@ export const POST = withAuth(async (req, { address }) => {
 
     // We do not wait for confirmation here because it can take too long for user UX, 
     // we return the tx hash immediately like most wallets.
-    
+
     // 4. Log to DB
     await TransactionModel.create({
       userId: wallet.id,
@@ -128,6 +128,12 @@ export const POST = withAuth(async (req, { address }) => {
       chain: "solana",
       status: "pending",
     });
+
+    /**
+     * sync the transaction status of all pending transactions on the platform
+     * Its a fire and forget call, so it doesnt slow down any user's query
+     */
+    fetch(`${req.nextUrl.origin}/api/wallet/transactions/status`).catch(() => { });
 
     return NextResponse.json({
       success: true,
