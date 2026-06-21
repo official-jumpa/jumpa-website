@@ -63,6 +63,36 @@ export interface QuoteResponse {
   error?: string;
 }
 
+export const SUPPORTED_SWITCH_ASSETS = [
+  "base:usdc", "base:cngn", "solana:usdc", "solana:usdt", "ethereum:usdc", "ethereum:usdt",
+  "polygon:usdc", "polygon:usdt", "bsc:usdc", "bsc:usdt", "bsc:cngn", "arbitrum:usdc",
+  "arbitrum:usdt", "optimism:usdc", "optimism:usdt", "avalanche:usdc", "avalanche:usdt",
+  "gnosis:usdc", "gnosis:usdt", "tron:usdt", "assetchain:usdc", "assetchain:usdt",
+  "monad:usdc", "monad:usdt", "linea:usdc", "linea:usdt", "berachain:usdc", "berachain:usdt",
+  "sonic:usdc", "plasma:usdt", "bitcoin:btc"
+];
+
+function parseSwitchError(errorMsg: string): string {
+  if (!errorMsg) return "An unexpected error occurred with the provider. Please try again.";
+  
+  const lowerError = errorMsg.toLowerCase();
+  
+  if (lowerError.match(/amount.*minimum/)) {
+    return "Amount is below the minimum limit of $1.5";
+  }
+  if (lowerError.match(/amount.*maximum/)) {
+    return "Amount exceeds the maximum limit of $10000";
+  }
+  if (lowerError.includes("rate limit") || lowerError.includes("429")) {
+    return "Too many requests. Please try again later.";
+  }
+  if (lowerError.includes("\"asset\" must be one of")) {
+    return "The selected asset is not supported by our provider at this time.";
+  }
+  
+  return errorMsg;
+}
+
 export class SwitchService {
   private static readonly BASE_URL = "https://api.onswitch.xyz";
 
@@ -80,6 +110,15 @@ export class SwitchService {
     walletAddress: string,
     isExactOut: boolean = false
   ): Promise<OnRampResponse> {
+    if (!SUPPORTED_SWITCH_ASSETS.includes(asset.toLowerCase())) {
+      return {
+        success: false,
+        status: 400,
+        message: "The selected asset is not supported by our provider at this time.",
+        error: "Asset not supported"
+      };
+    }
+
     try {
       const payload = {
         amount: amount,
@@ -111,7 +150,7 @@ export class SwitchService {
         return {
           success: false,
           status: response.status,
-          message: responseData.message || "Failed to initiate transaction",
+          message: parseSwitchError(responseData.message || "Failed to initiate transaction"),
           error: JSON.stringify(responseData)
         };
       }
@@ -130,6 +169,13 @@ export class SwitchService {
   }
 
   static async getQuote(amount: number, asset: string, isExactOut: boolean = false): Promise<QuoteResponse> {
+    if (!SUPPORTED_SWITCH_ASSETS.includes(asset.toLowerCase())) {
+      return {
+        success: false,
+        message: "The selected asset is not supported by our provider at this time."
+      };
+    }
+
     try {
       const payload = {
         amount: amount,
@@ -151,7 +197,7 @@ export class SwitchService {
       if (!response.ok || !responseData.success) {
         return {
           success: false,
-          message: responseData.message || "Failed to fetch quote"
+          message: parseSwitchError(responseData.message || "Failed to fetch quote")
         };
       }
 
@@ -166,6 +212,13 @@ export class SwitchService {
     }
   }
   static async getOfframpQuote(amount: number, asset: string, isExactOut: boolean = false): Promise<QuoteResponse> {
+    if (!SUPPORTED_SWITCH_ASSETS.includes(asset.toLowerCase())) {
+      return {
+        success: false,
+        message: "The selected asset is not supported by our provider at this time."
+      };
+    }
+
     try {
       const payload = {
         amount,
@@ -187,7 +240,7 @@ export class SwitchService {
       if (!response.ok || !responseData.success) {
         return {
           success: false,
-          message: responseData.message || "Failed to fetch offramp quote"
+          message: parseSwitchError(responseData.message || "Failed to fetch quote")
         };
       }
 
@@ -212,6 +265,15 @@ export class SwitchService {
     },
     isExactOut: boolean = false
   ): Promise<OffRampResponse> {
+    if (!SUPPORTED_SWITCH_ASSETS.includes(asset.toLowerCase())) {
+      return {
+        success: false,
+        status: 400,
+        message: "The selected asset is not supported by our provider at this time.",
+        error: "Asset not supported"
+      };
+    }
+
     try {
       const payload = {
         amount,
@@ -241,7 +303,7 @@ export class SwitchService {
         return {
           success: false,
           status: response.status,
-          message: responseData.message || "Failed to initiate transaction",
+          message: parseSwitchError(responseData.message || "Failed to initiate transaction"),
           error: JSON.stringify(responseData)
         };
       }

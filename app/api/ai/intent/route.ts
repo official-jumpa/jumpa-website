@@ -10,6 +10,7 @@ import { base, baseSepolia } from "viem/chains";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { findPaystackBank, validateAccountNumber } from "@/lib/paystack";
+import { SUPPORTED_SWITCH_ASSETS } from "@/lib/switch";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
@@ -117,7 +118,7 @@ export const POST = withAuth(async (req, { address }) => {
              → set currency = "NGN", amount = the naira number (e.g. "50000")
          - If the user says a DOLLAR or STABLECOIN amount (e.g. "deposit $30", "buy 20 USDC", "add 50 usdt", "i want 100 dollars of usdc"):
              → set currency = the stablecoin ticker (e.g. "USDC" or "USDT"), amount = the stablecoin quantity (e.g. "30")
-         - token must be a valid asset identifier: "solana:usdc", "solana:usdt", "base:usdc", or "base:cngn"
+         - token must be a valid asset identifier from this strictly supported list ONLY: ${SUPPORTED_SWITCH_ASSETS.join(", ")}. If the token is not on this list, do NOT generate this intent.
          - If user says "base wallet" or "base", prefer base: tokens. If "solana wallet" or "solana", prefer solana: tokens.
          params: { amount: string, token: string, currency: string }
 
@@ -127,7 +128,7 @@ export const POST = withAuth(async (req, { address }) => {
              → set currency = "NGN", amount = the naira number (e.g. "2000")
          - If the user specifies a DOLLAR or STABLECOIN amount (e.g. "convert $20 to naira", "offramp 50 USDC"):
              → set currency = the stablecoin ticker (e.g. "USDC" or "USDT"), amount = the stablecoin quantity (e.g. "20")
-         - token: must be a valid asset identifier, e.g., "solana:usdc" or "base:usdc". Choose based on user's live balances (if they have base-eth and base balances, base:usdc, otherwise solana:usdc).
+         - token must be a valid asset identifier from this strictly supported list ONLY: ${SUPPORTED_SWITCH_ASSETS.join(", ")}.
          - bankName: extract the destination Nigerian bank name if mentioned (e.g. "opay", "gtbank", "zenith", "kuda")
          - accountNumber: extract the 10-digit destination bank account number if mentioned (e.g. "80808080")
          params: { amount: string, token: string, currency: string, bankName?: string, accountNumber?: string }

@@ -147,9 +147,10 @@ export default function TransactionListCard() {
                 title = `Received ${displayToken}`;
                 amountText = `+ ${tx.amount}`;
               } else if (tx.recordType === "offramp") {
+                const currencySymbol = tx.fiatCurrency === "NGN" ? "₦" : (tx.fiatCurrency || "₦");
                 type = "send";
-                title = `Withdrew ${tx.fiatCurrency || "NGN"}`;
-                amountText = `+ ${tx.fiatAmount || 0} ${tx.fiatCurrency || "NGN"}`;
+                title = `Withdrew ${currencySymbol}`;
+                amountText = `+ ${currencySymbol}${tx.fiatAmount || 0}`;
               } else {
                 const isSwap = rawToken.includes(">");
                 if (isSwap) {
@@ -292,7 +293,7 @@ export default function TransactionListCard() {
                         <>
                           <div className="flex justify-between">
                             <span>Fiat Value</span>
-                            <span className="text-[#f3f3f5]">{tx.fiatAmount} {tx.fiatCurrency}</span>
+                            <span className="text-[#f3f3f5]">{tx.fiatCurrency === "NGN" ? "₦" : (tx.fiatCurrency || "₦")}{tx.fiatAmount}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span>Crypto Value</span>

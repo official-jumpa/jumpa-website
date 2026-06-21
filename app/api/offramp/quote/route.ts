@@ -20,7 +20,10 @@ export const POST = withAuth(async (req, { address }) => {
       return NextResponse.json(quoteRes);
     } else {
       console.warn("[Offramp Quote API] Switch quote call returned error status:", quoteRes.message);
-      return NextResponse.json({ error: quoteRes.message }, { status: 400 });
+      
+      const errorMessage = quoteRes.message || "Failed to fetch quote";
+
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
   } catch (error: any) {
     console.error("[Offramp Quote API Error]", error);
