@@ -1,23 +1,23 @@
 export default function PersonasGrid() {
   return (
     <section
-      className="flex flex-col gap-32 py-28 px-14 bg-[#FFFEFB]"
+      className="flex flex-col gap-16 md:gap-32 py-14 md:py-28 px-6 md:px-14 bg-[#FFFEFB]"
       id="use-cases"
     >
       <div className="flex flex-col items-center text-center">
-        <h2 className="font-black-han-sans text-6xl leading-22.5">
+        <h2 className="font-black-han-sans text-4xl md:text-6xl leading-tight md:leading-22.5">
           How Jumpa fit into Everyday Life
         </h2>
-        <p className="text-[28px]">Move money anywhere in minutes.</p>
+        <p className="text-xl md:text-[28px] mt-4">Move money anywhere in minutes.</p>
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-[2fr_1fr] gap-2">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-start gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 rounded-[10px]">
-              <div className="flex flex-col gap-3 text-white max-w-110">
-                <h3 className="text-[23.35px]">The African Importer/Trader</h3>
-                <p className="text-[14px] text-[#BFBFBF]">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4 md:gap-2">
+          <div className="flex flex-col gap-4 md:gap-2">
+            <div className="flex flex-col md:flex-row items-start gap-8 md:gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 pr-6 md:pr-0 rounded-[10px]">
+              <div className="flex flex-col gap-3 text-white max-w-full md:max-w-110 mb-6 md:mb-0">
+                <h3 className="text-lg md:text-[23.35px]">The African Importer/Trader</h3>
+                <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                   Amara runs a clothing business in Lagos. She needs to pay her
                   supplier in Guangzhou $2,000. Normally that means queuing at a
                   bank, paying 8% above the parallel rate, waiting 5 days. With
@@ -35,10 +35,10 @@ export default function PersonasGrid() {
               </div>
             </div>
 
-            <div className="flex items-start gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 rounded-[10px]">
-              <div className="flex flex-col gap-3 text-white max-w-110">
-                <h3 className="text-[23.35px]">The Diaspora Family</h3>
-                <p className="text-[14px] text-[#BFBFBF]">
+            <div className="flex flex-col md:flex-row items-start gap-8 md:gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 pr-6 md:pr-0 rounded-[10px]">
+              <div className="flex flex-col gap-3 text-white max-w-full md:max-w-110 mb-6 md:mb-0">
+                <h3 className="text-lg md:text-[23.35px]">The Diaspora Family</h3>
+                <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                   A Nigerian mother in London wants to send 50,000 naira home to
                   her parents. Western Union charges £8 + bad rates. She types
                   "Send 50k naira to Mum" - Jumpa converts, routes, and her
@@ -51,10 +51,10 @@ export default function PersonasGrid() {
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-center overflow-hidden bg-[#1D1D1D] pt-8 px-8 justify-between rounded-[10px]">
+          <div className="flex flex-col items-center overflow-hidden bg-[#1D1D1D] pt-8 px-8 justify-between rounded-[10px] gap-8 md:gap-0">
             <div className="flex flex-col gap-3 text-white">
-              <h3 className="text-[23.35px]">The Freelancer</h3>
-              <p className="text-[14px] text-[#BFBFBF]">
+              <h3 className="text-lg md:text-[23.35px]">The Freelancer</h3>
+              <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                 Kofi in Vietnan does design work for a client in Canada. Getting
                 paid via PayPal costs 4.5% + conversion loss. His bank account
                 barely accepts international wires. With Jumpa, his client sends
@@ -69,13 +69,13 @@ export default function PersonasGrid() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_2fr] gap-2">
-          <div className="flex flex-col items-center overflow-hidden bg-[#1D1D1D] pt-8 px-8 justify-between rounded-[10px]">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4 md:gap-2">
+          <div className="flex flex-col items-center overflow-hidden bg-[#1D1D1D] pt-8 px-8 justify-between rounded-[10px] gap-8 md:gap-0">
             <div className="flex flex-col gap-3 text-white">
-              <h3 className="text-[23.35px]">
+              <h3 className="text-lg md:text-[23.35px]">
                 The Small Business Owner (Francophone Africa)
               </h3>
-              <p className="text-[14px] text-[#BFBFBF]">
+              <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                 A shop owner in Douala, Cameroon sells to customers across West
                 Africa. Most neobanks don't even have French interfaces. Jumpa
                 works in French, accepts payments via a simple
@@ -88,11 +88,11 @@ export default function PersonasGrid() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex items-start gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 rounded-[10px]">
-              <div className="flex flex-col gap-3 text-white max-w-110">
-                <h3 className="text-[23.35px]">Traveler</h3>
-                <p className="text-[14px] text-[#BFBFBF]">
+          <div className="flex flex-col gap-4 md:gap-2">
+            <div className="flex flex-col md:flex-row items-start gap-8 md:gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 pr-6 md:pr-0 rounded-[10px]">
+              <div className="flex flex-col gap-3 text-white max-w-full md:max-w-110 mb-6 md:mb-0">
+                <h3 className="text-lg md:text-[23.35px]">Traveler</h3>
+                <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                   A backpacker moving from Thailand to Vietnam to Nigeria
                   doesn't want to carry cash or get destroyed by airport forex.
                   They tell Jumpa "I need 5,000 baht" before landing and the
@@ -104,12 +104,12 @@ export default function PersonasGrid() {
               </div>
             </div>
 
-            <div className="flex items-start gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 rounded-[10px]">
-              <div className="flex flex-col gap-3 text-white max-w-110">
-                <h3 className="text-[23.35px]">
+            <div className="flex flex-col md:flex-row items-start gap-8 md:gap-24 justify-between overflow-hidden bg-[#1D1D1D] pt-6 pl-6 pr-6 md:pr-0 rounded-[10px]">
+              <div className="flex flex-col gap-3 text-white max-w-full md:max-w-110 mb-6 md:mb-0">
+                <h3 className="text-lg md:text-[23.35px]">
                   The SME Paying Suppliers Across Africa
                 </h3>
-                <p className="text-[14px] text-[#BFBFBF]">
+                <p className="text-xs md:text-[14px] text-[#BFBFBF]">
                   A manufacturer in Nairobi buys raw materials from suppliers in
                   Senegal, South Africa, and Egypt. Cross-border B2B payments
                   within Africa are the world's most expensive. Jumpa lets them

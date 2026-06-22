@@ -39,17 +39,17 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="bg-[#FBFBFB] py-24 px-14" id="faqs">
-      <div className="bg-[#961BF0] rounded-[30px] flex flex-col gap-16 items-center text-white p-24">
-        <h2 className="text-center text-[46px] font-bold">
+    <section className="bg-[#FBFBFB] py-12 md:py-24 px-6 md:px-14" id="faqs">
+      <div className="bg-[#961BF0] rounded-[30px] flex flex-col gap-8 md:gap-16 items-center text-white p-8 md:p-24">
+        <h2 className="text-center text-3xl md:text-[46px] font-bold">
           Frequently Asked Questions
         </h2>
 
-        <div className="w-200 flex flex-col gap-6">
+        <div className="w-full md:w-200 flex flex-col gap-6">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className={`py-6 px-5 border-[#F6F8FA] border-b-2 text-xl ${openIndex === index ? "open" : ""}`}
+              className={`py-4 md:py-6 px-4 md:px-5 border-[#F6F8FA] border-b-2 text-lg md:text-xl ${openIndex === index ? "open" : ""}`}
               onClick={() => toggleAccordion(index)}
             >
               <div className="flex items-center justify-between gap-5">
@@ -59,7 +59,7 @@ export default function FAQSection() {
                 </span>
               </div>
               {openIndex === index && (
-                <div className="text-sm">
+                <div className="text-xs md:text-sm mt-4">
                   <p>{faq.answer}</p>
                 </div>
               )}
