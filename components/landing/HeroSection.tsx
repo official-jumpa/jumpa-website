@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HeroSection() {
   return (
     <section className="flex flex-col">
@@ -23,7 +25,7 @@ export default function HeroSection() {
       <div className="flex items-end gap-2">
         <div className="relative">
           <div className="w-full absolute top-10 md:top-25 flex justify-center">
-            <button className="jumpa-btn-primary w-64 md:w-116">Start now</button>
+            <Link href="/onboarding" className="jumpa-btn-primary w-64 md:w-116">Start now</Link>
           </div>
           <img src="/assets/images/hero-bg.png" alt="" />
         </div>
