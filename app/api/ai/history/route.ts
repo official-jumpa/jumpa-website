@@ -45,7 +45,7 @@ export const GET = withAuth(async (req: NextRequest, { address }: { address: str
         .lean();
 
       const sessionList = sessions.map((s: any) => ({
-        sessionId: s._id.toString(),
+        sessionId: s._id,
         title: s.title || "New Chat",
         updatedAt: s.updatedAt,
         messageCount: s.messages?.length || 0,
@@ -79,7 +79,7 @@ export const POST = withAuth(async (req: NextRequest, { address }: { address: st
       messages: [],
     });
 
-    return NextResponse.json({ sessionId: newSession._id.toString(), title: newSession.title });
+    return NextResponse.json({ sessionId: newSession._id, title: newSession.title });
   } catch (err: any) {
     console.error("[AI History POST Error]", err);
     return NextResponse.json({ error: "Failed to create chat session" }, { status: 500 });

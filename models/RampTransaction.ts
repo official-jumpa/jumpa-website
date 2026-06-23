@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { generateId } from "@/lib/schema-ids";
 
-export interface IRampTransaction extends Document {
+export interface IRampTransaction {
+  _id: string;
   userId: string;
   type: "ONRAMP" | "OFFRAMP";
   status: "AWAITING_DEPOSIT" | "PROCESSING" | "COMPLETED" | "FAILED";
@@ -22,6 +24,7 @@ export interface IRampTransaction extends Document {
 
 const RampTransactionSchema = new Schema<IRampTransaction>(
   {
+    _id: { type: String, default: () => generateId("RAMP") },
     userId: { type: String, required: true },
     type: { type: String, enum: ["ONRAMP", "OFFRAMP"], required: true },
     status: {
@@ -43,7 +46,7 @@ const RampTransactionSchema = new Schema<IRampTransaction>(
     deposit_address: { type: String },
     tx_hash: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true, _id: false }
 );
 
 const RampTransaction: Model<IRampTransaction> =

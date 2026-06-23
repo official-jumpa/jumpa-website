@@ -7,6 +7,10 @@ if (!MONGO_URI) {
   throw new Error("MONGO_URI is not defined in .env.local");
 }
 
+// Global safety net: prevent Mongoose from auto-generating ObjectId _id fields.
+// Every schema must declare its own string _id with a custom default generator.
+mongoose.set("id", false);
+
 // Use a global cache to reuse connection across Next.js hot reloads
 declare global {
   // eslint-disable-next-line no-var

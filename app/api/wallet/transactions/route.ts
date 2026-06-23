@@ -39,13 +39,13 @@ export const GET = withAuth(async (req, { address }) => {
     const rampTxDocs = await RampTransaction.find({
       $or: [
         { userId: wallet.userId },
-        { userId: wallet._id.toString() } // Support legacy records
+        { userId: wallet._id },
       ]
     }).lean();
 
     // 3. Map to unified format
     const formattedCrypto = cryptoTxDocs.map((doc: any) => ({
-      _id: doc._id.toString(),
+      _id: doc._id,
       recordType: "transfer",
       fromAddress: doc.fromAddress,
       toAddress: doc.toAddress,
@@ -58,7 +58,7 @@ export const GET = withAuth(async (req, { address }) => {
     }));
 
     const formattedRamps = rampTxDocs.map((doc: any) => ({
-      _id: doc._id.toString(),
+      _id: doc._id,
       recordType: doc.type === "ONRAMP" ? "onramp" : "offramp",
       amount: doc.amount,
       token: doc.asset,

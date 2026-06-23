@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { generateId } from "@/lib/schema-ids";
 
 export interface IChatMessage {
   role: "user" | "assistant";
@@ -19,8 +20,9 @@ export interface IChatMessage {
   isOtherUser?: boolean;
 }
 
-export interface IChatLog extends Document {
-  userId: mongoose.Types.ObjectId;
+export interface IChatLog {
+  _id: string;
+  userId: string;
   walletAddress: string;
   type: "personal" | "group";
   title: string;
@@ -31,7 +33,8 @@ export interface IChatLog extends Document {
 
 const ChatLogSchema: Schema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "Wallet", required: true },
+    _id: { type: String, default: () => generateId("CHAT") },
+    userId: { type: String, ref: "Wallet", required: true },
     walletAddress: { type: String, required: true, index: true },
     type: { type: String, enum: ["personal", "group"], default: "personal" },
     title: { type: String, default: "New Chat" },
@@ -56,7 +59,7 @@ const ChatLogSchema: Schema = new Schema(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true, _id: false },
 );
 
 ChatLogSchema.index({ walletAddress: 1, type: 1, updatedAt: -1 });

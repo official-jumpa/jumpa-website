@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { Transaction as TransactionModel } from "@/models/Transaction";
-import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 
 /**
@@ -26,8 +25,8 @@ export const GET = withAuth(async (req, { address }) => {
     };
     if (wallet.userId) {
       matchConditions.$or = [
-        { userId: new mongoose.Types.ObjectId(wallet.userId) },
-        { userId: wallet._id }
+        { userId: wallet.userId },
+        { userId: wallet._id },
       ];
     } else {
       matchConditions.userId = wallet._id;

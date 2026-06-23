@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { generateId } from "@/lib/schema-ids";
 
-export interface ITransaction extends Document {
-  userId: mongoose.Types.ObjectId;
+export interface ITransaction {
+  _id: string;
+  userId: string;
   fromAddress: string;
   toAddress: string;
   amount: string;
@@ -15,7 +17,8 @@ export interface ITransaction extends Document {
 
 const TransactionSchema: Schema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    _id: { type: String, default: () => generateId("TRAN") },
+    userId: { type: String, required: true },
     fromAddress: { type: String, required: true },
     toAddress: { type: String, required: true },
     amount: { type: String, required: true },
@@ -26,13 +29,13 @@ const TransactionSchema: Schema = new Schema(
       enum: ["pending", "confirmed", "failed"],
       default: "pending",
     },
-    chain: { 
-      type: String, 
-      enum: ["eth", "base", "baseSepolia", "solana", "solDevnet", "stellar", "stellarTestnet"], 
-      required: true 
+    chain: {
+      type: String,
+      enum: ["eth", "base", "baseSepolia", "solana", "solDevnet", "stellar", "stellarTestnet"],
+      required: true
     },
   },
-  { timestamps: true },
+  { timestamps: true, _id: false },
 );
 
 TransactionSchema.index({ userId: 1, toAddress: 1, createdAt: -1 });

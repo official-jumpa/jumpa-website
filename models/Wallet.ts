@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, model, models } from "mongoose";
+import { generateId } from "@/lib/schema-ids";
 
-export interface IWallet extends Document {
+export interface IWallet {
+  _id: string;
   userId: string | null;
   name: string;
   address: string;
@@ -30,6 +32,7 @@ export interface IWallet extends Document {
 
 const WalletSchema = new Schema<IWallet>(
   {
+    _id: { type: String, default: () => generateId("WALL") },
     userId: { type: String, default: null, index: true },
     name: { type: String, required: true, default: "Wallet" },
     address: { type: String, required: true, unique: true, lowercase: true },
@@ -55,7 +58,7 @@ const WalletSchema = new Schema<IWallet>(
     pinAttempts: { type: Number, default: 0 },
     pinLockedUntil: { type: Date, default: null },
   },
-  { timestamps: true },
+  { timestamps: true, _id: false },
 );
 
 WalletSchema.index({ "addresses.eth": 1 });
