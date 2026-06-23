@@ -228,10 +228,10 @@ export default function TransactionListCard() {
                       </div>
                       <div className="transaction-details">
                         <p className="m-0 text-sm text-[#f3f3f5]">{title}</p>
-                        <span className="text-xs text-[#8b8b93]">{formattedDate}</span>
+                        <span className="text-xs tracking-tighter text-[#8b8b93]">{formattedDate}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 whitespace-nowrap">
                       <div className="flex items-center gap-1.5 text-xs p-1 pr-1.5 rounded-[64px] border border-dashed border-[#aaaaaa] text-white pl-2">
                         {amountText}
                         

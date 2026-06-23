@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useCallback,
 } from "react";
-import { getAiHistory, postAiIntent, postTransfer, postSwap, putAiHistory } from "@/lib/api";
+import { getAiHistory, createAiSession, postAiIntent, postTransfer, postSwap, putAiHistory } from "@/lib/api";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
@@ -23,6 +23,93 @@ import { ChatComposer } from "./ChatComposer";
 import { barsFromRecordingTick } from "./VoiceRecorderPanel";
 import { VoiceScreen, IconBtn } from "./ChatHelpers";
 import ChatMessageList from "./ChatMessageList";
+
+type SessionSummary = {
+  sessionId: string;
+  title: string;
+  updatedAt: string;
+  messageCount: number;
+};
+
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function ChatSidebar({
+  open,
+  sessions,
+  activeSessionId,
+  onSelect,
+  onNew,
+  onClose,
+}: {
+  open: boolean;
+  sessions: SessionSummary[];
+  activeSessionId: string | null;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="absolute inset-0 bg-black/60 z-40"
+          onClick={onClose}
+        />
+      )}
+      {/* Drawer */}
+      <div
+        className={`absolute top-0 left-0 h-full w-[72%] max-w-[280px] bg-[#111111] z-50 flex flex-col transition-transform duration-300 ease-in-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 pt-[calc(56px+env(safe-area-inset-top,0))] pb-4 border-b border-white/10">
+          <span className="text-white font-semibold text-sm">Chats</span>
+          <button
+            onClick={onNew}
+            className="flex items-center gap-1.5 text-xs text-[#7c5cfc] font-medium hover:text-violet-400 transition-colors"
+            aria-label="New chat"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto py-2">
+          {sessions.length === 0 ? (
+            <p className="text-[#8b8b93] text-xs text-center mt-8 px-4">No chats yet. Start a new one!</p>
+          ) : (
+            sessions.map((s) => (
+              <button
+                key={s.sessionId}
+                onClick={() => { onSelect(s.sessionId); onClose(); }}
+                className={`w-full text-left px-4 py-3 transition-colors hover:bg-white/5 ${
+                  s.sessionId === activeSessionId ? "bg-white/10" : ""
+                }`}
+              >
+                <p className={`text-sm truncate m-0 ${s.sessionId === activeSessionId ? "text-white font-medium" : "text-[#d0d0d0]"}`}>
+                  {s.title}
+                </p>
+                <span className="text-[10px] text-[#8b8b93] mt-0.5 block">
+                  {s.messageCount} msg{s.messageCount !== 1 ? "s" : ""} · {formatRelativeTime(s.updatedAt)}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
 
 const SUGGESTIONS = [
   "How do i invest $100 ?",
@@ -80,12 +167,13 @@ function ChatHomePanel({
   );
 }
 
-// ─── ChatScreen (AiChat-only, no invite btn)
 function ChatScreen({
   messages,
   showTyping,
   composer,
   onBack,
+  onMenuClick,
+  onNewChat,
   onTransactionClick,
   onOnrampInitiated,
 }: {
@@ -93,18 +181,28 @@ function ChatScreen({
   showTyping: boolean;
   composer: React.ReactNode;
   onBack: () => void;
+  onMenuClick: () => void;
+  onNewChat: () => void;
   onTransactionClick: (msg: Message) => void;
   onOnrampInitiated?: (msgId: string, reference: string, deposit: any) => void;
 }) {
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-black w-full max-w-[390px] mx-auto box-border">
-      <header className="shrink-0 px-6 flex justify-between items-center">
-        <IconBtn
-          onClick={onBack}
-          ariaLabel="Back"
-          className="mt-[calc(90px+env(safe-area-inset-top,0))] ml-0"
-        >
-          <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
+      <header className="shrink-0 px-4 flex justify-between items-center">
+        <div className="flex items-center gap-2 mt-[calc(90px+env(safe-area-inset-top,0))]">
+          <IconBtn onClick={onBack} ariaLabel="Back" className="ml-0 mt-0">
+            <img src={backIcon} alt="" width={14} height={11} className="block object-contain" />
+          </IconBtn>
+          <IconBtn onClick={onMenuClick} ariaLabel="Chat history" className="mt-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </IconBtn>
+        </div>
+        <IconBtn onClick={onNewChat} ariaLabel="New chat" className="mt-[calc(90px+env(safe-area-inset-top,0))]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </IconBtn>
       </header>
 
@@ -143,6 +241,16 @@ export default function AiChat() {
 
   const [messages, setMessages] = useState<Message[]>([]);
 
+  // Multi-session state
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const activeSessionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
+
   const pendingHistoryUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const latestMessagesRef = useRef<Message[]>([]);
 
@@ -162,8 +270,14 @@ export default function AiChat() {
     if (pendingHistoryUpdateRef.current) {
       clearTimeout(pendingHistoryUpdateRef.current);
     }
-    pendingHistoryUpdateRef.current = setTimeout(() => {
-      putAiHistory(latestMessagesRef.current).catch((e) => console.error("[AiChat] Failed to persist updates:", e));
+    pendingHistoryUpdateRef.current = setTimeout(async () => {
+      const sessionId = activeSessionIdRef.current;
+      if (sessionId) {
+        await putAiHistory(latestMessagesRef.current, sessionId).catch((e) => console.error("[AiChat] Failed to persist updates:", e));
+        // Refresh session list to pick up updated titles and counts
+        const res = await getAiHistory().catch(() => null);
+        if (res?.data?.sessions) setSessions(res.data.sessions);
+      }
       pendingHistoryUpdateRef.current = null;
     }, 1000);
   }, []);
@@ -286,15 +400,68 @@ export default function AiChat() {
   useEffect(() => { if (inputValue.trim()) setAttachMenuOpen(false); }, [inputValue]);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    const initSessions = async () => {
+      // Load session list
       const res = await getAiHistory();
-      if (res.data?.messages) {
-        setMessages(res.data.messages);
-        if (res.data.messages.length > 0) setScreen("chat-empty");
+      const sessionList = res.data?.sessions || [];
+      setSessions(sessionList);
+
+      if (sessionList.length > 0) {
+        // Auto-open the most recent session
+        const latest = sessionList[0];
+        setActiveSessionId(latest.sessionId);
+        const msgRes = await getAiHistory(latest.sessionId);
+        if (msgRes.data?.messages && msgRes.data.messages.length > 0) {
+          setMessages(msgRes.data.messages);
+          setScreen("chat-empty");
+        }
+      } else {
+        // No sessions yet — create a fresh one silently
+        const created = await createAiSession();
+        if (created.data?.sessionId) {
+          const newSession: SessionSummary = {
+            sessionId: created.data.sessionId,
+            title: "New Chat",
+            updatedAt: new Date().toISOString(),
+            messageCount: 0,
+          };
+          setSessions([newSession]);
+          setActiveSessionId(created.data.sessionId);
+        }
       }
     };
-    fetchHistory();
+    initSessions();
   }, []);
+
+  const handleNewChat = useCallback(async () => {
+    setSidebarOpen(false);
+    const created = await createAiSession();
+    if (created.data?.sessionId) {
+      const newSession: SessionSummary = {
+        sessionId: created.data.sessionId,
+        title: "New Chat",
+        updatedAt: new Date().toISOString(),
+        messageCount: 0,
+      };
+      setSessions((prev) => [newSession, ...prev]);
+      setActiveSessionId(created.data.sessionId);
+      setMessages([]);
+      setScreen("home");
+      setInputValue("");
+      setShowTyping(false);
+    }
+  }, []);
+
+  const handleSelectSession = useCallback(async (sessionId: string) => {
+    if (sessionId === activeSessionId) return;
+    setActiveSessionId(sessionId);
+    setMessages([]);
+    setScreen("chat-empty");
+    const res = await getAiHistory(sessionId);
+    if (res.data?.messages) {
+      setMessages(res.data.messages);
+    }
+  }, [activeSessionId]);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
@@ -363,8 +530,10 @@ export default function AiChat() {
           ? { ...m, transactionParams: { ...m.transactionParams, reference, depositData: deposit } }
           : m
       );
-      // Fire-and-forget persist to backend
-      putAiHistory(updated).catch((e) => console.error("[AiChat] Failed to persist onramp initiation:", e));
+      const sessionId = activeSessionIdRef.current;
+      if (sessionId) {
+        putAiHistory(updated, sessionId).catch((e) => console.error("[AiChat] Failed to persist onramp initiation:", e));
+      }
       return updated;
     });
   }, []);
@@ -543,9 +712,12 @@ export default function AiChat() {
           const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && msg.transactionDetails?.label === "Swap Intent" ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Swap Complete! 🔄" } } : msg);
           const explorerUrl = getExplorerUrl(pendingTransaction.fromToken, swapData.hash);
           const explorerLabel = getExplorerLabel(pendingTransaction.fromToken);
+        const sessionId = activeSessionIdRef.current;
+        if (sessionId) {
           const finalMsgs: Message[] = [...updated, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! Your assets have been exchanged on Jupiter. [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
-          await putAiHistory(finalMsgs);
+          await putAiHistory(finalMsgs, sessionId);
+        }
         } else {
           setConfirmError(res.error || "Swap failed");
         }
@@ -558,9 +730,12 @@ export default function AiChat() {
           const updated = messages.map((msg) => msg.role === "ai" && msg.isTransaction && (msg.transactionDetails?.label === "Transfer Intent" || msg.transactionDetails?.label === "Schedule Intent") ? { ...msg, transactionDetails: { ...msg.transactionDetails, result: "Transaction Sent! ✅" } } : msg);
           const explorerUrl = getExplorerUrl(pendingTransaction.token, transferData.hash);
           const explorerLabel = getExplorerLabel(pendingTransaction.token);
+        const sessionId = activeSessionIdRef.current;
+        if (sessionId) {
           const finalMsgs: Message[] = [...updated, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Transaction successful! [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
-          await putAiHistory(finalMsgs);
+          await putAiHistory(finalMsgs, sessionId);
+        }
         } else {
           setConfirmError(res.error || "Transfer failed");
         }
@@ -638,6 +813,8 @@ export default function AiChat() {
           showTyping={showTyping}
           composer={(!onrampOpen && !offrampOpen && !confirmOpen) ? composerEl : <div className="h-4" />}
           onBack={() => navigate("/home")}
+          onMenuClick={() => setSidebarOpen(true)}
+          onNewChat={handleNewChat}
           onOnrampInitiated={handleOnrampInitiated}
           onTransactionClick={(msg) => {
             if (msg.transactionParams) {
@@ -677,6 +854,14 @@ export default function AiChat() {
       <div className="w-full max-w-[450px] h-screen bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]" ref={phoneFrameRef}>
         <div className="app-content app-content--ai-chat flex flex-col min-h-0 h-full overflow-hidden">
           <div className="ai-chat-root relative flex flex-col flex-1 min-h-0 w-full h-full bg-black overflow-hidden">
+            <ChatSidebar
+              open={sidebarOpen}
+              sessions={sessions}
+              activeSessionId={activeSessionId}
+              onSelect={handleSelectSession}
+              onNew={handleNewChat}
+              onClose={() => setSidebarOpen(false)}
+            />
             <div className="flex-1 min-h-0 flex flex-col h-full">
               {renderMain()}
             </div>

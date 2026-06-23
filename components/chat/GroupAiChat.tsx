@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useCallback,
 } from "react";
-import { getAiHistory, postAiIntent, postTransfer, postSwap, putAiHistory } from "@/lib/api";
+import { getGroupHistory, postAiIntent, postTransfer, postSwap, putGroupHistory } from "@/lib/api";
 import { useHomeLayout } from "@/components/layouts/HomeLayout";
 import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
@@ -185,7 +185,7 @@ export default function GroupAiChat() {
       clearTimeout(pendingHistoryUpdateRef.current);
     }
     pendingHistoryUpdateRef.current = setTimeout(() => {
-      putAiHistory(latestMessagesRef.current).catch((e) => console.error("[GroupAiChat] Failed to persist updates:", e));
+      putGroupHistory(latestMessagesRef.current).catch((e) => console.error("[GroupAiChat] Failed to persist updates:", e));
       pendingHistoryUpdateRef.current = null;
     }, 1000);
   }, []);
@@ -305,7 +305,7 @@ export default function GroupAiChat() {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const res = await getAiHistory();
+      const res = await getGroupHistory();
       if (res.data?.messages) {
         setMessages(res.data.messages);
         if (res.data.messages.length > 0) setScreen("chat-empty");
@@ -380,7 +380,7 @@ export default function GroupAiChat() {
           ? { ...m, transactionParams: { ...m.transactionParams, reference, depositData: deposit } }
           : m
       );
-      putAiHistory(updated).catch((e) => console.error("[GroupAiChat] Failed to persist onramp initiation:", e));
+      putGroupHistory(updated).catch((e) => console.error("[GroupAiChat] Failed to persist onramp initiation:", e));
       return updated;
     });
   }, []);
@@ -551,7 +551,7 @@ export default function GroupAiChat() {
           const explorerLabel = getExplorerLabel(pendingTransaction.fromToken);
           const finalMsgs: Message[] = [...updated, { id: `sw-suc-${Date.now()}`, role: "ai", text: `Swap complete! [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
-          await putAiHistory(finalMsgs);
+          await putGroupHistory(finalMsgs);
         } else {
           setConfirmError(res.error || "Swap failed");
         }
@@ -566,7 +566,7 @@ export default function GroupAiChat() {
           const explorerLabel = getExplorerLabel(pendingTransaction.token);
           const finalMsgs: Message[] = [...updated, { id: `tx-suc-${Date.now()}`, role: "ai", text: `Payment sent! [View on ${explorerLabel}](${explorerUrl})` }];
           setMessages(finalMsgs);
-          await putAiHistory(finalMsgs);
+          await putGroupHistory(finalMsgs);
         } else {
           setConfirmError(res.error || "Transfer failed");
         }

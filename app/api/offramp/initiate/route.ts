@@ -159,7 +159,7 @@ export const POST = withAuth(async (req, { address }) => {
 
     // 3. Create DB Entry
     const rampTx = await RampTransaction.create({
-      userId: wallet.id,
+      userId: wallet.userId!,
       type: "OFFRAMP",
       status: "AWAITING_DEPOSIT",
       reference: switchData.reference,

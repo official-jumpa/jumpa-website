@@ -64,7 +64,7 @@ export const POST = withAuth(async (req, { address }) => {
 
       // Log to our RampTransaction ledger
       await RampTransaction.create({
-        userId: wallet.id,
+        userId: wallet.userId!,
         type: "ONRAMP",
         status: "AWAITING_DEPOSIT",
         reference: onRampRes.data.reference,

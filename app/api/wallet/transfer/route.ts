@@ -15,6 +15,9 @@ import { withAuth } from "@/lib/withAuth";
 import { Wallet as WalletModel } from "@/models/Wallet";
 import { Transaction as TransactionModel } from "@/models/Transaction";
 import { decryptMnemonic } from "@/lib/crypto";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { sendTransferConfirmedEmail } from "@/lib/email-notifications";
 
 const basePublicClient = createPublicClient({ chain: base, transport: http() });
 const baseSepoliaPublicClient = createPublicClient({ chain: baseSepolia, transport: http() });
@@ -313,7 +316,7 @@ export const POST = withAuth(async (req, { address }) => {
 
     try {
       await TransactionModel.create({
-        userId: wallet.id,
+        userId: wallet.userId!,
         fromAddress: fromAddr,
         toAddress: to,
         amount,
@@ -329,6 +332,26 @@ export const POST = withAuth(async (req, { address }) => {
        */
       fetch(`${req.nextUrl.origin}/api/wallet/transactions/status`).catch(() => { });
     } catch (e: any) { }
+
+    // Dispatch transfer confirmation email asynchronously
+    try {
+      auth.api.getSession({
+        headers: await headers(),
+      }).then((session) => {
+        if (session?.user?.email) {
+          sendTransferConfirmedEmail(session.user.email, {
+            customerName: session.user.name || "User",
+            amount,
+            tokenSymbol: t,
+            recipientAddress: to,
+            transactionId: hash,
+            chainName: chainName || "base",
+          }).catch((err) => console.error("[Transfer Email Error]", err));
+        }
+      }).catch((err) => console.error("[Transfer Email Session Error]", err));
+    } catch (emailErr) {
+      console.error("[Transfer Email Setup Error]", emailErr);
+    }
 
     return NextResponse.json({ success: true, hash, message: "Transaction sent successfully" });
 

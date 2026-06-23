@@ -10,7 +10,7 @@ import { base, baseSepolia } from "viem/chains";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { findPaystackBank, validateAccountNumber } from "@/lib/paystack";
-import { SUPPORTED_SWITCH_ASSETS } from "@/lib/switch";
+import { SUPPORTED_SWITCH_ASSETS, SWITCH_ASSET_LABELS } from "@/lib/switch";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
@@ -66,6 +66,11 @@ export const POST = withAuth(async (req, { address }) => {
       content: m.content
     })) || [];
 
+    // Build human-friendly asset name list (no codes — for AI messages only)
+    const friendlyAssetList = SUPPORTED_SWITCH_ASSETS
+      .map(code => SWITCH_ASSET_LABELS[code] || code)
+      .join(", ");
+
     const systemPrompt = `
       You are 3rike AI, the autonomous finance assistant for Jumpa. 
       Your goal is to parse user prompts into actionable crypto intents for our supported networks (Solana, Base, Stellar).
@@ -85,6 +90,11 @@ export const POST = withAuth(async (req, { address }) => {
       - XLM (Testnet): ${xlmTestBalance}
 
       IMPORTANT: Use these LIVE BALANCES to answer users' questions. Example: "You have ${solBalance} SOL"
+
+      CRITICAL DISPLAY RULE — ASSET NAMES:
+      You MUST NEVER show internal asset codes like "base:usdc", "solana:usdt", "ethereum:usdc" etc. in your message to the user. These are internal system identifiers only.
+      When referring to any asset in your message, always use the plain human-readable name: ${friendlyAssetList}.
+      Example: say "USDC on Base" not "base:usdc". Say "USDT on Solana" not "solana:usdt".
 
       SWAP RULES: 
       We ONLY support Swaps for Solana native tokens via Jupiter at this time. 
@@ -189,6 +199,21 @@ export const POST = withAuth(async (req, { address }) => {
         params: {},
         message: "Anthropic API Key missing."
       };
+    }
+
+    // Sanitize: replace any leaked asset codes in the AI message with friendly labels
+    if (aiResponse.message) {
+      let sanitized: string = aiResponse.message;
+      // Sort by length descending so longer codes (e.g. "avalanche:usdc") match before shorter ones
+      const sortedAssets = [...SUPPORTED_SWITCH_ASSETS].sort((a, b) => b.length - a.length);
+      for (const code of sortedAssets) {
+        const label = SWITCH_ASSET_LABELS[code];
+        if (label) {
+          // Case-insensitive global replace of the code
+          sanitized = sanitized.replace(new RegExp(code.replace(":", "\\:"), "gi"), label);
+        }
+      }
+      aiResponse.message = sanitized;
     }
 
     let isTransaction = false;

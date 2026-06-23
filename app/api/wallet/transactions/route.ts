@@ -29,13 +29,19 @@ export const GET = withAuth(async (req, { address }) => {
     // 1. Fetch Crypto Transactions
     const cryptoTxDocs = await Transaction.find({
       $or: [
-        { userId: wallet._id },
+        { userId: wallet.userId },
+        { userId: wallet._id }, // Support legacy records
         { toAddress: { $in: addressRegexes } }
       ]
     }).lean();
 
     // 2. Fetch Ramp Transactions
-    const rampTxDocs = await RampTransaction.find({ userId: wallet._id.toString() }).lean();
+    const rampTxDocs = await RampTransaction.find({
+      $or: [
+        { userId: wallet.userId },
+        { userId: wallet._id.toString() } // Support legacy records
+      ]
+    }).lean();
 
     // 3. Map to unified format
     const formattedCrypto = cryptoTxDocs.map((doc: any) => ({

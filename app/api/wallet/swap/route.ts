@@ -119,7 +119,7 @@ export const POST = withAuth(async (req, { address }) => {
 
     // 4. Log to DB
     await TransactionModel.create({
-      userId: wallet.id,
+      userId: wallet.userId!,
       fromAddress: solAddress,
       toAddress: "Jupiter Router",
       amount: fromAmount,

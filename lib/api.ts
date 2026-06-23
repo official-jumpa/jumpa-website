@@ -202,18 +202,40 @@ export async function postAiIntent(
   });
 }
 
-/** GET /api/ai/history — fetch persistent chat history logs */
-export async function getAiHistory(): Promise<
-  ApiResponse<{ messages: any[] }>
+/** GET /api/ai/history - list all personal sessions or fetch one by sessionId */
+export async function getAiHistory(sessionId?: string): Promise<
+  ApiResponse<{ sessions?: { sessionId: string; title: string; updatedAt: string; messageCount: number }[]; messages?: any[]; title?: string }>
 > {
-  return request<{ messages: any[] }>("/api/ai/history");
+  const url = sessionId ? `/api/ai/history?sessionId=${sessionId}` : "/api/ai/history";
+  return request<any>(url);
 }
 
-/** PUT /api/ai/history — save/sync persistent chat history logs */
+/** POST /api/ai/history - create a new personal chat session */
+export async function createAiSession(): Promise<ApiResponse<{ sessionId: string; title: string }>> {
+  return request<{ sessionId: string; title: string }>("/api/ai/history", { method: "POST" });
+}
+
+/** PUT /api/ai/history?sessionId=... - save messages for a specific session */
 export async function putAiHistory(
   messages: any[],
+  sessionId: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
-  return request<{ success: boolean }>("/api/ai/history", {
+  return request<{ success: boolean }>(`/api/ai/history?sessionId=${sessionId}`, {
+    method: "PUT",
+    body: JSON.stringify({ messages }),
+  });
+}
+
+/** GET /api/ai/group-history - fetch the group chat history */
+export async function getGroupHistory(): Promise<ApiResponse<{ messages: any[] }>> {
+  return request<{ messages: any[] }>("/api/ai/group-history");
+}
+
+/** PUT /api/ai/group-history - save/sync group chat messages */
+export async function putGroupHistory(
+  messages: any[],
+): Promise<ApiResponse<{ success: boolean }>> {
+  return request<{ success: boolean }>("/api/ai/group-history", {
     method: "PUT",
     body: JSON.stringify({ messages }),
   });
