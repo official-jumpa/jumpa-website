@@ -23,6 +23,7 @@ export default function JumpaDashboard() {
     onTrade,
     onDApp,
     onReceive,
+    onSendMethodClick,
   } = useHomeLayout();
 
   return (
@@ -30,7 +31,7 @@ export default function JumpaDashboard() {
       <WalletSelectorCard onDropdown={onWalletDropdown} />
       <WalletBalanceCard hidden={balanceHidden} onToggle={onToggleBalance} />
       <QuickActionRow
-        onSend={() => router.push("/send")}
+        onSend={onSendMethodClick}
         onReceive={onReceive}
         onSwap={onTrade}
       />

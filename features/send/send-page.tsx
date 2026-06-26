@@ -421,15 +421,6 @@ export default function SendPage() {
       <SendMethodSheet
         open={sendMethodOpen}
         onOpenChange={setSendMethodOpen}
-        onSelectMethod={(method) => {
-          if (method === "crypto") {
-            setSendMethodOpen(false);
-            setTokenSearchOpen(true);
-          } else {
-            setSendMethodOpen(false);
-            setConfirmOpen(true);
-          }
-        }}
       />
 
       <TokenSearchSheet

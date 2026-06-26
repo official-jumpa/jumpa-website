@@ -23,6 +23,7 @@ import PrivateKeyScreen from "@/components/wallet/PrivateKeyScreen";
 import WithdrawOptions from "@/components/home/WithdrawOptions";
 import TradePage from "@/components/home/TradePage";
 import DAppPage from "@/components/home/DAppPage";
+import SendMethodSheet from "@/features/send/components/send-method-sheet";
 import type { BalancesResponse, UserWallet } from "@/lib/api";
 import { getBalances, getWallets, selectWallet, renameWallet } from "@/lib/api";
 
@@ -39,6 +40,9 @@ interface HomeLayoutContextType {
   onTrade: () => void;
   onDApp: () => void;
   onReceive: () => void;
+  sendMethodOpen: boolean;
+  onSendMethodClick: () => void;
+  onCloseSendMethod: () => void;
   balances: BalancesResponse | null;
   selectedSymbol: string;
   onSelectAsset: (symbol: string) => void;
@@ -217,6 +221,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [virtualAccountOpen, setVirtualAccountOpen] = useState(false);
   const [depositSheetOpen, setDepositSheetOpen] = useState(false);
+  const [sendMethodOpen, setSendMethodOpen] = useState(false);
 
   // Security flow
   const [pinScreenOpen, setPinScreenOpen] = useState(false);
@@ -266,6 +271,9 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     },
 
     onReceive: () => setDepositSheetOpen(true),
+    sendMethodOpen,
+    onSendMethodClick: () => setSendMethodOpen(true),
+    onCloseSendMethod: () => setSendMethodOpen(false),
     balances,
     selectedSymbol,
     onSelectAsset: (symbol: string) => {
@@ -306,7 +314,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
       <div className="flex justify-center items-center min-h-screen bg-black font-sans text-[#f3f3f5]">
         <div className="w-full max-w-[450px] h-screen h-[100dvh] bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]">
           <div
-            className={`h-full overflow-y-auto overflow-x-hidden scrollbar-none transition-[filter] duration-250 ease-out ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen ? "blur-md" : ""}`}
+            className={`h-full overflow-y-auto overflow-x-hidden scrollbar-none transition-[filter] duration-250 ease-out ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen || sendMethodOpen ? "blur-md" : ""}`}
           >
             {!shouldHideShell && (
               <TopBar onMenuClick={() => setDrawerOpen(true)} />
@@ -368,6 +376,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           {(walletListOpen ||
             selectedWallet ||
             virtualAccountOpen ||
+            sendMethodOpen ||
             depositSheetOpen) &&
             !drawerOpen && (
               <div
@@ -376,6 +385,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
                   setWalletListOpen(false);
                   setSelectedWallet(null);
                   setVirtualAccountOpen(false);
+                  setSendMethodOpen(false);
                   setDepositSheetOpen(false);
                 }}
               />
@@ -401,6 +411,13 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
               onClose={() => setDepositSheetOpen(false)}
               address={balances?.address || ""}
               selectedSymbol={selectedSymbol}
+            />
+          )}
+
+          {sendMethodOpen && (
+            <SendMethodSheet
+              open={sendMethodOpen}
+              onOpenChange={setSendMethodOpen}
             />
           )}
         </div>
