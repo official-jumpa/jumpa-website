@@ -27,7 +27,7 @@ export default function JumpaDashboard() {
   } = useHomeLayout();
 
   return (
-    <div className="px-6 flex flex-col gap-[6px]">
+    <div className="px-6 flex flex-col gap-1.5">
       <WalletSelectorCard onDropdown={onWalletDropdown} />
       <WalletBalanceCard hidden={balanceHidden} onToggle={onToggleBalance} />
       <QuickActionRow
