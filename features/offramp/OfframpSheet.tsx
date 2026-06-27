@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SheetShell from "@/features/send/components/sheet-shell";
 import PinSheet from "@/features/send/components/pin-sheet";
 import { ArrowLeft, ArrowRight, Loader2, Landmark, CheckCircle2, AlertCircle } from "lucide-react";
-import { supportedBanks } from "@/lib/constants/banks";
+import { SwitchBanks } from "@/lib/SwitchBanks";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
 
 type QuoteData = {
@@ -188,9 +188,11 @@ export default function OfframpSheet({
     setInitiating(true);
     setInitError("");
     setShowPin(false);
+    // Clear PIN immediately to prevent PinSheet auto-submit from re-triggering
+    // if the PinSheet is re-opened before the state settles
+    setPin("");
 
     try {
-      const selectedBank = supportedBanks.find(b => b.code === bankCode);
       const res = await fetch("/api/offramp/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -201,8 +203,7 @@ export default function OfframpSheet({
             holder_type: "INDIVIDUAL",
             holder_name: resolvedAccountName || defaultAccountName || "Jumpa",
             account_number: accountNumber,
-            bank_code: bankCode,
-            bank_name: selectedBank?.name || ""
+            bank_code: bankCode
           },
           pin,
           exact_output: isExactOutput
@@ -249,7 +250,7 @@ export default function OfframpSheet({
     return () => clearInterval(interval);
   }, [showSuccess, txReference]);
 
-  const selectedBankName = supportedBanks.find(b => b.code === bankCode)?.name || "";
+  const selectedBankName = SwitchBanks.find(b => b.code === bankCode)?.name || "";
 
   return (
     <>
@@ -332,7 +333,7 @@ export default function OfframpSheet({
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white outline-none"
                       >
                         <option value="">Select a Bank...</option>
-                        {supportedBanks.map((b, idx) => (
+                        {SwitchBanks.map((b, idx) => (
                           <option key={`${b.code}-${idx}`} value={b.code}>{b.name}</option>
                         ))}
                       </select>

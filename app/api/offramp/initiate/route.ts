@@ -38,7 +38,7 @@ const ASSET_CONFIG: Record<string, any> = {
   },
   "solana:usdt": {
     chain: "solana",
-    mint: "Es9vMFrzaDCSTMdUiJfwKsM45AsC8uNUn9865B88uCY",
+    mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
     decimals: 6,
     connection: new Connection("https://api.mainnet-beta.solana.com", "confirmed")
   },
@@ -52,6 +52,7 @@ const ASSET_CONFIG: Record<string, any> = {
 };
 
 export const POST = withAuth(async (req, { address }) => {
+  // warning- the address here is the default eVM address. It will be used to fetch the sol or whatever chain address necessary
   try {
     const { amount, asset, beneficiary, pin, exact_output = false } = await req.json();
 
@@ -84,9 +85,9 @@ export const POST = withAuth(async (req, { address }) => {
         // Check SOL (native gas) balance
         const lamports = await connection.getBalance(solPubkey);
         const solBalance = lamports / 1e9;
-        console.log(`[Offramp Pre-flight] Solana address: ${wallet.addresses.sol}, SOL balance: ${solBalance}`);
-        if (solBalance < 0.002) {
-          return NextResponse.json({ error: "Insufficient SOL balance for transaction fees (minimum 0.002 SOL required)" }, { status: 400 });
+        console.log(`[Offramp Pre-flight] Solana address: ${wallet.addresses.sol} evm ${address}, SOL balance: ${solBalance}`);
+        if (solBalance < 0.003) {
+          return NextResponse.json({ error: "Insufficient SOL balance for transaction fees (minimum 0.003 SOL required)" }, { status: 400 });
         }
 
         // Check token (USDC/USDT) balance
@@ -97,7 +98,7 @@ export const POST = withAuth(async (req, { address }) => {
           const tokenBalanceRes = await connection.getTokenAccountBalance(ataAddress);
           tokenBalance = tokenBalanceRes.value.uiAmount || 0;
         } catch (err) {
-          console.log("[Offramp Pre-flight] No token account or token balance error:", err);
+          console.log(`[Offramp Pre-flight] No token account or token balance for ${config.mint}: ${err}`);
         }
         console.log(`[Offramp Pre-flight] Asset: ${asset}, Token Balance: ${tokenBalance}, Required: ${amount}`);
         if (tokenBalance < Number(amount)) {
@@ -201,19 +202,28 @@ export const POST = withAuth(async (req, { address }) => {
           solKeypair.publicKey
         );
 
-        const destATA = await getOrCreateAssociatedTokenAccount(
-          connection,
-          solKeypair,
-          mintPubkey,
-          recipientPubkey
-        );
+        // Smart account check for destination
+        let finalDestAddress = recipientPubkey;
+        const accountInfo = await connection.getAccountInfo(recipientPubkey);
+
+        if (accountInfo && accountInfo.owner.toBase58() === TOKEN_PROGRAM_ID.toBase58()) {
+          finalDestAddress = recipientPubkey;
+        } else {
+          const destATAObj = await getOrCreateAssociatedTokenAccount(
+            connection,
+            solKeypair,
+            mintPubkey,
+            recipientPubkey
+          );
+          finalDestAddress = destATAObj.address;
+        }
 
         const amountRaw = BigInt(Math.floor(depositAmount * Math.pow(10, config.decimals)));
 
         const transaction = new SolTransaction().add(
           createTransferInstruction(
             sourceATA.address,
-            destATA.address,
+            finalDestAddress,
             solKeypair.publicKey,
             amountRaw,
             [],
