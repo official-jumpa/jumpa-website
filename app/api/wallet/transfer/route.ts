@@ -165,8 +165,8 @@ export const POST = withAuth(async (req, { address }) => {
         const mintPubkey = new PublicKey(tokenConfig.mint);
 
         const solBalanceLamports = await connection.getBalance(solKeypair.publicKey);
-        if (solBalanceLamports < 0.002 * LAMPORTS_PER_SOL) {
-          return NextResponse.json({ error: "Insufficient SOL balance for transaction fees (minimum 0.002 SOL required)." }, { status: 400 });
+        if (solBalanceLamports < 0.003 * LAMPORTS_PER_SOL) {
+          return NextResponse.json({ error: "Insufficient SOL balance for transaction fees (minimum 0.003 SOL required)." }, { status: 400 });
         }
 
         const sourceATA = await getOrCreateAssociatedTokenAccount(
@@ -176,19 +176,26 @@ export const POST = withAuth(async (req, { address }) => {
           solKeypair.publicKey
         );
 
-        const destATA = await getOrCreateAssociatedTokenAccount(
-          connection,
-          solKeypair,
-          mintPubkey,
-          recipientPubkey
-        );
+        let destATAAddress: PublicKey;
+        const destAccountInfo = await connection.getAccountInfo(recipientPubkey);
+        if (destAccountInfo !== null && destAccountInfo.owner.equals(TOKEN_PROGRAM_ID)) {
+          destATAAddress = recipientPubkey;
+        } else {
+          const destATA = await getOrCreateAssociatedTokenAccount(
+            connection,
+            solKeypair,
+            mintPubkey,
+            recipientPubkey
+          );
+          destATAAddress = destATA.address;
+        }
 
         const amountRaw = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, tokenConfig.decimals)));
 
         const transaction = new SolTransaction().add(
           createTransferInstruction(
             sourceATA.address,
-            destATA.address,
+            destATAAddress,
             solKeypair.publicKey,
             amountRaw,
             [],
