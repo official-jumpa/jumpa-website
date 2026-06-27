@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronLeft, PenLine, ScanLine } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -7,7 +7,12 @@ import { useNavigate } from "@/lib/pages-adapter";
 import ConfirmFiatSheet from "./components/confirm-fiat-sheet";
 import PinSheet from "@/features/send/components/pin-sheet";
 import FiatSuccessSheet from "./components/fiat-success-sheet";
+import FinalSuccessScreen from "./components/final-success-screen";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
+import TokenSearchSheet from "@/features/send/components/token-search-sheet";
+import { defaultFiatToken, fiatTokens } from "@/features/send/mock-data";
+import type { Token } from "@/features/send/types";
+import { getCoinIcon } from "@/lib/constants/wallet-icons";
 
 const quickAmounts = ["50", "200", "500"];
 
@@ -16,24 +21,26 @@ export default function SendFiatPage() {
   const [recipientAccount, setRecipientAccount] = useState("");
   const [amount, setAmount] = useState("");
   const [narration, setNarration] = useState("");
-  
-  // Modals state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [finalSuccessOpen, setFinalSuccessOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // Pin state
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState("");
   const isSubmitting = useRef(false);
 
+  const [token, setToken] = useState<Token>(defaultFiatToken);
+  const [tokens, setTokens] = useState<Token[]>(fiatTokens);
+  const [tokenSearchOpen, setTokenSearchOpen] = useState(false);
+
   const amountValue = Number(amount) || 0;
-  const balanceRaw = 81.07; // Mocked USDC balance for design
-  
-  // Mocked recipient resolution
+  const balanceRaw = token.balanceRaw || 0;
+
   const isAccountValid = recipientAccount.length >= 10;
-  const showAccountError = recipientAccount.length > 0 && recipientAccount.length < 10;
+  const showAccountError =
+    recipientAccount.length > 0 && recipientAccount.length < 10;
   const recipientName = isAccountValid ? "Anita Ndukwe" : "";
   const bankName = isAccountValid ? "Opay" : "";
 
@@ -62,13 +69,17 @@ export default function SendFiatPage() {
   };
 
   const verifyPinAndSend = async (inputPin: string) => {
-    if (inputPin.length !== WALLET_PIN_LENGTH || processing || isSubmitting.current) return;
+    if (
+      inputPin.length !== WALLET_PIN_LENGTH ||
+      processing ||
+      isSubmitting.current
+    )
+      return;
 
     isSubmitting.current = true;
     setProcessing(true);
     setPinError("");
 
-    // Mock API call delay
     setTimeout(() => {
       setProcessing(false);
       isSubmitting.current = false;
@@ -90,12 +101,10 @@ export default function SendFiatPage() {
 
   const handleDoneFlow = () => {
     setSuccessOpen(false);
-    setPin("");
-    setAmount("");
-    setRecipientAccount("");
-    setNarration("");
-    navigate("/home");
+    setFinalSuccessOpen(true);
   };
+
+  const tokenImg = getCoinIcon(token.symbol);
 
   return (
     <div className="min-h-screen bg-[#16171d] text-white">
@@ -104,7 +113,7 @@ export default function SendFiatPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 text-zinc-300 transition hover:bg-white/10"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-zinc-300 transition hover:bg-white/20"
             aria-label="Go back"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -112,89 +121,123 @@ export default function SendFiatPage() {
           <h1 className="absolute left-1/2 -translate-x-1/2 text-[15px] font-semibold text-white">
             Send Money
           </h1>
-          <div className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-2 text-xs font-medium text-zinc-300">
-            Naira
+          <button
+            type="button"
+            onClick={() => setTokenSearchOpen(true)}
+            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/20"
+          >
+            {token.name}
             <ChevronDown className="h-3 w-3 text-zinc-500" />
-          </div>
+          </button>
         </header>
 
-        <section className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-[13px] font-medium text-white">Recipient Account</p>
+        <section
+          className={`rounded-2xl bg-[#2D2D2D] p-5 transition-all border-2 ${
+            showAccountError ? "border-red-500" : "border-transparent"
+          }`}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-sm font-medium text-zinc-400">
+              Recipient Account
+            </p>
             {showAccountError && (
-              <span className="text-[11px] text-red-500">Wrong account number</span>
+              <span className="text-[12px] font-medium text-red-500">
+                Wrong account number
+              </span>
             )}
           </div>
-          <div 
-            className={`rounded-2xl bg-[#1c1d22] px-4 py-3 transition-colors ${
-              showAccountError ? 'border border-red-500' : isAccountValid ? 'border border-green-500' : 'border border-white/5'
-            }`}
-          >
-            <input
-              type="text"
-              inputMode="numeric"
-              value={recipientAccount}
-              onChange={(e) => setRecipientAccount(e.target.value.replace(/\D/g, ''))}
-              placeholder="Account number"
-              className="w-full bg-transparent text-[15px] text-white placeholder:text-zinc-600 focus:outline-none"
-            />
-          </div>
-          {isAccountValid && (
-            <div className="flex justify-between items-center mt-3 px-1">
-              <span className="text-sm font-semibold text-white">{recipientName}</span>
-              <span className="text-[13px] text-zinc-400">{bankName}</span>
-            </div>
-          )}
-        </section>
-
-        <section className="rounded-[28px] bg-[#1c1d22] p-5 pb-6 border border-white/5 relative mb-6">
-          <div className="flex justify-center mb-3">
-            <button className="inline-flex items-center gap-2 rounded-full bg-black px-3 py-1.5 text-xs font-semibold text-white border border-white/5">
-              <div className="h-4 w-4 rounded-full bg-indigo-500 flex items-center justify-center text-[8px]">
-                USDC
-              </div>
-              USDC
-              <ChevronDown className="h-3 w-3 text-zinc-500" />
-            </button>
-          </div>
-
-          <div className="text-center w-full mb-3">
-            <div className="flex items-center justify-center gap-1 relative">
+          <div className="flex flex-col gap-3">
+            <div
+              className={`flex items-center gap-3 rounded-lg p-3 border ${
+                isAccountValid
+                  ? "bg-[#1F1F1F] border-green-500"
+                  : showAccountError
+                    ? "bg-[#1F1F1F] border-red-500"
+                    : "bg-[#1F1F1F] border-transparent"
+              }`}
+            >
               <input
                 type="text"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9.]/g, '');
-                  const parts = val.split('.');
-                  if (parts.length > 2) return;
-                  setAmount(val);
-                }}
-                placeholder="0.00"
-                className={`w-full bg-transparent text-[42px] font-bold text-center placeholder:text-zinc-600 focus:outline-none ${isInsufficient ? 'text-red-500' : 'text-white'}`}
-                style={{ width: `${Math.max(3, amount.length)}ch` }}
+                inputMode="numeric"
+                value={recipientAccount}
+                onChange={(e) =>
+                  setRecipientAccount(e.target.value.replace(/\D/g, ""))
+                }
+                placeholder="Account number"
+                className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 focus:outline-none"
               />
             </div>
-            <div className="mt-2 text-[13px] text-zinc-400">
-              {balanceRaw}
-            </div>
-          </div>
-
-          <div className="absolute bottom-5 right-5">
-            <PenLine className="h-4 w-4 text-[#7c5cfc]" />
-          </div>
-          <div className="absolute bottom-5 left-0 right-0 text-center">
-            <span className="text-[11px] text-zinc-600">Enter amount</span>
+            {isAccountValid && (
+              <div className="flex justify-between items-center p-2.5 bg-[#1F1F1F]">
+                <span className="text-sm font-semibold text-[#F4F4F4]">
+                  {recipientName}
+                </span>
+                <span className="text-xs text-[#D5D5D5]">{bankName}</span>
+              </div>
+            )}
           </div>
         </section>
 
-        <section className="flex flex-wrap gap-2 mb-8 justify-center">
-          {quickAmounts.map((qAmount) => (
+        <section className="mt-6 rounded-2xl bg-[#2D2D2D] p-5">
+          <div className="flex flex-col items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setTokenSearchOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-[#101010] px-2.5 py-1.5 text-sm border border-white/5"
+            >
+              {tokenImg ? (
+                <img
+                  src={tokenImg}
+                  alt={token.symbol}
+                  className="h-5 w-5 rounded-full object-contain"
+                />
+              ) : (
+                <div className="h-5 w-5 rounded-full bg-indigo-500 flex items-center justify-center text-[10px]">
+                  {token.symbol?.[0]}
+                </div>
+              )}
+              {token.symbol}
+              <ChevronDown className="h-4 w-4 text-zinc-500" />
+            </button>
+
+            <div className="text-center w-full">
+              <div className="flex items-center justify-center gap-1 relative">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={amount === "0" ? "" : amount}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, "");
+                    const parts = val.split(".");
+                    if (parts.length > 2) return;
+                    setAmount(val || "0");
+                  }}
+                  placeholder="0.00"
+                  className={`w-full bg-transparent text-[44px] font-bold text-center focus:outline-none ${
+                    isInsufficient ? "text-red-500" : "text-white"
+                  } placeholder:text-zinc-600`}
+                  style={{ width: `${Math.max(4, amount.length)}ch` }}
+                />
+              </div>
+              <div className="mt-2 text-sm text-zinc-400">{balanceRaw}</div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="text-xs text-zinc-500 font-medium">
+                Enter amount
+              </span>
+              <PenLine className="h-3 w-3 text-violet-500 ml-6" />
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-4 flex flex-wrap gap-3 justify-between">
+          {["50", "200", "500"].map((qAmount) => (
             <button
               key={qAmount}
               type="button"
               onClick={() => setAmount(qAmount)}
-              className="inline-flex h-[34px] items-center rounded-full border border-white/10 bg-transparent px-4 text-[13px] font-medium text-white hover:bg-white/5 transition-colors"
+              className="inline-flex h-8 items-center rounded-full border border-[#AAAAAA] px-4 text-xs text-white hover:bg-white/10 transition-colors"
             >
               ₦{qAmount}
             </button>
@@ -202,50 +245,67 @@ export default function SendFiatPage() {
           <button
             type="button"
             onClick={() => setAmount(balanceRaw.toString())}
-            className="inline-flex h-[34px] items-center rounded-full border border-white/10 bg-transparent px-4 text-[13px] font-medium text-white hover:bg-white/5 transition-colors"
+            className="inline-flex h-8 items-center rounded-full border border-[#AAAAAA] px-4 text-xs text-white hover:bg-white/10 transition-colors"
           >
             Max
           </button>
           <button
             type="button"
-            className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/10 bg-transparent text-white hover:bg-white/5 transition-colors"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#AAAAAA] text-white hover:bg-white/10 transition-colors"
             aria-label="Scan QR"
           >
-            <ScanLine className="h-4 w-4" />
+            <ScanLine className="h-3 w-3" />
           </button>
         </section>
 
-        {isInsufficient && (
-          <div className="mb-6 rounded-xl bg-red-50 p-4 text-center">
-            <span className="text-[15px] font-semibold text-red-500">Insufficient funds</span>
-          </div>
-        )}
-
-        {!isInsufficient && (
-          <Button
-            type="button"
-            onClick={handleSendClick}
-            disabled={!isValid}
-            className={`h-14 w-full rounded-2xl text-[17px] font-medium text-white transition-all mb-8 ${isValid ? "bg-[#7c5cfc] hover:bg-[#6b4ce6] opacity-100" : "bg-[#c3b6fd] opacity-50 cursor-not-allowed"
-              }`}
-          >
-            Send
-          </Button>
-        )}
-
-        <section className="mb-4">
-          <p className="text-[13px] font-medium text-white mb-2">Narration</p>
-          <div className="rounded-2xl bg-[#1c1d22] px-4 py-4 border border-white/5">
+        <section className="mt-6">
+          <p className="text-sm font-medium text-zinc-400 mb-3">Narration</p>
+          <div className="rounded-2xl border border-[#C3BDEB] p-3">
             <input
               type="text"
               value={narration}
               onChange={(e) => setNarration(e.target.value)}
               placeholder="What's it for ?"
-              className="w-full bg-transparent text-[14px] text-white placeholder:text-zinc-600 focus:outline-none"
+              className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 focus:outline-none"
             />
           </div>
         </section>
       </div>
+
+      <div className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-md bg-[#16171d] px-5 pb-6 pt-3">
+        {isInsufficient ? (
+          <Button
+            type="button"
+            disabled
+            className="h-14 w-full rounded-2xl text-[17px] font-medium text-red-500 bg-[#ffe5e5] transition-all opacity-100"
+          >
+            Insufficient funds
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleSendClick}
+            disabled={!isValid}
+            className={`h-14 w-full rounded-2xl text-[17px] font-medium text-white transition-all ${
+              isValid
+                ? "bg-violet-500 hover:bg-violet-400 opacity-100"
+                : "bg-[#C3BDEB] opacity-50 cursor-not-allowed"
+            }`}
+          >
+            Send
+          </Button>
+        )}
+      </div>
+
+      <TokenSearchSheet
+        open={tokenSearchOpen}
+        onOpenChange={setTokenSearchOpen}
+        tokens={tokens}
+        onSelectToken={(selectedToken) => {
+          setToken(selectedToken);
+          setTokenSearchOpen(false);
+        }}
+      />
 
       <ConfirmFiatSheet
         open={confirmOpen}
@@ -273,12 +333,23 @@ export default function SendFiatPage() {
       <FiatSuccessSheet
         open={successOpen}
         onOpenChange={setSuccessOpen}
-        onDone={handleDoneFlow}
-        amount={amount}
-        recipientAccount={recipientAccount}
-        bankName={bankName}
-        fee="0.5%"
-        date={new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: 'numeric' }).replace(/\//g, '-')}
+        onDone={() => setFinalSuccessOpen(true)}
+        amount={amount || "10.00"}
+        recipientAccount={recipientAccount || "Anderson"}
+        bankName={"Feyi Opay"}
+        fee="₦0.00"
+        date={new Date().toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })}
+      />
+
+      <FinalSuccessScreen
+        open={finalSuccessOpen}
+        amount={amount || "10.00"}
+        recipientName={recipientAccount || "Anderson"}
+        bankName={"Feyi Opay"}
       />
     </div>
   );

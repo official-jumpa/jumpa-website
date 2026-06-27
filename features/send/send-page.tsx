@@ -1,18 +1,10 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { isAddress } from "viem";
-import {
-  ChevronDown,
-  ChevronLeft,
-  Delete,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, Delete } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "@/lib/pages-adapter";
-import {
-  defaultRecipient,
-  defaultToken,
-  mockTokens,
-} from "./mock-data";
+import { defaultRecipient, defaultToken, mockTokens } from "./mock-data";
 import ConfirmTransactionSheet from "./components/confirm-transaction-sheet";
 import PinSheet from "./components/pin-sheet";
 import RecipientSelectSheet from "./components/recipient-select-sheet";
@@ -56,27 +48,35 @@ export default function SendPage() {
     async function loadData() {
       const [recipientsRes, balancesRes] = await Promise.all([
         getRecipients(),
-        getBalances()
+        getBalances(),
       ]);
 
       if (recipientsRes.data?.recipients) {
-        setRecipients(recipientsRes.data.recipients.map(r => ({
-          id: r.address,
-          name: r.address.slice(0, 8) + "...",
-          address: r.address,
-          bank: `${r.token} Destination`
-        })));
+        setRecipients(
+          recipientsRes.data.recipients.map((r) => ({
+            id: r.address,
+            name: r.address.slice(0, 8) + "...",
+            address: r.address,
+            bank: `${r.token} Destination`,
+          })),
+        );
       }
 
       if (balancesRes.data?.tokens) {
-        const newTokens = balancesRes.data.tokens.map(t => ({
+        const newTokens = balancesRes.data.tokens.map((t) => ({
           id: t.symbol.toLowerCase(),
           symbol: t.symbol,
           name: t.name,
           balanceText: `${t.balance} ${t.symbol}`,
           balanceRaw: t.balance, // Added for 'Max' button
           iconLabel: t.symbol[0],
-          iconColor: t.symbol.includes("SOL") ? "bg-purple-500 text-white" : t.symbol.includes("BASE") ? "bg-blue-500 text-white" : t.symbol.includes("XLM") ? "bg-zinc-800 text-white" : "bg-indigo-500 text-white",
+          iconColor: t.symbol.includes("SOL")
+            ? "bg-purple-500 text-white"
+            : t.symbol.includes("BASE")
+              ? "bg-blue-500 text-white"
+              : t.symbol.includes("XLM")
+                ? "bg-zinc-800 text-white"
+                : "bg-indigo-500 text-white",
         }));
         setTokens(newTokens as any);
 
@@ -84,7 +84,13 @@ export default function SendPage() {
         if (newTokens.length > 0) {
           const state = location.state as any;
           const targetSymbol = state?.params?.token?.toUpperCase();
-          const found = targetSymbol ? newTokens.find(t => t.symbol.toUpperCase() === targetSymbol || t.symbol.toUpperCase().startsWith(targetSymbol + "-")) : null;
+          const found = targetSymbol
+            ? newTokens.find(
+                (t) =>
+                  t.symbol.toUpperCase() === targetSymbol ||
+                  t.symbol.toUpperCase().startsWith(targetSymbol + "-"),
+              )
+            : null;
           setToken((found || newTokens[0]) as any);
         }
       }
@@ -97,16 +103,21 @@ export default function SendPage() {
       if (state.params.recipient) {
         setRecipient({
           id: state.params.recipient,
-          name: state.params.recipient.startsWith("@") ? state.params.recipient.slice(1) : "AI Contact",
+          name: state.params.recipient.startsWith("@")
+            ? state.params.recipient.slice(1)
+            : "AI Contact",
           address: state.params.recipient,
-          bank: "Crypto Destination"
+          bank: "Crypto Destination",
         });
       }
       setSendMethodOpen(false);
     }
   }, [location.state]);
 
-  const [tokenSearchOpen, setTokenSearchOpen] = useState(false);
+  const [tokenSearchOpen, setTokenSearchOpen] = useState(() => {
+    const state = location.state as any;
+    return !(state?.intent === "SEND_FUNDS");
+  });
   const [recipientSheetOpen, setRecipientSheetOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
@@ -119,7 +130,12 @@ export default function SendPage() {
   const confirmAmount = amountValue.toString();
 
   const verifyPinAndSend = async (inputPin: string) => {
-    if (inputPin.length !== WALLET_PIN_LENGTH || processing || isSubmitting.current) return;
+    if (
+      inputPin.length !== WALLET_PIN_LENGTH ||
+      processing ||
+      isSubmitting.current
+    )
+      return;
 
     isSubmitting.current = true;
     setProcessing(true);
@@ -130,7 +146,7 @@ export default function SendPage() {
         to: recipient.address,
         amount: amount,
         token: token.symbol,
-        pin: inputPin
+        pin: inputPin,
       });
 
       if (res.error) {
@@ -149,12 +165,14 @@ export default function SendPage() {
         // Re-fetch recipients to update history
         const updatedRecs = await getRecipients();
         if (updatedRecs.data?.recipients) {
-          setRecipients(updatedRecs.data.recipients.map(r => ({
-            id: r.address,
-            name: r.address.slice(0, 8) + "...",
-            address: r.address,
-            bank: `${r.token} Destination`
-          })));
+          setRecipients(
+            updatedRecs.data.recipients.map((r) => ({
+              id: r.address,
+              name: r.address.slice(0, 8) + "...",
+              address: r.address,
+              bank: `${r.token} Destination`,
+            })),
+          );
         }
       }
     } catch (err) {
@@ -208,20 +226,20 @@ export default function SendPage() {
     navigate("/home");
   };
 
-  const isAddressValid = recipient.address ? (
-    token.symbol.includes("SOL")
+  const isAddressValid = recipient.address
+    ? token.symbol.includes("SOL")
       ? /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient.address)
       : token.symbol.includes("XLM")
         ? /^G[A-Z2-7]{55}$/.test(recipient.address)
         : isAddress(recipient.address)
-  ) : false;
+    : false;
   const isValid = amountValue > 0 && amountValue <= (token.balanceRaw || 0);
 
   const tokenImg = getCoinIcon(token.symbol);
 
   return (
     <div className="min-h-screen bg-[#16171d] text-white">
-      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 pb-32 pt-5">
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 pb-10 pt-5 gap-6">
         <header className="relative flex items-center justify-between pb-6">
           <button
             type="button"
@@ -244,7 +262,9 @@ export default function SendPage() {
           </button>
         </header>
 
-        <section className={`rounded-3xl bg-white/10 p-5 transition-all border-2 ${showAddressError && (!recipient.address || !isAddressValid) ? 'border-red-500' : 'border-transparent'}`}>
+        <section
+          className={`rounded-3xl bg-white/10 p-5 transition-all border-2 ${showAddressError && (!recipient.address || !isAddressValid) ? "border-red-500" : "border-transparent"}`}
+        >
           <p className="text-sm font-medium text-zinc-400">To:</p>
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex items-center gap-3 rounded-2xl bg-black/20 p-3">
@@ -260,7 +280,7 @@ export default function SendPage() {
                     ...recipient,
                     id: e.target.value,
                     address: e.target.value,
-                    name: e.target.value.slice(0, 8) + "..."
+                    name: e.target.value.slice(0, 8) + "...",
                   });
                 }}
                 placeholder="Paste wallet address (0x...)"
@@ -271,7 +291,9 @@ export default function SendPage() {
             <div className="flex items-center justify-between">
               <p className="text-xs text-zinc-500">
                 {showAddressError && !recipient.address ? (
-                  <span className="text-red-400">Recipient address required</span>
+                  <span className="text-red-400">
+                    Recipient address required
+                  </span>
                 ) : showAddressError && !isAddressValid ? (
                   <span className="text-red-400">Invalid wallet address</span>
                 ) : (
@@ -289,7 +311,7 @@ export default function SendPage() {
           </div>
         </section>
 
-        <section className="mt-4 rounded-3xl bg-white/10 p-5">
+        <section className=" rounded-3xl bg-white/10 p-5">
           <div className="flex flex-col items-center gap-4">
             <button
               type="button"
@@ -319,19 +341,23 @@ export default function SendPage() {
                     inputMode="decimal"
                     value={amount === "0" ? "" : amount}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.]/g, '');
-                      const parts = val.split('.');
+                      const val = e.target.value.replace(/[^0-9.]/g, "");
+                      const parts = val.split(".");
                       if (parts.length > 2) return;
                       setAmount(val || "0");
                     }}
                     placeholder="0"
                     className="w-full bg-transparent text-5xl font-bold text-center text-white placeholder:text-zinc-700 focus:outline-none"
                   />
-                  <span className="text-xl font-medium text-zinc-400 shrink-0">{token.symbol}</span>
+                  <span className="text-xl font-medium text-zinc-400 shrink-0">
+                    {token.symbol}
+                  </span>
                 </div>
                 <div className="mt-2 text-sm">
                   {amountValue > token.balanceRaw ? (
-                    <span className="text-red-400 font-medium">Insufficient balance ({token.balanceText})</span>
+                    <span className="text-red-400 font-medium">
+                      Insufficient balance ({token.balanceText})
+                    </span>
                   ) : amountValue > 0 ? (
                     <span className="text-green-500">Ready to send</span>
                   ) : (
@@ -343,7 +369,7 @@ export default function SendPage() {
           </div>
         </section>
 
-        <section className="mt-4 flex flex-wrap gap-3">
+        <section className="flex flex-wrap gap-3 justify-between">
           {quickAmounts.map((quickAmount) => (
             <button
               key={quickAmount}
@@ -363,7 +389,7 @@ export default function SendPage() {
           </button>
         </section>
 
-        <section className="mt-6 grid grid-cols-3 gap-4 rounded-t-3xl bg-white/10 p-6 pb-10">
+        <section className="mt-auto grid grid-cols-3 gap-4 rounded-t-3xl bg-white/10 p-6 pb-20 relative">
           {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((key) => (
             <button
               key={key}
@@ -397,10 +423,25 @@ export default function SendPage() {
           >
             <Delete className="h-6 w-6" />
           </button>
+
+          <Button
+            type="button"
+            onClick={() => {
+              if (!recipient.address || !isAddressValid) {
+                setShowAddressError(true);
+                return;
+              }
+              setConfirmOpen(true);
+            }}
+            // disabled={!isValid}
+            className={`mb-4 mt-6 left-6 right-6 h-14 rounded-[11px] text-lg text-white transition-all absolute bottom-0 ${"bg-violet-500 hover:bg-violet-400 opacity-100"}`}
+          >
+            Review
+          </Button>
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-md bg-[#16171d] px-5 pb-6 pt-3">
+      {/* <div className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-md bg-[#16171d] px-5 pb-6 pt-3">
         <Button
           type="button"
           onClick={() => {
@@ -411,17 +452,17 @@ export default function SendPage() {
             setConfirmOpen(true);
           }}
           disabled={!isValid}
-          className={`h-14 w-full rounded-xl text-lg text-white transition-all ${isValid ? "bg-violet-500 hover:bg-violet-400 opacity-100" : "bg-zinc-700 opacity-50 cursor-not-allowed"
-            }`}
+          className={`h-14 w-full rounded-xl text-lg text-white transition-all ${
+            isValid
+              ? "bg-violet-500 hover:bg-violet-400 opacity-100"
+              : "bg-zinc-700 opacity-50 cursor-not-allowed"
+          }`}
         >
           Send
         </Button>
-      </div>
+      </div> */}
 
-      <SendMethodSheet
-        open={sendMethodOpen}
-        onOpenChange={setSendMethodOpen}
-      />
+      <SendMethodSheet open={sendMethodOpen} onOpenChange={setSendMethodOpen} />
 
       <TokenSearchSheet
         open={tokenSearchOpen}
@@ -430,7 +471,7 @@ export default function SendPage() {
         onSelectToken={(selectedToken) => {
           setToken(selectedToken);
           setTokenSearchOpen(false);
-          setConfirmOpen(false);
+          setRecipientSheetOpen(true);
         }}
       />
 
