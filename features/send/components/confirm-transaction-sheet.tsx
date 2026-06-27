@@ -108,7 +108,9 @@ export default function ConfirmTransactionSheet({
                       {recipient.name}
                     </span>
                     <span className="text-[12px] text-[#AAAAAA] mt-0.5">
-                      {recipient.address}
+                      {recipient.address.length > 12
+                        ? `${recipient.address.slice(0, 6)}...${recipient.address.slice(-4)}`
+                        : recipient.address}
                     </span>
                   </div>
                 </div>

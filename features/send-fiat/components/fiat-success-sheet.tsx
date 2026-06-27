@@ -31,17 +31,18 @@ export default function FiatSuccessSheet({
         onClick={() => onOpenChange(false)}
       />
       <div
-        className="absolute left-1/2 bottom-0 w-full max-w-[400px] -translate-x-1/2 bg-[#101010] rounded-t-[32px] pb-[32px] z-[60] shadow-[0_-8px_30px_rgba(0,0,0,0.4)] animate-[slideUp_0.35s_ease-out_forwards]"
+        className="deposit-method-sheet"
+        style={{ zIndex: 60, height: "auto", paddingBottom: "32px" }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
         {/* Confetti Background at the top */}
-        <div className="absolute top-0 left-0 right-0 h-40 bg-[url('/assets/images/illustrations/confetti.png')] bg-cover bg-center rounded-t-4xl opacity-80 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-40 bg-[url('/assets/images/illustrations/confetti.svg')] bg-cover bg-center rounded-t-4xl opacity-80 pointer-events-none" />
 
         <button
           type="button"
-          className="absolute top-3.5 right-5.25 w-8.75 h-[35px] p-2 border-none rounded-[50.91px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer gap-2 z-10 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]"
+          className="absolute top-3.5 right-5.25 w-8.75 h-8.75 p-2 border-none rounded-[50.91px] bg-[#2d2d2d] flex items-center justify-center cursor-pointer gap-2 z-10 transition-colors duration-150 ease-out hover:bg-[#3a3a3a]"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
         >
@@ -109,7 +110,7 @@ export default function FiatSuccessSheet({
           <button
             type="button"
             onClick={onDone}
-            className="w-full h-[52px] rounded-2xl bg-[#6B52D9] hover:bg-[#5a42c0] text-white font-medium flex items-center justify-center transition-all active:scale-95"
+            className="w-full h-13 rounded-2xl bg-[#6B52D9] hover:bg-[#5a42c0] text-white font-medium flex items-center justify-center transition-all active:scale-95"
           >
             <span className="text-[15px]">Done</span>
           </button>

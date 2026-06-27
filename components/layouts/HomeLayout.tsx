@@ -89,7 +89,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("ETH");
   const [wallets, setWallets] = useState<UserWallet[]>([]);
 
-  const activeWallet = wallets.find(w => w.isSelected) || wallets[0] || null;
+  const activeWallet = wallets.find((w) => w.isSelected) || wallets[0] || null;
 
   useEffect(() => {
     const saved = localStorage.getItem("jumpa-selected-symbol");
@@ -115,23 +115,29 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     return res;
   }, []);
 
-  const handleSelectWallet = useCallback(async (address: string) => {
-    console.log("[HomeLayout] Selecting wallet address:", address);
-    const res = await selectWallet(address);
-    if (!res.error) {
-      await fetchWallets();
-    }
-  }, [fetchWallets]);
+  const handleSelectWallet = useCallback(
+    async (address: string) => {
+      console.log("[HomeLayout] Selecting wallet address:", address);
+      const res = await selectWallet(address);
+      if (!res.error) {
+        await fetchWallets();
+      }
+    },
+    [fetchWallets],
+  );
 
-  const handleRenameWallet = useCallback(async (address: string, name: string) => {
-    console.log("[HomeLayout] Renaming wallet:", address, "to:", name);
-    const res = await renameWallet(address, name);
-    if (!res.error) {
-      await fetchWallets();
-      return true;
-    }
-    return false;
-  }, [fetchWallets]);
+  const handleRenameWallet = useCallback(
+    async (address: string, name: string) => {
+      console.log("[HomeLayout] Renaming wallet:", address, "to:", name);
+      const res = await renameWallet(address, name);
+      if (!res.error) {
+        await fetchWallets();
+        return true;
+      }
+      return false;
+    },
+    [fetchWallets],
+  );
 
   // Load wallets on mount with retry logic (up to 3 times)
   useEffect(() => {
@@ -144,7 +150,9 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     ].some((p) => pathname === p || pathname?.startsWith(p + "/"));
 
     if (skipLoad) {
-      console.log("[HomeLayout] On onboarding/auth path. Skipping fetchWallets.");
+      console.log(
+        "[HomeLayout] On onboarding/auth path. Skipping fetchWallets.",
+      );
       return;
     }
 
@@ -153,12 +161,16 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     let timer: NodeJS.Timeout;
 
     async function run() {
-      console.log(`[HomeLayout] Running fetchWallets, attempt ${retryCount + 1}...`);
+      console.log(
+        `[HomeLayout] Running fetchWallets, attempt ${retryCount + 1}...`,
+      );
       const res = await fetchWallets();
       if (!active) return;
       if (!res.data && retryCount < 3) {
         retryCount++;
-        console.warn(`[HomeLayout] fetchWallets failed. Retrying (${retryCount}/3) in 5s...`);
+        console.warn(
+          `[HomeLayout] fetchWallets failed. Retrying (${retryCount}/3) in 5s...`,
+        );
         timer = setTimeout(run, 5000);
       }
     }
@@ -172,9 +184,14 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
 
   // Fetch balances reactively when active wallet changes, with 3 retry attempts
   useEffect(() => {
-    console.log("[HomeLayout] activeWallet address changed:", activeWallet?.address);
+    console.log(
+      "[HomeLayout] activeWallet address changed:",
+      activeWallet?.address,
+    );
     if (!activeWallet?.address) {
-      console.log("[HomeLayout] No activeWallet address. Skipping balances fetch.");
+      console.log(
+        "[HomeLayout] No activeWallet address. Skipping balances fetch.",
+      );
       return;
     }
 
@@ -187,7 +204,9 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     ].some((p) => pathname === p || pathname?.startsWith(p + "/"));
 
     if (skipLoad) {
-      console.log("[HomeLayout] On onboarding/auth path. Skipping fetchBalances.");
+      console.log(
+        "[HomeLayout] On onboarding/auth path. Skipping fetchBalances.",
+      );
       return;
     }
 
@@ -196,12 +215,16 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
     let timer: NodeJS.Timeout;
 
     async function run() {
-      console.log(`[HomeLayout] Running fetchBalances for address ${activeWallet.address}, attempt ${retryCount + 1}...`);
+      console.log(
+        `[HomeLayout] Running fetchBalances for address ${activeWallet.address}, attempt ${retryCount + 1}...`,
+      );
       const res = await fetchBalances();
       if (!active) return;
       if (!res.data && retryCount < 3) {
         retryCount++;
-        console.warn(`[HomeLayout] fetchBalances failed. Retrying (${retryCount}/3) in 5s...`);
+        console.warn(
+          `[HomeLayout] fetchBalances failed. Retrying (${retryCount}/3) in 5s...`,
+        );
         timer = setTimeout(run, 5000);
       }
     }
@@ -312,7 +335,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
   return (
     <HomeLayoutContext.Provider value={contextValue}>
       <div className="flex justify-center items-center min-h-screen bg-black font-sans text-[#f3f3f5]">
-        <div className="w-full max-w-[450px] h-screen h-[100dvh] bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+        <div className="w-full max-w-112.5 h-screen bg-[#171717] relative overflow-hidden mx-auto shadow-[0_0_40px_rgba(0,0,0,0.5)]">
           <div
             className={`h-full overflow-y-auto overflow-x-hidden scrollbar-none transition-[filter] duration-250 ease-out ${walletListOpen || selectedWallet || virtualAccountOpen || depositSheetOpen || sendMethodOpen ? "blur-md" : ""}`}
           >
@@ -363,7 +386,10 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           )}
 
           {drawerOpen && (
-            <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setDrawerOpen(false)} />
+            <div
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setDrawerOpen(false)}
+            />
           )}
 
           <SideDrawer
