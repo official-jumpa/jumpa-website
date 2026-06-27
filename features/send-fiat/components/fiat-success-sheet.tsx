@@ -38,7 +38,7 @@ export default function FiatSuccessSheet({
         aria-modal="true"
       >
         {/* Confetti Background at the top */}
-        <div className="absolute top-0 left-0 right-0 h-40 bg-[url('/assets/images/illustrations/confetti.svg')] bg-cover bg-center rounded-t-4xl opacity-80 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-40 bg-[url('/assets/images/illustrations/confetti.png')] bg-cover bg-center rounded-t-4xl opacity-80 pointer-events-none" />
 
         <button
           type="button"

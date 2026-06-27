@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "@/lib/pages-adapter";
 import { defaultRecipient, defaultToken, mockTokens } from "./mock-data";
 import ConfirmTransactionSheet from "./components/confirm-transaction-sheet";
-import PinSheet from "./components/pin-sheet";
+import SendPinSheet from "./components/send-pin-sheet";
 import RecipientSelectSheet from "./components/recipient-select-sheet";
 import SendMethodSheet from "./components/send-method-sheet";
 import SuccessSheet from "./components/success-sheet";
@@ -499,7 +499,7 @@ export default function SendPage() {
         onMakePayment={handleConfirmPayment}
       />
 
-      <PinSheet
+      <SendPinSheet
         open={pinOpen}
         onOpenChange={setPinOpen}
         pin={pin}

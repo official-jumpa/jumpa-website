@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "@/lib/pages-adapter";
 
 import ConfirmFiatSheet from "./components/confirm-fiat-sheet";
-import PinSheet from "@/features/send/components/pin-sheet";
+import SendPinSheet from "@/features/send/components/send-pin-sheet";
 import FiatSuccessSheet from "./components/fiat-success-sheet";
 import FinalSuccessScreen from "./components/final-success-screen";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
@@ -319,7 +319,7 @@ export default function SendFiatPage() {
         onMakePayment={handleConfirmPayment}
       />
 
-      <PinSheet
+      <SendPinSheet
         open={pinOpen}
         onOpenChange={setPinOpen}
         pin={pin}

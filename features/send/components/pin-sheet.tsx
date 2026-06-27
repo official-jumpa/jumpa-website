@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useEffect } from "react";
 import { Delete } from "lucide-react";
 import { WALLET_PIN_LENGTH } from "@/lib/wallet-pin";
@@ -33,7 +33,7 @@ export default function PinSheet({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (processing) return; // Disable keyboard while processing
-      
+
       if (e.key >= "0" && e.key <= "9") {
         onDigitPress(e.key);
       } else if (e.key === "Backspace") {
@@ -48,7 +48,12 @@ export default function PinSheet({
   }, [open, onDigitPress, onBackspace, onDone]);
 
   return (
-    <SheetShell open={open} onOpenChange={onOpenChange} title="Enter your pin" showHandle>
+    <SheetShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Enter your pin"
+      showHandle
+    >
       <div className="space-y-6 pb-3">
         <div className="flex flex-wrap justify-center gap-2">
           {Array.from({ length: WALLET_PIN_LENGTH }, (_, index) => (
@@ -88,7 +93,9 @@ export default function PinSheet({
           ) : processing ? (
             <div className="flex items-center justify-center gap-2 rounded-xl bg-violet-500/10 p-3 animate-pulse">
               <div className="h-4 w-4 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
-              <p className="text-sm font-medium text-violet-400">Broadcasting to network...</p>
+              <p className="text-sm font-medium text-violet-400">
+                Broadcasting to network...
+              </p>
             </div>
           ) : (
             <div className="h-[46px] invisible" /> // Maintain height
@@ -107,7 +114,7 @@ export default function PinSheet({
               {number}
             </button>
           ))}
-          <div /> 
+          <div />
           <button
             type="button"
             disabled={processing}
