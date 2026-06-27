@@ -12,7 +12,7 @@ import { useNavigate } from "@/lib/pages-adapter";
 import TransactionConfirmDrawer, { type TransactionDetails } from "@/features/send/components/TransactionConfirmDrawer";
 import OnrampSheet from "@/features/onramp/OnrampSheet";
 import OfframpSheet from "@/features/offramp/OfframpSheet";
-import { supportedBanks } from "@/lib/constants/banks";
+import { SwitchBanks } from "@/lib/SwitchBanks";
 import {
   type Screen,
   type VoiceFlow,
@@ -320,7 +320,7 @@ export default function GroupAiChat() {
   const [pendingTransaction, setPendingTransaction] = useState<TransactionDetails | null>(null);
 
   const handleOfframpBeneficiaryChange = useCallback((bankCode: string, accountNumber: string, accountName: string) => {
-    const selectedBank = supportedBanks.find(b => b.code === bankCode);
+    const selectedBank = SwitchBanks.find(b => b.code === bankCode);
     const bankName = selectedBank ? selectedBank.name : "";
 
     setOfframpDraft((prev) => {

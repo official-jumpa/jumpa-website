@@ -202,19 +202,28 @@ export const POST = withAuth(async (req, { address }) => {
           solKeypair.publicKey
         );
 
-        const destATA = await getOrCreateAssociatedTokenAccount(
-          connection,
-          solKeypair,
-          mintPubkey,
-          recipientPubkey
-        );
+        // Smart account check for destination
+        let finalDestAddress = recipientPubkey;
+        const accountInfo = await connection.getAccountInfo(recipientPubkey);
+
+        if (accountInfo && accountInfo.owner.toBase58() === TOKEN_PROGRAM_ID.toBase58()) {
+          finalDestAddress = recipientPubkey;
+        } else {
+          const destATAObj = await getOrCreateAssociatedTokenAccount(
+            connection,
+            solKeypair,
+            mintPubkey,
+            recipientPubkey
+          );
+          finalDestAddress = destATAObj.address;
+        }
 
         const amountRaw = BigInt(Math.floor(depositAmount * Math.pow(10, config.decimals)));
 
         const transaction = new SolTransaction().add(
           createTransferInstruction(
             sourceATA.address,
-            destATA.address,
+            finalDestAddress,
             solKeypair.publicKey,
             amountRaw,
             [],

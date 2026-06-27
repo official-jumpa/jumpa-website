@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
-import { validateAccountNumber } from "@/lib/paystack";
+import { SwitchUserBankDetails } from "@/lib/SwitchUserBankDetails";
 
 export const POST = withAuth(async (req) => {
   try {
@@ -9,8 +9,8 @@ export const POST = withAuth(async (req) => {
       return NextResponse.json({ error: "Missing accountNumber or bankCode" }, { status: 400 });
     }
 
-    const result = await validateAccountNumber(accountNumber, bankCode);
-    if (result && result.status === true && result.data?.account_name) {
+    const result = await SwitchUserBankDetails(bankCode, accountNumber);
+    if (result && result.success === true && result.data?.account_name) {
       return NextResponse.json({
         success: true,
         accountName: result.data.account_name
