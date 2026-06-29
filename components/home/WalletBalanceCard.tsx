@@ -45,11 +45,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [chainDropdownOpen]);
 
-  const handleCopy = (
-    e: React.MouseEvent,
-    address: string,
-    symbol: string
-  ) => {
+  const handleCopy = (e: React.MouseEvent, address: string, symbol: string) => {
     e.stopPropagation();
     navigator.clipboard.writeText(address);
     setCopiedSymbol(symbol);
@@ -60,7 +56,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
 
   // Resolve the active token from balances
   const activeToken = balances?.tokens?.find(
-    (t: any) => t.symbol === selectedSymbol
+    (t: any) => t.symbol === selectedSymbol,
   ) || {
     symbol: selectedSymbol,
     name: selectedSymbol === "ETH" ? "Ethereum" : "Multi-Chain",
@@ -89,12 +85,12 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
     balances.tokens.length === 0
   ) {
     return (
-      <div className="bg-[#1f1f1f] rounded-[20px] p-4 flex flex-col gap-1 animate-pulse h-[114px]">
+      <div className="bg-[#1f1f1f] rounded-[20px] p-4 flex flex-col gap-1 animate-pulse h-28.5">
         <div className="text-xs text-[#8b8b93] flex gap-2 items-center">
           Wallet Balance
           <span className="w-16 h-4 bg-[#252525] rounded-full" />
         </div>
-        <div className="flex items-center gap-[6px] my-1">
+        <div className="flex items-center gap-1.5 my-1">
           <div className="w-32 h-8 bg-[#252525] rounded" />
           <div className="w-6 h-6 bg-[#252525] rounded-full" />
         </div>
@@ -110,7 +106,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
         Wallet Balance
         <div ref={dropdownRef}>
           <button
-            className="flex items-center gap-1 bg-[#2c2c2c] hover:bg-[#353535] border border-[#3a3a3a] rounded-full px-2.5 py-[3px] cursor-pointer transition-colors duration-150"
+            className="flex items-center gap-1 bg-[#2c2c2c] hover:bg-[#353535] border border-[#3a3a3a] rounded-full px-2.5 py-0.75 cursor-pointer transition-colors duration-150"
             onClick={() => setChainDropdownOpen((prev) => !prev)}
             type="button"
             aria-haspopup="listbox"
@@ -135,13 +131,14 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
               className={`opacity-60 transition-transform duration-200 ${chainDropdownOpen ? "rotate-180" : ""}`}
             />
           </button>
- 
+
           {/* Chain Selector Dropdown Popover */}
           {chainDropdownOpen && (
             <div
-              className="absolute top-[48px] left-4 right-4 sm:left-4 sm:right-auto sm:w-[280px] bg-[#1a1a1b] border border-[#2a2a2d] rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden"
+              className="absolute top-12 left-4 right-4 sm:left-4 sm:right-auto sm:w-70 bg-[#1a1a1b] border border-[#2a2a2d] rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden"
               style={{
-                animation: "fadeSlideDown 0.2s cubic-bezier(0.16,1,0.3,1) forwards",
+                animation:
+                  "fadeSlideDown 0.2s cubic-bezier(0.16,1,0.3,1) forwards",
               }}
             >
               {/* Header */}
@@ -152,7 +149,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
               </div>
 
               {/* Chain List */}
-              <div className="flex flex-col py-1.5 max-h-[300px] overflow-y-auto scrollbar-none">
+              <div className="flex flex-col py-1.5 max-h-75 overflow-y-auto scrollbar-none">
                 {balances.tokens.map((token: any) => {
                   const isActive = selectedSymbol === token.symbol;
                   const tBalanceStr = token.balance;
@@ -256,7 +253,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
       </div>
 
       {/* Balance amount row */}
-      <div className="flex items-center gap-[6px] my-1">
+      <div className="flex items-center gap-1.5 my-1">
         {hidden ? (
           <img
             src={balanceCloseSvg}
@@ -291,15 +288,9 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
       <div
         className={`flex items-center gap-1 text-xs font-medium ${isUp ? "text-[#22c55e]" : "text-[#ef4444]"}`}
       >
-        <img
-          src={isUp ? graphUp : graphDown}
-          alt=""
-          width="18"
-          height="18"
-        />
+        <img src={isUp ? graphUp : graphDown} alt="" width="18" height="18" />
         <span>{hidden ? "••••" : "+0.00%"}</span>
       </div>
-
     </div>
   );
 };

@@ -406,10 +406,12 @@ body {
   max-height: min(359px, calc(100dvh - 120px));
 }
 
-@utility deposit-method-sheet-crypto {
+/* TODO: Uncomment this line to make the deposit sheet crypto to use this custom height */
+
+/* @utility deposit-method-sheet-crypto {
   height: 480px;
   max-height: min(480px, calc(100dvh - 60px));
-}
+} */
 
 @utility deposit-method-sheet-default {
   height: 436px;
