@@ -3,7 +3,7 @@
 *   **Project Name**: JUMPA
 *   **Submission Track**: Build Award (Integration Track)
 *   **Submission Category**: End User Application
-*   **Requested Budget**: $79,700
+*   **Requested Budget**: 89,700
 *   **Website**: [https://jumpa.xyz](https://jumpa.xyz)
 
 ***
