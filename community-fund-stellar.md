@@ -8,101 +8,188 @@
 
 ***
 
-## 1. Project Overview & Problem Statement
+## Architecture and Integration Document
 
-Emerging markets, particularly across Sub Saharan Africa and Southeast Asia, are experiencing rapid adoption of USD backed stablecoins to combat hyperinflation and local currency devaluation. However, standard cryptocurrency wallets and decentralized finance (DeFi) protocols remain inaccessible to average users due to significant technical friction:
-1.  **Seed Phrase Anxiety**: Managing twelve word recovery phrases represents a major single point of failure for non technical users.
-2.  **Gas Fee Complexity**: Requiring users to hold native tokens (like XLM, SOL, or ETH) simply to pay network fees for a stablecoin transaction creates immediate drop offs.
-3.  **Fragmented Financial Flows**: Users are forced to switch between multiple apps, off ramps, neobanks, and DeFi protocols just to receive, swap, save, or spend stablecoins.
+## What Jumpa Is
 
-**Jumpa** resolves this friction by introducing a **premium, chat native multi chain wallet interface** that lets users spend stablecoins like physical cash. Powered by **AI**, Jumpa translates natural language requests (e.g., *"Swap 50 XLM for USDC,"* *"Deposit $20 into my savings goal,"* or *"I want to cash in 50 USDC"*) into instant, on chain execution payloads.
+Jumpa is a multichain stablecoin wallet built for everyday users globally. It is already live and in use at **jumpa.xyz**. Users can open the application and type their commands in plain language, such as *send 10 USD to Ola*, *swap my XLM for USDC*, or *save 30 USD toward my school fees*. The application handles the remaining steps. This removes the need to manage seed phrases during transactions, eliminates the requirement to purchase gas tokens beforehand, and prevents the friction of switching between multiple applications.
 
-By utilizing a **sovereign security model** (client side AES 256 GCM encryption secured by a 6 digit PIN) and **gas abstraction**, Jumpa delivers a truly frictionless chat experience that hides blockchain complexity under a conversational interface.
+The product runs as a Next.js 15 application supporting Solana, Base, and Ethereum today. This document describes how we plan to integrate Stellar as a core network inside Jumpa, the technical details of that integration, and the foundation we have already established.
 
-***
+## The Four Core Features
 
-## 2. How Stellar is Used (Ecosystem Integrations)
+### Home: Your Balances Across Every Chain
 
-Jumpa operates as a multi chain wallet gateway. Under the **SCF Integration Track**, Jumpa will directly integrate **four key building blocks from the official SCF Integration List** into its core Next.js/React architecture:
+The home screen displays a single unified balance in USD, which is fetched in real time from all connected wallets. Below this balance is a row of action buttons: Send, Receive, Swap, and Save. Below the buttons is a scrollable history of recent transactions, each showing the network it settled on. We chose a chat first interface to remove the complexity associated with traditional Web3 wallets, making it accessible to any user globally who knows how to send a text message.
 
-### A. Soroswap Aggregator API (Stellar Swaps)
-Instead of building custom swap smart contracts, Jumpa will integrate the **Soroswap API** directly into our conversational loop:
-*   **Intent Parsing**: When a user inputs a swap request via chat (*"Swap 100 XLM for USDC"*), the AI assistant parses the token symbols and amount into a structured payload.
-*   **Quote & Build**: The Jumpa backend calls the Soroswap Quote API to retrieve the best aggregated route across Soroswap, Phoenix, and the classic Stellar DEX, then calls the Build API to retrieve the unsigned Transaction XDR.
-*   **On device Signing**: The transaction is decrypted and signed locally on device using the user's derived Stellar Keypair, then securely broadcast to Horizon.
+### The AI Chat: Where Transactions Actually Happen
 
-### B. MoneyGram Access & Mercuryo (SEP 24 Hosted Ramps)
-Instead of attempting to construct banking rails from scratch, Jumpa will integrate **MoneyGram** (for physical cash in and cash out) and **Mercuryo** (for card payments) using the Stellar standard **SEP 24** (Hosted Deposit & Withdrawal) and **SEP 10** (Authentication):
-*   **Interactive Sessions**: When a user requests an on ramp or off ramp via chat, Jumpa initiates a secure transaction with the respective anchor server and retrieves the interactive URL.
-*   **Seamless Overlay UI**: The interactive portal is opened in a sleek, overlay sheet (`OnrampSheet`/`OfframpSheet`) using an iframe, allowing the user to complete payment natively without leaving the chat interface.
+The chat interface is already built. Powered by Claude Sonnet , it accepts natural language inputs, parses the user intent, and displays a transaction confirmation card directly inside the chat bubble. This card details the assets, the exact amounts, estimated fees, and destination before any transaction is executed.
 
-### C. DeFindex Yield Infrastructure (Savings Goals)
-Jumpa features a native **Target Savings** module. Rather than keeping savings static, Jumpa will integrate **DeFindex** (Yield Infrastructure for Stellar):
-*   **Yield bearing Savings**: When a user deposits stablecoins into a savings goal via chat, the backend routes the deposit into decentralized DeFindex yield bearing pools on Stellar.
-*   **Auto harvesting**: Yield is tracked and displayed to the user in real time, allowing them to preserve purchasing power against high inflation local currencies.
+When the user confirms the details, they enter their PIN to sign and broadcast the transaction. This signing happens locally on the device, meaning private keys never leave the browser and are never exposed to our servers. Once confirmed, the chat updates with a success message and the transaction link.
 
-### D. Allbridge (Cross Chain Bridging)
-Since Jumpa is a unified multi chain interface supporting Solana, Base, and Stellar, cross chain interoperability is crucial. Jumpa will integrate the **Allbridge SDK/Widget** to allow users to seamlessly bridge stablecoins between Solana/Base and Stellar directly within the transaction confirmation drawer.
+This is a live feature. We have verified transaction hashes from real users to prove its readiness, which are listed in the traction section.
 
-***
+### Savings Goals: Financial Targets with Live Yield
 
-## 3. How This Integration Improves Jumpa
+The savings page helps users establish financial targets, such as emergency funds, education fees, or travel savings. Each target displays a progress ring showing the current percentage completed. When we integrate DeFindex, deposits will route to yield bearing Stellar pools instead of sitting idle. The savings dashboard will display a live APY percentage next to each goal.
 
-*   **Low Cost & Speed**: Integrating Stellar as a core payment corridor provides Jumpa users with near instant (3 to 5 seconds) transaction settlement and sub penny fees.
-*   **Gas Abstraction**: By leveraging Stellar's low fees, Jumpa can fully abstract gas. Users pay transaction fees in the asset being transferred (like USDC), while Jumpa handles the XLM network fees on the backend.
-*   **Absolute Compliance**: Integrating official Stellar anchor standards (SEP 10, SEP 24) ensures built in compliance, tiered KYC, and trusted transaction monitoring.
-*   **Highly Credible UX**: Replacing an overly ambitious roadmap with proven ecosystem integrations allows a lean team to deliver a production ready Web3 application within a competitive timeframe.
+### Onramp and Offramp: Depositing and Withdrawing
 
-***
+We currently support fiat deposits and withdrawals via Switch. For the Stellar integration, we will implement MoneyGram and Mercuryo using the SEP 24 standard. When a user requests a withdrawal, a drawer displays the anchor interactive portal where they can complete verification steps and select their local cash agent or card payment details. The anchor triggers a webhook upon completion, which updates the database record automatically.
 
-## 4. Deliverable Roadmap & Tranches
+## Technical Architecture
 
-### Tranche 1: Core Integration & SDK Foundations
-*   **Brief Description**: Establish the core integration layer for the Stellar Horizon connector, the Soroswap REST API, and hosted SEP 24 sandbox environments on Next.js/React.
-*   **Milestones & Deliverables**:
-    1.  **Stellar Key Derivation**: Standardize sovereign client side key derivation (BIP39 path `m/44'/148'/0'`) with `@stellar/stellar-sdk` and active Horizon testnet/mainnet account state sync.
-    2.  **Soroswap Backend Integrator**: Implement backend service handlers in Next.js to fetch quotes from `/quote` and construct transaction XDR envelopes from `/build` for testnet XLM/USDC pools.
-    3.  **SEP 24 Hosted Ramps Staging**: Embed the Mercuryo and MoneyGram testnet SEP 24 sandbox interactive environment within responsive frontend Sheets (`OnrampSheet`/`OfframpSheet`) via iframes.
-    4.  **AI Intent Upgrades**: Update the AI based natural language intent engine to parse, map, and output structured Stellar swap, deposit, and withdraw payloads.
-*   **How to Measure Completion**:
-    *   *Deliverable 1*: A screen captured video showing a user typing a Stellar swap request into the chat, the AI fetching an active quote from Soroswap on testnet, and displaying the transaction parameters.
-    *   *Deliverable 2*: Successful initialization of a sandboxed SEP 24 on ramp interactive window inside Jumpa's UI Sheet, loaded using testnet parameters.
-*   **Budget**: $20,000
+Jumpa separates operations across five layers:
 
-### Tranche 2: Conversational Loop & DeFi Yield Staging
-*   **Brief Description**: Complete the end to end conversational transaction loops on Stellar testnet and integrate the DeFindex yield savings module.
-*   **Milestones & Deliverables**:
-    1.  **End to end chat swaps**: Enable full Soroswap token swaps directly in the chat interface on testnet (AI quote to backend XDR build to client side signature decryption via PIN to Horizon broadcast).
-    2.  **Savings Yield Integration**: Wire Jumpa's Target Savings frontend module to DeFindex testnet pools, demonstrating automated USDC deposits and mock yield tracking.
-    3.  **Cross Chain Bridging**: Integrate Allbridge testnet support into the unified transaction confirmation drawer, allowing simulated Base to Stellar stablecoin transfers.
-*   **How to Measure Completion**:
-    *   *Deliverable 1*: A screen captured video showing a complete testnet swap cycle: the user initiates a swap in chat, inputs their 6 digit PIN to sign the transaction, and the backend successfully submits the transaction to Horizon (with transaction hash logs).
-    *   *Deliverable 2*: Working mockups and logs demonstrating testnet deposits and withdrawals into DeFindex yield pools from the savings dashboard.
-*   **Budget**: $26,700
+**Layer 1: User Interface.** React components styled with Tailwind v4. The chat interface, wallet dashboard, savings goals, and transaction overlays are complete.
 
-### Tranche 3: Production Mainnet Launch
-*   **Brief Description**: Deploy all four integrations to the Jumpa production environment on Stellar mainnet and verify the audit trail.
-*   **Milestones & Deliverables**:
-    1.  **Mainnet Deployments**: Push Soroswap, DeFindex yield, Allbridge, and MoneyGram/Mercuryo live on the Jumpa production web application.
-    2.  **Public Documentation**: Publish comprehensive user and developer guides detailing Jumpa's integration architecture, key derivation path, and data privacy safeguards on the official Jumpa website.
-    3.  **On chain verification**: Ensure 100% of all mainnet transaction histories are publicly audit verifiable via the Stellar Expert explorer.
-*   **How to Measure Completion (Mainnet Metrics)**:
-    *   *Metric 1*: At least **50 real cross border or swap transactions** successfully settled on Stellar mainnet.
-    *   *Metric 2*: A minimum of **$5000 in total value** successfully swapped or bridged on mainnet.
-    *   *Metric 3*: **20+ active savings goals** established by users routing live stablecoin assets into DeFindex mainnet yield pools.
-    *   *Metric 4*: Production dashboard is fully live and accessible on mainnet, verified by public URL links and transaction history.
-*   **Budget**: $33,000
+**Layer 2: AI Intent Engine.** A Next.js API route that takes a chat message, analyzes the conversation history using Claude Sonnet, and returns a structured JSON payload detailing the target action, asset, amount, and recipient. This engine is complete and live.
 
-***
+**Layer 3: Gateway.** Next.js route handlers that convert intent payloads into network requests. These currently manage Switch integrations, wallet balance lookups, and transaction broadcasts. We will build a new Stellar module with routes for Soroswap quotes, SEP 24 sessions, DeFindex deposits, and Allbridge bridging.
 
-## 5. Traction Evidence & Pilot Data
+**Layer 4: Sovereign Key Layer.** A client side security system where the seed phrase is decrypted locally in the browser to sign transactions, meaning private keys never touch our servers. This is already functional and includes the Stellar key derivation path.
 
-*   **Early Program Selection**: Selected as one of the 129 early stage startups (out of 1,200+ global applicants) for the SEVCP startup acceleration cohort.
-*   **Ecosystem Recognition**: Formally recognized by Solana SuperteamNG as one of the top high potential Web3 projects building payment solutions in the region.
-*   **Pilot User Traction**: Completed a closed pilot with **87 active testers**, facilitating **450+ mainnet transactions** and driving over **$3,000 in volume**.
-*   **Merchant Integration Pipeline**: Secured early expressions of interest (MoU) with **12 local merchants** across Nigeria, Kenya, and Thailand to integrate Jumpa's automated stablecoin payouts.
+**Layer 5: Chain Adapters.** The connectors to the blockchain networks. Currently, this includes Solana RPC clients, EVM providers, and the Stellar SDK. We will expand this layer to include Soroswap, SEP 24 anchor clients, DeFindex smart contracts, and the Allbridge SDK.
 
-***
+### The Swap Flow
+
+When a user asks to swap assets, the AI returns a quote from the aggregator. Once confirmed, the transaction is signed locally by the user and broadcast via Horizon. Jumpa handles fee sponsorship on the backend, ensuring the user experiences a gasless transaction.
+
+### Stellar Foundations in the Codebase
+
+While the Soroswap and SEP 24 modules are planned integrations for this grant, the foundation for Stellar is already live in our codebase:
+
+In our wallet derivation code, every new account derives a Stellar public key using the standard BIP39 path via the Stellar SDK. This happens automatically when a user signs up. Every user on our platform today already has a Stellar address assigned to their profile.
+
+In our transaction schema, the chain attributes already support Stellar and Stellar testnet.
+
+The Stellar SDK is already installed and imported in our key derivation library.
+
+### Planned File Structure
+
+This is the target file structure once the Stellar modules are completed. Items labeled with *[NEW]* are planned integrations, while the others are already live in the repository.
+
+```
+jumpa/
+├── app/api/
+│   ├── ai/intent/                  # Claude intent parser (live)
+│   ├── wallet/                     # Multichain balance and operations (live)
+│   ├── onramp/ and offramp/        # Fiat gateway handlers (live)
+│   └── stellar/                    # [NEW] Stellar integration gateway
+│       ├── swap/quote/             # Soroswap quote adapter
+│       ├── swap/build/             # Soroswap XDR builder
+│       ├── wallet/broadcast/       # Horizon broadcaster and Fee Bump wrapper
+│       ├── sep24/initiate/         # SEP 10 auth and interactive session URL
+│       ├── sep24/callback/         # Anchor webhook handler
+│       ├── yield/pools/            # DeFindex pool listing
+│       ├── yield/deposit/          # DeFindex deposit XDR builder
+│       ├── yield/stats/            # Real time APY per savings goal
+│       ├── bridge/quote/           # Allbridge fee quote
+│       └── bridge/execute/         # Allbridge lock and mint initiator
+│
+├── lib/
+│   ├── wallet.ts                   # Key derivation including Stellar (live)
+│   ├── crypto.ts                   # AES 256 GCM encryption (live)
+│   └── stellar/                    # [NEW] Stellar service clients
+│       ├── client.ts               # Horizon and network configuration
+│       ├── soroswap.ts             # Soroswap REST wrapper
+│       ├── sep24.ts                # SEP 10 and SEP 24 anchor client
+│       ├── defindex.ts             # DeFindex contract interface
+│       └── allbridge.ts            # Allbridge SDK connector
+│
+├── components/stellar/             # [NEW] Stellar UI views
+│   ├── OnrampSheet.tsx             # SEP 24 iframe drawer
+│   ├── OfframpSheet.tsx            # Physical cash withdrawal overlay
+│   └── YieldDashboard.tsx          # DeFindex APY display cards
+│
+└── models/
+    ├── Wallet.ts                   # Stores Stellar fields (live)
+    ├── Transaction.ts              # Stores Stellar chain attributes (live)
+    ├── RampTransaction.ts          # Deposit and withdrawal ledger (live)
+    └── SavingsGoal.ts              # [NEW] DeFindex yield tracking
+```
+
+### What We Will Build
+
+The integration work consists of four key developments:
+
+**Soroswap.** We will create an adapter to fetch quotes and build transactions. The quote will populate confirmation cards, and the unsigned payload from the build API will be signed locally and broadcast.
+
+**SEP 24 Anchors.** We will implement the SEP 10 challenge response authentication and fetch interactive URLs for deposits and withdrawals. These portals will render inside our existing drawer layouts. A callback route will update transaction states based on anchor webhooks.
+
+**DeFindex.** We will connect to the smart contracts to allow users to deposit savings goal funds directly into liquidity pools. We will extend the savings database model to track the pool address and yield, and add a stats API to fetch live earnings.
+
+**Allbridge.** We will integrate the Allbridge SDK to support cross chain stablecoin bridging. Users will be able to initiate transfers from Solana or Base directly to Stellar.
+
+## Traction and Proof of Work
+
+### Live Pilot Performance
+
+We validated our chat transaction flow through a closed pilot with 87 active testers. Users executed over 450 mainnet transactions for offramps and onramps, and settled more than $3,000 in volume using the chat interface.
+
+To avoid cluttering the documentation, the table below lists a selection of 20 representative transactions:
+
+| Chain | Amount & Asset | Value (USD) | Transaction Hash | Explorer Link |
+|---|---|---|---|---|
+| **Base** | 98.30 USDC | $98.30 | `0x4e99a9...b8d9` | [Basescan ↗](https://basescan.org/tx/0x4e99a96bb31b23a875b131398141e26fb83d3c1dd20b10248ab94a9e2922b8d9) |
+| **Solana** | 0.4816 SOL | $66.75 | `z4wZXF...VMhK` | [Solscan ↗](https://solscan.io/tx/z4wZXFp4NAjn1mQdpPyqqH4YY82bqH2DJ9dpcCevb4nXTLjruofs9FVWsRPJmVS8rzZiSQw8LE9ywEJ9UwtVMhK) |
+| **Solana** | 0.2550 SOL | $35.35 | `2GTVwT...udf9` | [Solscan ↗](https://solscan.io/tx/2GTVwTPxV7rjuz6uJFbsUUWLK35okmjDCCH6Ug7esk7LdDYuWmSV9rJQjLazWRzRo3p2Bg6yv25dptiKUbzucdf9) |
+| **Solana** | 0.2681 SOL | $33.73 | `3TeM12...Sxn7` | [Solscan ↗](https://solscan.io/tx/3TeM12LRLP8URjqotPjxR4ECviHsmsNFC5Waq6UzNnbpnjqCzCDzvawnYAnTDrBnsZjy8u5mycGYTcyFNWgSxn7L) |
+| **Base** | 30.00 USDC | $30.00 | `0x12f61e...cf0f` | [Basescan ↗](https://basescan.org/tx/0x12f61e03a6480f40d352aee89165a1e098e69765366be61e3eef5d0a7eccf0f2) |
+| **Base** | 30.00 USDC | $30.00 | `0x627ffc...1f7` | [Basescan ↗](https://basescan.org/tx/0x627ffc75b6f610be0763a88c9e995af19c342e5acdcf92242847be7d4b10c1f7) |
+| **Base** | 29.50 USDC | $29.50 | `0xdd60dc...058f` | [Basescan ↗](https://basescan.org/tx/0xdd60dcbeaf78adbdc620b1718f90ee3e6f2b798b7ac9d9617420fe767f76058f) |
+| **Base** | 25.60 USDC | $25.60 | `0xf61657...ab88` | [Basescan ↗](https://basescan.org/tx/0xf61657a6dcc8dfb9308ea31f2d8cd7e9b852074b16db35c29692b0ab705bab88) |
+| **Base** | 23.00 USDC | $23.00 | `0xee416d...ee89` | [Basescan ↗](https://basescan.org/tx/0xee416d47080770a75242d6a14b6da673fec288996593fcac2871c235a352ee89) |
+| **Base** | 22.00 USDC | $22.00 | `0xfe30ea...3275` | [Basescan ↗](https://basescan.org/tx/0xfe30eae35709610897af2f4fb8ef90abf472d80c5bcf069212950df20acd3275) |
+| **Base** | 22.00 USDC | $22.00 | `0x0a13dc...9570` | [Basescan ↗](https://basescan.org/tx/0x0a13dc6dea362657e6cf32ee9cf74032ece5befd144e6bb426d12c4259559570) |
+| **Base** | 21.88 USDC | $21.88 | `0xac85e9...6a11` | [Basescan ↗](https://basescan.org/tx/0xac85e9b3a36268b865404a4506013b753455b1b1b72721d134ebca71b91766a1) |
+| **Solana** | 0.1600 SOL | $21.84 | `3NyL4B...FPne` | [Solscan ↗](https://solscan.io/tx/3NyL4BMwWV61nHeKCdZNr96mtTd7TekxNMGS7nb2hDXMz5NuAeLjvpYtoDshCiyKSuUcTwd57wjZ4p81EcFPne7A) |
+| **Base** | 21.00 USDC | $21.00 | `0x1d1956...3c58` | [Basescan ↗](https://basescan.org/tx/0x1d195631f49e684b246108d40dc5553093ea492f3592dfc9585fc986b9d23c58) |
+| **Base** | 21.00 USDC | $21.00 | `0x848b1d...194b` | [Basescan ↗](https://basescan.org/tx/0x848b1daded76782f1ef7b66d132ce9e77a3625b217ba6cf996e532e6e692194b) |
+| **Base** | 21.00 USDC | $21.00 | `0xd12780...de0f` | [Basescan ↗](https://basescan.org/tx/0xd1278051313cc3c1428fa07044c7e6b9cb20d9bf49a2791b7a80db2e7e62de0f) |
+| **Base** | 21.00 USDC | $21.00 | `0x21d9a8...73e0` | [Basescan ↗](https://basescan.org/tx/0x21d9a826fd7b47322de9078294fd06181be61a20588bb5e175201af0e9f673e0) |
+| **Solana** | 0.2566 SOL | $20.92 | `4Rxrun...j63j` | [Solscan ↗](https://solscan.io/tx/4RxrunrmvKPyqYvuCM6yBUmA6Nj7FKPU9QYCG29yGzSsDEFBX9QskXr5wF2yKNC2hKKvNrhpzAuQAYc4uNxj63jo) |
+| **Base** | 20.00 USDC | $20.00 | `0xa67aab...a8b2` | [Basescan ↗](https://basescan.org/tx/0xa67aabd4361020d055385a444c96c51169c76c1146bd56b98a4d68393475a8b2) |
+| **Base** | 20.00 USDC | $20.00 | `0xfec771...42c` | [Basescan ↗](https://basescan.org/tx/0xfec7718a63f2742ce4bb2a878926c265caa80c1bc0dd63d9bdd0c6936c8f342c) |
+
+### Technical Readiness for Stellar
+
+We have already completed the foundation work to support Stellar in production:
+
+Every user on our platform automatically has a Stellar public key derived at account creation.
+
+Our database models store Stellar fields as standard attributes.
+
+Our transaction schemas support Stellar networks.
+
+The Stellar SDK is installed and integrated into our key derivation libraries.
+
+### External Validation
+
+Our team was selected for the SEVCP startup acceleration program out of 1,200 global applicants. We also received recognition from Solana SuperteamNG as a high potential Web3 payment solution.
+
+Our CEO previously directed product at Susu, which won both Privy and Circle global hackathons by delivering operational stablecoin savings modules.
+
+## Why Stellar Improves Jumpa
+
+Stellar addresses key limitations of Solana and Base for a global user base: true gas abstraction and compliant physical cash routing.
+
+On Solana and Base, users must hold native gas tokens to complete transactions. This adds friction because users have to monitor their gas balances. With Stellar Fee Bump Transactions, Jumpa can sponsor network fees. The user signs their transaction, our backend wraps it, and we cover the network fees. The user experiences fee free stablecoin transfers.
+
+Our current fiat integrations support bank transfers in specific regions but do not offer cash withdrawals. MoneyGram via SEP 24 resolves this globally without requiring custom local banking integrations. We load the anchor interactive portal inside our overlays, and the user can withdraw funds at physical cash locations in over 200 countries.
+
+DeFindex yield integrations will improve our savings module. Currently, USDC savings sit idle. Routing deposits into DeFindex yield pools allows users to protect their balances from inflation.
+
+Allbridge acts as the bridging connector. Users with balances on Solana or Base will be able to move stablecoins to Stellar directly from the chat interface.
+
+## Integration Roadmap
+
+**Tranche 1: Stellar Core Infrastructure.** We will establish connection to the Stellar Horizon client, construct the Soroswap quote and build APIs, and integrate the SEP 24 interactive windows within our overlays. We will verify completion with a testnet swap demonstration.
+
+**Tranche 2: Complete Transaction Loops.** We will implement end to end swaps on testnet, activate DeFindex smart contract routing, and embed the Allbridge bridging flow.
+
+**Tranche 3: Production Release.** We will deploy all four integrations to our mainnet environment. We target a baseline of 50 mainnet transactions, $5,000 in volume, and 20 active savings goals.
 
 ## 6. Team Profiles
 
