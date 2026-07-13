@@ -1,4 +1,4 @@
-import Settings from "@/components/home/Settings";
+import SettingsDashboard from "@/components/home/SettingsDashboard";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Settings />;
+  return <SettingsDashboard />;
 }
