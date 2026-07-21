@@ -3,7 +3,11 @@ import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
 import { Keypair as SolanaKeypair } from "@solana/web3.js";
 import { Keypair as StellarKeypair } from "@stellar/stellar-sdk";
+import * as bitcoin from "bitcoinjs-lib";
+import BIP32Factory from "bip32";
+import * as tinysecp from "tiny-secp256k1";
 
+const bip32 = BIP32Factory(tinysecp);
 // localStorage keys for wallet storage
 const WALLET_ADDRESS_KEY = "jumpa_wallet_address";
 const WALLET_ADDRESSES_KEY = "jumpa_wallet_addresses";
@@ -11,17 +15,17 @@ const WALLET_ADDRESSES_KEY = "jumpa_wallet_addresses";
 export interface DerivedWallet {
   addresses: {
     eth: string;
-    btc: string;
     base: string;
     sol: string;
     xlm: string;
+    btc: string;
   };
   publicKeys: {
     eth: string;
-    btc: string;
     base: string;
     sol: string;
     xlm: string;
+    btc: string;
   };
 }
 
@@ -29,15 +33,15 @@ export interface StoredWallet {
   address: string;
   addresses: {
     eth: string;
-    btc: string;
     base: string;
     sol: string;
     xlm: string;
+    btc: string;
   };
 }
 
 /**
- * Derives public addresses and raw public keys for ETH, BTC, SOL, and SOL
+ * Derives public addresses and raw public keys for ETH, SOL, and XLM
  * from a BIP39 mnemonic using viem (for EVM) and standard logic.
  */
 export function deriveAddresses(phrase: string): DerivedWallet {
@@ -58,20 +62,28 @@ export function deriveAddresses(phrase: string): DerivedWallet {
   const stellarKeypair = StellarKeypair.fromRawEd25519Seed(Buffer.from(stellarDerived));
   const xlmAddress = stellarKeypair.publicKey();
 
+  // Bitcoin Derivation m/84'/0'/0'/0/0 (Native SegWit)
+  const btcRoot = bip32.fromSeed(seed, bitcoin.networks.bitcoin);
+  const btcChild = btcRoot.derivePath("m/84'/0'/0'/0/0");
+  const { address: btcAddress } = bitcoin.payments.p2wpkh({
+    pubkey: btcChild.publicKey,
+    network: bitcoin.networks.bitcoin,
+  });
+
   return {
     addresses: {
       eth: ethAddress,
-      btc: "btc_placeholder",
       base: ethAddress,
       sol: solAddress,
       xlm: xlmAddress,
+      btc: btcAddress || "",
     },
     publicKeys: {
       eth: account.publicKey,
-      btc: "btc_pub_placeholder",
       base: account.publicKey,
       sol: solKeypair.publicKey.toBase58(),
       xlm: xlmAddress,
+      btc: Buffer.from(btcChild.publicKey).toString("hex"),
     },
   };
 }

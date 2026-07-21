@@ -436,7 +436,7 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
           {depositSheetOpen && (
             <DepositMethodSheet
               onClose={() => setDepositSheetOpen(false)}
-              address={balances?.address || ""}
+              addresses={balances?.addresses}
               selectedSymbol={selectedSymbol}
             />
           )}

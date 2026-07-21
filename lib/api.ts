@@ -52,10 +52,10 @@ async function request<T>(
 
 export interface WalletAddresses {
   eth: string;
-  btc: string;
   base: string;
   sol: string;
   xlm: string;
+  btc: string;
 }
 
 export interface WalletCreatedResponse {

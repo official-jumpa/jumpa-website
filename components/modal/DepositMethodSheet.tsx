@@ -14,7 +14,7 @@ export interface DepositMethodSheetProps {
   onClose: () => void;
   onSelectBank?: () => void;
   onSelectCrypto?: () => void;
-  address?: string;
+  addresses?: { eth: string; base: string; sol: string; xlm: string };
   selectedSymbol?: string;
 }
 
@@ -25,7 +25,7 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
   onClose,
   onSelectBank,
   onSelectCrypto,
-  address,
+  addresses,
   selectedSymbol,
 }) => {
   const [step, setStep] = useState<
@@ -44,14 +44,24 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
     "crypto",
   );
 
+  const EVM_CHAIN_IDS = ["ethereum", "base", "bnb", "polygon", "arbitrum", "optimism", "celo"];
+
+  const resolvedAddress =
+    EVM_CHAIN_IDS.includes(selectedChain) ? (addresses?.eth || addresses?.base || "")
+    : selectedChain === "solana"          ? (addresses?.sol || "")
+    : selectedChain === "stellar"         ? (addresses?.xlm || "")
+    : "";
+
   const CHAINS = [
     { id: "ethereum", label: "Ethereum" },
-    { id: "solana", label: "Solana" },
-    { id: "celo", label: "Celo" },
-    { id: "lisk", label: "Lisk" },
-    { id: "bnb", label: "BNB Chain" },
     { id: "base", label: "Base" },
-    { id: "nimiq", label: "Nimiq" },
+    { id: "bnb", label: "BNB Chain" },
+    { id: "polygon", label: "Polygon" },
+    { id: "arbitrum", label: "Arbitrum" },
+    { id: "optimism", label: "Optimism" },
+    { id: "celo", label: "Celo" },
+    { id: "solana", label: "Solana" },
+    { id: "stellar", label: "Stellar" },
   ];
 
   const CHAINS_COLLAPSED_COUNT = 5;
@@ -107,14 +117,14 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
   }, []);
 
   const handleCopyCrypto = useCallback(async () => {
-    if (!address) return;
+    if (!resolvedAddress) return;
     try {
-      await navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(resolvedAddress);
       setCopied(true);
     } catch {
       /* ignore */
     }
-  }, [address]);
+  }, [resolvedAddress]);
 
   if (step === "chain-select") {
     return (
@@ -362,7 +372,6 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
             style={{ minHeight: "auto" }}
           >
             <h2 className="m-0 font-sans font-bold text-lg leading-[120%] tracking-[-0.02em] text-white">
-              {/* Receive {selectedToken?.symbol || selectedSymbol || "Crypto"} */}
               Scan QR code
             </h2>
             <p className="m-0 max-w-50.75 font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#959595]/60 text-center">
@@ -372,13 +381,10 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
 
           <div className="my-4 mx-auto flex flex-col items-center justify-center rounded-[20px] bg-white/4 p-6 border border-white/8 w-full box-border">
             <div className="bg-white p-3 rounded-2xl mb-3 shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
-              <QRCodeSVG value={address || ""} size={160} />
+              <QRCodeSVG value={resolvedAddress} size={160} />
             </div>
-            {/* <span className="uppercase text-[10px] tracking-widest text-[#5a5a5a] font-semibold mb-1">
-              Your Wallet Address
-            </span> */}
             <span className="font-mono text-xs text-[#777777] text-center break-all leading-[1.45] max-w-55">
-              {address}
+              {resolvedAddress}
             </span>
             <button
               type="button"
@@ -395,27 +401,6 @@ const DepositMethodSheet: React.FC<DepositMethodSheetProps> = ({
           >
             Confirm
           </Button>
-
-          {/* <div className="w-full min-h-16.5 box-border bg-[#2d2d2d] rounded-2xl p-0">
-            <div className="w-full max-w-68 mx-auto min-h-9.75 py-3.5 px-4.75 box-border flex items-center justify-between gap-3">
-              <div className="flex flex-col gap-0.5 min-w-0 text-left">
-                <span className="font-sans font-semibold text-sm leading-[145%] tracking-[-0.02em] text-[#f4f4f4] break-all">
-                  {address}
-                </span>
-                <span className="font-sans font-normal text-xs leading-[145%] tracking-[-0.02em] text-[#5a5a5a]">
-                  Your {selectedToken?.symbol || selectedSymbol || "EVM"}{" "}
-                  Address
-                </span>
-              </div>
-              <button
-                type="button"
-                className={`w-20.75 min-h-6.25 box-border py-1 px-2.5 rounded-lg border bg-transparent cursor-pointer font-sans font-normal text-[10px] leading-[145%] tracking-[-0.02em] shrink-0 transition-all duration-150 ease-out hover:opacity-90 ${copied ? "text-[#25ad3e] border-[#25ad3e]" : "text-[#5a5a5a] border-[#aaaaaa]"}`}
-                onClick={handleCopyCrypto}
-              >
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-          </div> */}
         </div>
       </div>
     );
