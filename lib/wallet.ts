@@ -4,10 +4,7 @@ import { derivePath } from "ed25519-hd-key";
 import { Keypair as SolanaKeypair } from "@solana/web3.js";
 import { Keypair as StellarKeypair } from "@stellar/stellar-sdk";
 import * as bitcoin from "bitcoinjs-lib";
-import BIP32Factory from "bip32";
-import * as tinysecp from "tiny-secp256k1";
-
-const bip32 = BIP32Factory(tinysecp);
+import { HDKey } from "@scure/bip32";
 // localStorage keys for wallet storage
 const WALLET_ADDRESS_KEY = "jumpa_wallet_address";
 const WALLET_ADDRESSES_KEY = "jumpa_wallet_addresses";
@@ -63,10 +60,10 @@ export function deriveAddresses(phrase: string): DerivedWallet {
   const xlmAddress = stellarKeypair.publicKey();
 
   // Bitcoin Derivation m/84'/0'/0'/0/0 (Native SegWit)
-  const btcRoot = bip32.fromSeed(seed, bitcoin.networks.bitcoin);
-  const btcChild = btcRoot.derivePath("m/84'/0'/0'/0/0");
+  const btcRoot = HDKey.fromMasterSeed(seed);
+  const btcChild = btcRoot.derive("m/84'/0'/0'/0/0");
   const { address: btcAddress } = bitcoin.payments.p2wpkh({
-    pubkey: btcChild.publicKey,
+    pubkey: Buffer.from(btcChild.publicKey!),
     network: bitcoin.networks.bitcoin,
   });
 
@@ -83,7 +80,7 @@ export function deriveAddresses(phrase: string): DerivedWallet {
       base: account.publicKey,
       sol: solKeypair.publicKey.toBase58(),
       xlm: xlmAddress,
-      btc: Buffer.from(btcChild.publicKey).toString("hex"),
+      btc: Buffer.from(btcChild.publicKey!).toString("hex"),
     },
   };
 }
