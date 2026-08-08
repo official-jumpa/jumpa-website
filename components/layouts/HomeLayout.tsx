@@ -166,6 +166,13 @@ const HomeLayout: React.FC<HomeLayoutProps> = ({ children }) => {
       );
       const res = await fetchWallets();
       if (!active) return;
+      if (res.data && Array.isArray(res.data) && res.data.length === 0) {
+        console.log(
+          "[HomeLayout] User has no wallet. Redirecting to wallet creation flow...",
+        );
+        router.replace("/save-recovery?flow=create");
+        return;
+      }
       if (!res.data && retryCount < 3) {
         retryCount++;
         console.warn(

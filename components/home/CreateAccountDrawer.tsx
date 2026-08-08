@@ -48,7 +48,7 @@ export default function CreateAccountDrawer() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "/setup-pin",
+        callbackURL: "/home",
       });
     } catch (error) {
       console.error("[CreateAccountDrawer] Google sign-in failed:", error);

@@ -137,6 +137,23 @@ export async function getMyWallet(): Promise<ApiResponse<UserWallet>> {
   return { data: selected, error: null, status: 200 };
 }
 
+export interface ExportKeyResponse {
+  chain: string;
+  privateKey: string;
+}
+
+/** POST /api/wallet/export-key — decrypt seed phrase and single chain private key with PIN */
+export async function exportPrivateKey(
+  address: string,
+  pin: string,
+  chain: string = "eth"
+): Promise<ApiResponse<ExportKeyResponse>> {
+  return request<ExportKeyResponse>("/api/wallet/export-key", {
+    method: "POST",
+    body: JSON.stringify({ address, pin, chain }),
+  });
+}
+
 /** POST /api/auth/logout — clears the session cookie */
 export async function logout(): Promise<ApiResponse<{ message: string }>> {
   return request<{ message: string }>("/api/auth/logout", { method: "POST" });
